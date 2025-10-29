@@ -71,9 +71,12 @@ def init_admin(app) -> Admin:
     admin = Admin(
         app,
         name="Prefeitura de Orlândia",
-        template_mode="bootstrap4",
         index_view=ProtectedAdminIndexView(),
     )
+
+    # Comentário: compatibilidade com versões mais recentes do Flask-Admin.
+    if hasattr(admin, "template_mode"):
+        admin.template_mode = "bootstrap4"
 
     # Comentário: registra a view que permite gerenciar o modelo Page.
     admin.add_view(PageAdminView(Page, db.session, category="Conteúdo"))
