@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Legislação Municipal | Prefeitura Municipal de Orlândia{% endblock %}
+{% block content %}
+    <section class="page-header">
+        <div class="container">
+            <h1>Legislação Municipal</h1>
+            <p>Consulta simplificada às leis vigentes, projetos aprovados e normativas complementares.</p>
+        </div>
+    </section>
+    <section class="content-section">
+        <div class="container">
+            <ul class="document-list">
+                <li><a href="#"><i class="fas fa-file-pdf"></i> Lei Orgânica do Município</a></li>
+                <li><a href="#"><i class="fas fa-file-pdf"></i> Código Tributário Municipal</a></li>
+                <li><a href="#"><i class="fas fa-file-pdf"></i> Plano Diretor Participativo</a></li>
+                <li><a href="#"><i class="fas fa-file-pdf"></i> Estatuto dos Servidores Públicos</a></li>
+            </ul>
+            <div class="callout">
+                <p>Precisa de legislação específica? Busque pelo número da lei ou utilize nossa <a href="{{ url_for('servicos_links_uteis') }}">área de links úteis</a>.</p>
+            </div>
+        </div>
+    </section>
+{% endblock %}

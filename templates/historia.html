@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}História de Orlândia | Prefeitura Municipal de Orlândia{% endblock %}
+{% block content %}
+    <section class="page-header">
+        <div class="container">
+            <h1>História de Orlândia</h1>
+            <p>Conheça a trajetória de desenvolvimento do município desde as primeiras ocupações até os dias atuais.</p>
+        </div>
+    </section>
+    <section class="content-section">
+        <div class="container">
+            <article class="highlight-box">
+                <h2>Fundação e primeiros anos</h2>
+                <p>Orlândia nasceu a partir de fazendas do interior paulista e tornou-se município no início do século XX. A chegada da ferrovia impulsionou o crescimento econômico e trouxe novas famílias, consolidando o núcleo urbano.</p>
+                <p>O nome da cidade homenageia Dona Florinda Orlândia, benfeitora e figura importante para a região. As tradições agrícolas e o espírito empreendedor dos primeiros habitantes permanecem como pilares culturais.</p>
+            </article>
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>Marcos Históricos</h3>
+                    <ul>
+                        <li>1890 – Formação do povoado de Capela de São José da Grama.</li>
+                        <li>1906 – Criação do distrito de Orlândia.</li>
+                        <li>1912 – Elevação à categoria de município.</li>
+                        <li>Década de 1950 – Expansão industrial e urbana.</li>
+                    </ul>
+                </div>
+                <div class="info-card">
+                    <h3>Identidade Cultural</h3>
+                    <p>Eventos tradicionais, festas religiosas e manifestações artísticas preservam a memória local. Museus e arquivos históricos reúnem fotografias e documentos que contam a evolução da cidade.</p>
+                </div>
+            </div>
+            <div class="callout">
+                <p>Visite também a nossa <a href="{{ url_for('galeria_imagens') }}">galeria de imagens</a> para conhecer registros históricos e atuais do município.</p>
+            </div>
+        </div>
+    </section>
+{% endblock %}

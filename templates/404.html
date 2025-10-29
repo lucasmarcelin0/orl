@@ -1,52 +1,15 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Página não encontrada - Prefeitura de Orlândia</title>
-    <style>
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f5f6fa;
-            color: #1a4f8c;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-        }
-        .wrapper {
-            text-align: center;
-            padding: 40px;
-        }
-        h1 {
-            font-size: 4rem;
-            margin-bottom: 10px;
-        }
-        p {
-            font-size: 1.1rem;
-            color: #4a5668;
-            margin-bottom: 30px;
-        }
-        a {
-            display: inline-block;
-            padding: 12px 24px;
-            background-color: #1a4f8c;
-            color: white;
-            text-decoration: none;
-            border-radius: 6px;
-            transition: background-color 0.3s ease;
-        }
-        a:hover {
-            background-color: #163e6d;
-        }
-    </style>
-</head>
-<body>
-    <div class="wrapper">
-        <h1>404</h1>
-        <p>A página que você procura não foi encontrada.</p>
-        <a href="{{ url_for('index') }}">Voltar para a página inicial</a>
-    </div>
-</body>
-</html>
+{% extends "base.html" %}
+{% block title %}Página não encontrada | Prefeitura Municipal de Orlândia{% endblock %}
+{% block content %}
+    <section class="page-header">
+        <div class="container">
+            <h1>Ops! Página não encontrada.</h1>
+            <p>A página solicitada pode ter sido movida ou não está disponível. Utilize o menu para navegar pelo portal.</p>
+        </div>
+    </section>
+    <section class="content-section">
+        <div class="container">
+            <a class="button-link" href="{{ url_for('index') }}">Voltar à página inicial</a>
+        </div>
+    </section>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Dados do Município | Prefeitura Municipal de Orlândia{% endblock %}
+{% block content %}
+    <section class="page-header">
+        <div class="container">
+            <h1>Dados do Município</h1>
+            <p>Informações socioeconômicas e demográficas que auxiliam no planejamento de políticas públicas.</p>
+        </div>
+    </section>
+    <section class="content-section">
+        <div class="container">
+            <div class="highlight-box">
+                <h2>Indicadores Gerais</h2>
+                <table class="data-table">
+                    <tbody>
+                        <tr>
+                            <th>População estimada</th>
+                            <td>45.000 habitantes (IBGE 2023)</td>
+                        </tr>
+                        <tr>
+                            <th>Área territorial</th>
+                            <td>296 km²</td>
+                        </tr>
+                        <tr>
+                            <th>PIB per capita</th>
+                            <td>R$ 42.500,00</td>
+                        </tr>
+                        <tr>
+                            <th>IDH-M</th>
+                            <td>0,765</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>Economia</h3>
+                    <p>A economia orlandina é diversificada, com destaque para o agronegócio, indústria e setor de serviços. Programas municipais incentivam inovação, empreendedorismo e qualificação profissional.</p>
+                </div>
+                <div class="info-card">
+                    <h3>Educação</h3>
+                    <p>O município possui rede escolar com unidades de educação infantil, ensino fundamental e médio, além de parcerias com instituições de ensino técnico e superior para ampliar oportunidades.</p>
+                </div>
+                <div class="info-card">
+                    <h3>Saúde</h3>
+                    <p>Estrutura composta por unidades básicas de saúde, pronto atendimento e programas especializados. Investimentos contínuos modernizam a rede e garantem atendimento humanizado.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}
