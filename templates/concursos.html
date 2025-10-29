@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Concursos Públicos | Prefeitura Municipal de Orlândia{% endblock %}
+{% block content %}
+    <section class="page-header">
+        <div class="container">
+            <h1>Concursos Públicos</h1>
+            <p>Editais, cronogramas e resultados de concursos promovidos pela Prefeitura de Orlândia.</p>
+        </div>
+    </section>
+    <section class="content-section">
+        <div class="container">
+            <div class="card-list">
+                <div class="card-item">
+                    <h3>Concurso 01/2024</h3>
+                    <p><span class="badge">Inscrições abertas</span> - Cargos para áreas de Saúde, Educação e Administrativa.</p>
+                    <a class="button-link" href="#">Acessar edital</a>
+                </div>
+                <div class="card-item">
+                    <h3>Processo Seletivo Simplificado</h3>
+                    <p>Cadastro reserva para profissionais de apoio escolar. <a href="{{ url_for('processos_seletivos') }}">Veja mais detalhes.</a></p>
+                </div>
+            </div>
+        </div>
+    </section>
+{% endblock %}

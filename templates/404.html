@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Página não encontrada | Prefeitura Municipal de Orlândia{% endblock %}
+{% block content %}
+    <section class="page-header">
+        <div class="container">
+            <h1>Ops! Página não encontrada.</h1>
+            <p>A página solicitada pode ter sido movida ou não está disponível. Utilize o menu para navegar pelo portal.</p>
+        </div>
+    </section>
+    <section class="content-section">
+        <div class="container">
+            <a class="button-link" href="{{ url_for('index') }}">Voltar à página inicial</a>
+        </div>
+    </section>
+{% endblock %}
