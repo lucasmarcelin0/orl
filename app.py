@@ -8,6 +8,7 @@ from pathlib import Path
 from flask import Flask, render_template
 
 from admin import admin_bp
+from content_store import load_content
 
 
 def create_app() -> Flask:
@@ -18,13 +19,15 @@ def create_app() -> Flask:
     base_dir = Path(__file__).resolve().parent
     app.config.setdefault("SECRET_KEY", os.environ.get("SECRET_KEY", "altere-esta-chave"))
     app.config.setdefault("ADMIN_PASSWORD", os.environ.get("ADMIN_PASSWORD", "prefeitura"))
-    app.config.setdefault("INDEX_TEMPLATE_PATH", base_dir / "templates" / "index.html")
+    app.config.setdefault("PAGE_CONTENT_PATH", base_dir / "data" / "page_content.json")
 
     app.register_blueprint(admin_bp)
 
     @app.route("/")
     def index() -> str:
-        return render_template("index.html")
+        content_path = Path(app.config["PAGE_CONTENT_PATH"])
+        page_content = load_content(content_path)
+        return render_template("index.html", page=page_content)
 
     return app
 

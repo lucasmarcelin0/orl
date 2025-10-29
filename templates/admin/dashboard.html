@@ -1,64 +1,239 @@
 {% extends 'admin/base.html' %}
 
-{% block title %}Editor da Página Inicial{% endblock %}
+{% block title %}Construtor da Página Inicial{% endblock %}
 
 {% block content %}
-<div class="card">
-    <h2 style="margin-top: 0;">Editor da página inicial</h2>
-    <p style="color: var(--muted); margin-bottom: 24px;">
-        Utilize o editor abaixo para alterar diretamente o arquivo <strong>index.html</strong> que é exibido para a população no site oficial.
-        Antes de salvar, revise o conteúdo com atenção. Um backup automático é criado a cada alteração.
-    </p>
-
-    <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; color: var(--muted); font-size: 0.95rem;">
-        <div>
-            <strong>Última atualização:</strong>
-            {% if last_modified %}
-                {{ last_modified.strftime('%d/%m/%Y %H:%M') }}
-            {% else %}
-                Ainda não registrada.
-            {% endif %}
+<div class="card" style="margin-bottom: 32px; display: flex; flex-direction: column; gap: 24px;">
+    <header>
+        <h2 style="margin: 0;">Informações gerais da página</h2>
+        <p style="margin: 8px 0 0; color: var(--muted);">
+            Defina título, descrição e organize os blocos que compõem a página inicial. Os dados são gravados em um arquivo JSON e
+            podem ser restaurados pelos backups automáticos.
+        </p>
+        <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-top: 16px; color: var(--muted); font-size: 0.95rem;">
+            <div>
+                <strong>Última atualização:</strong>
+                {% if last_modified %}
+                    {{ last_modified.strftime('%d/%m/%Y %H:%M') }}
+                {% else %}
+                    Ainda não registrada.
+                {% endif %}
+            </div>
+            <div>
+                <strong>Último backup:</strong>
+                {% if last_backup %}
+                    {{ last_backup.name }}
+                {% else %}
+                    Ainda não disponível.
+                {% endif %}
+            </div>
         </div>
-        <div>
-            <strong>Último backup:</strong>
-            {% if last_backup %}
-                {{ last_backup.name }}
-            {% else %}
-                Ainda não disponível.
-            {% endif %}
-        </div>
-    </div>
+    </header>
 
     <form method="post" style="display: flex; flex-direction: column; gap: 16px;">
-        <label for="content" style="font-weight: 600;">Conteúdo do arquivo index.html</label>
-        <textarea
-            id="content"
-            name="content"
-            rows="25"
+        <input type="hidden" name="action" value="update_page">
+        <label for="page_title" style="font-weight: 600;">Título exibido na aba do navegador</label>
+        <input
+            id="page_title"
+            name="page_title"
+            type="text"
+            value="{{ page.title }}"
             required
-            style="width: 100%; padding: 16px; border-radius: var(--radius); border: 1px solid #d3d8e6; font-family: 'Fira Code', 'Courier New', monospace; font-size: 0.95rem; line-height: 1.5; white-space: pre;">
-{{ content|e }}
-        </textarea>
+            style="padding: 12px 14px; border-radius: var(--radius); border: 1px solid #d3d8e6; font-size: 1rem;"
+        >
 
-        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+        <label for="page_description" style="font-weight: 600;">Descrição breve (usada em compartilhamentos)</label>
+        <textarea
+            id="page_description"
+            name="page_description"
+            rows="3"
+            style="width: 100%; padding: 12px 14px; border-radius: var(--radius); border: 1px solid #d3d8e6; font-size: 1rem;">{{ page.description }}</textarea>
+
+        <button
+            type="submit"
+            style="align-self: flex-start; padding: 12px 18px; background: var(--primary); color: white; border: none; border-radius: var(--radius); font-size: 1rem; font-weight: 600; cursor: pointer;"
+        >Salvar informações gerais</button>
+    </form>
+</div>
+
+<div class="card" style="margin-bottom: 32px;">
+    <h3 style="margin-top: 0;">Adicionar novos blocos</h3>
+    <p style="margin-top: 8px; color: var(--muted);">
+        Escolha um modelo de bloco. Após adicionar ele aparecerá na lista para personalização.
+    </p>
+    <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: 16px;">
+        {% for type, label, description in [
+            ('hero', 'Destaque com banner', 'Área com imagem de fundo e botões de ação.'),
+            ('text', 'Texto livre', 'Título e parágrafos alinhados.'),
+            ('image', 'Imagem com texto', 'Bloco ilustrado com link opcional.'),
+            ('list', 'Lista de links', 'Links separados por linha para atalhos.'),
+            ('cta', 'Chamada para ação', 'Título, texto e botão de destaque.'),
+            ('custom', 'Bloco personalizado', 'Permite colar HTML próprio.')
+        ] %}
+        <form method="post" style="flex: 1 1 220px; min-width: 220px; border: 1px solid #d3d8e6; border-radius: var(--radius); padding: 16px; display: flex; flex-direction: column; gap: 12px; background: #f9fbff;">
+            <input type="hidden" name="action" value="add_section">
             <button
                 type="submit"
-                style="padding: 12px 18px; background: var(--primary); color: white; border: none; border-radius: var(--radius); font-size: 1rem; font-weight: 600; cursor: pointer;"
-            >
-                Salvar alterações
-            </button>
-            <a
-                href="{{ url_for('index') }}"
-                target="_blank"
-                style="display: inline-flex; align-items: center; padding: 12px 18px; border-radius: var(--radius); border: 1px solid #d3d8e6; font-weight: 600;"
-            >
-                Visualizar site
-            </a>
-        </div>
-    </form>
-
-    <p style="margin-top: 24px; color: var(--muted); font-size: 0.9rem;">
-        Dica: mantenha a estrutura HTML original e edite apenas os textos necessários. Para alterações mais avançadas procure a equipe de tecnologia.
-    </p>
+                name="section_type"
+                value="{{ type }}"
+                style="text-align: left; background: none; border: none; padding: 0; font-size: 1.05rem; font-weight: 600; color: var(--primary); cursor: pointer;"
+            >{{ label }}</button>
+            <span style="color: var(--muted); font-size: 0.9rem;">{{ description }}</span>
+        </form>
+        {% endfor %}
+    </div>
 </div>
+
+{% for section in sections %}
+    <div class="card" style="margin-bottom: 32px; display: flex; flex-direction: column; gap: 16px;">
+        <div style="display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;">
+            <div>
+                <span style="display: inline-flex; align-items: center; gap: 8px; font-weight: 600;">
+                    {{ section.title or 'Bloco sem título' }}
+                    <small style="padding: 4px 8px; background: #eef3ff; color: var(--primary); border-radius: 999px; text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.05em;">{{ section.type }}</small>
+                </span>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <form method="post" style="margin: 0;">
+                    <input type="hidden" name="action" value="move_up">
+                    <input type="hidden" name="section_id" value="{{ section.id }}">
+                    <button type="submit" title="Mover para cima" style="border: 1px solid #d3d8e6; background: white; padding: 8px 12px; border-radius: var(--radius); cursor: pointer;">⬆️</button>
+                </form>
+                <form method="post" style="margin: 0;">
+                    <input type="hidden" name="action" value="move_down">
+                    <input type="hidden" name="section_id" value="{{ section.id }}">
+                    <button type="submit" title="Mover para baixo" style="border: 1px solid #d3d8e6; background: white; padding: 8px 12px; border-radius: var(--radius); cursor: pointer;">⬇️</button>
+                </form>
+                <form method="post" style="margin: 0;" onsubmit="return confirm('Tem certeza que deseja remover este bloco?');">
+                    <input type="hidden" name="action" value="delete_section">
+                    <input type="hidden" name="section_id" value="{{ section.id }}">
+                    <button type="submit" title="Remover bloco" style="border: 1px solid #d3d8e6; background: white; padding: 8px 12px; border-radius: var(--radius); cursor: pointer; color: var(--danger);">🗑️</button>
+                </form>
+            </div>
+        </div>
+
+        <form method="post" style="display: flex; flex-direction: column; gap: 16px;">
+            <input type="hidden" name="action" value="update_section">
+            <input type="hidden" name="section_id" value="{{ section.id }}">
+
+            <label style="font-weight: 600;" for="title-{{ section.id }}">Título do bloco</label>
+            <input
+                id="title-{{ section.id }}"
+                type="text"
+                name="title"
+                value="{{ section.title }}"
+                style="padding: 12px 14px; border-radius: var(--radius); border: 1px solid #d3d8e6; font-size: 1rem;"
+            >
+
+            {% if section.type == 'hero' %}
+                <div style="display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <label for="subtitle-{{ section.id }}" style="font-weight: 600;">Subtítulo</label>
+                        <textarea id="subtitle-{{ section.id }}" name="subtitle" rows="3" style="padding: 12px 14px; border-radius: var(--radius); border: 1px solid #d3d8e6; font-size: 1rem;">{{ section.subtitle }}</textarea>
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <label for="background_image-{{ section.id }}" style="font-weight: 600;">Imagem de fundo (URL)</label>
+                        <input id="background_image-{{ section.id }}" type="url" name="background_image" value="{{ section.background_image }}" style="padding: 12px 14px; border-radius: var(--radius); border: 1px solid #d3d8e6; font-size: 1rem;">
+                    </div>
+                </div>
+
+                <div style="display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <label style="font-weight: 600;" for="primary_text-{{ section.id }}">Texto do botão principal</label>
+                        <input id="primary_text-{{ section.id }}" type="text" name="primary_text" value="{{ section.primary_text }}" style="padding: 12px 14px; border-radius: var(--radius); border: 1px solid #d3d8e6; font-size: 1rem;">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <label style="font-weight: 600;" for="primary_url-{{ section.id }}">Link do botão principal</label>
+                        <input id="primary_url-{{ section.id }}" type="url" name="primary_url" value="{{ section.primary_url }}" style="padding: 12px 14px; border-radius: var(--radius); border: 1px solid #d3d8e6; font-size: 1rem;">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <label style="font-weight: 600;" for="secondary_text-{{ section.id }}">Texto do botão secundário</label>
+                        <input id="secondary_text-{{ section.id }}" type="text" name="secondary_text" value="{{ section.secondary_text }}" style="padding: 12px 14px; border-radius: var(--radius); border: 1px solid #d3d8e6; font-size: 1rem;">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <label style="font-weight: 600;" for="secondary_url-{{ section.id }}">Link do botão secundário</label>
+                        <input id="secondary_url-{{ section.id }}" type="url" name="secondary_url" value="{{ section.secondary_url }}" style="padding: 12px 14px; border-radius: var(--radius); border: 1px solid #d3d8e6; font-size: 1rem;">
+                    </div>
+                </div>
+            {% elif section.type == 'text' %}
+                <label for="body-{{ section.id }}" style="font-weight: 600;">Conteúdo</label>
+                <textarea id="body-{{ section.id }}" name="body" rows="6" style="padding: 12px 14px; border-radius: var(--radius); border: 1px solid #d3d8e6; font-size: 1rem;">{{ section.body }}</textarea>
+
+                <label for="alignment-{{ section.id }}" style="font-weight: 600;">Alinhamento</label>
+                <select id="alignment-{{ section.id }}" name="alignment" style="padding: 12px 14px; border-radius: var(--radius); border: 1px solid #d3d8e6; font-size: 1rem;">
+                    {% for value, label in [('left', 'Esquerda'), ('center', 'Centralizado'), ('right', 'Direita')] %}
+                        <option value="{{ value }}" {% if section.alignment == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            {% elif section.type == 'image' %}
+                <label for="body-{{ section.id }}" style="font-weight: 600;">Descrição</label>
+                <textarea id="body-{{ section.id }}" name="body" rows="4" style="padding: 12px 14px; border-radius: var(--radius); border: 1px solid #d3d8e6; font-size: 1rem;">{{ section.body }}</textarea>
+
+                <div style="display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <label for="image_url-{{ section.id }}" style="font-weight: 600;">URL da imagem</label>
+                        <input id="image_url-{{ section.id }}" type="url" name="image_url" value="{{ section.image_url }}" style="padding: 12px 14px; border-radius: var(--radius); border: 1px solid #d3d8e6; font-size: 1rem;">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <label for="image_alt-{{ section.id }}" style="font-weight: 600;">Texto alternativo</label>
+                        <input id="image_alt-{{ section.id }}" type="text" name="image_alt" value="{{ section.image_alt }}" style="padding: 12px 14px; border-radius: var(--radius); border: 1px solid #d3d8e6; font-size: 1rem;">
+                    </div>
+                </div>
+
+                <div style="display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <label for="link_text-{{ section.id }}" style="font-weight: 600;">Texto do link</label>
+                        <input id="link_text-{{ section.id }}" type="text" name="link_text" value="{{ section.link_text }}" style="padding: 12px 14px; border-radius: var(--radius); border: 1px solid #d3d8e6; font-size: 1rem;">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <label for="link_url-{{ section.id }}" style="font-weight: 600;">URL do link</label>
+                        <input id="link_url-{{ section.id }}" type="url" name="link_url" value="{{ section.link_url }}" style="padding: 12px 14px; border-radius: var(--radius); border: 1px solid #d3d8e6; font-size: 1rem;">
+                    </div>
+                </div>
+
+                <label for="alignment-{{ section.id }}" style="font-weight: 600;">Posição da imagem</label>
+                <select id="alignment-{{ section.id }}" name="alignment" style="padding: 12px 14px; border-radius: var(--radius); border: 1px solid #d3d8e6; font-size: 1rem;">
+                    {% for value, label in [('left', 'Imagem à esquerda'), ('right', 'Imagem à direita'), ('center', 'Centralizada')] %}
+                        <option value="{{ value }}" {% if section.alignment == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            {% elif section.type == 'cta' %}
+                <label for="body-{{ section.id }}" style="font-weight: 600;">Descrição</label>
+                <textarea id="body-{{ section.id }}" name="body" rows="4" style="padding: 12px 14px; border-radius: var(--radius); border: 1px solid #d3d8e6; font-size: 1rem;">{{ section.body }}</textarea>
+
+                <div style="display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <label for="button_text-{{ section.id }}" style="font-weight: 600;">Texto do botão</label>
+                        <input id="button_text-{{ section.id }}" type="text" name="button_text" value="{{ section.button_text }}" style="padding: 12px 14px; border-radius: var(--radius); border: 1px solid #d3d8e6; font-size: 1rem;">
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <label for="button_url-{{ section.id }}" style="font-weight: 600;">Link do botão</label>
+                        <input id="button_url-{{ section.id }}" type="url" name="button_url" value="{{ section.button_url }}" style="padding: 12px 14px; border-radius: var(--radius); border: 1px solid #d3d8e6; font-size: 1rem;">
+                    </div>
+                </div>
+            {% elif section.type == 'list' %}
+                <label for="body-{{ section.id }}" style="font-weight: 600;">Descrição</label>
+                <textarea id="body-{{ section.id }}" name="body" rows="3" style="padding: 12px 14px; border-radius: var(--radius); border: 1px solid #d3d8e6; font-size: 1rem;">{{ section.body }}</textarea>
+
+                <label for="items-{{ section.id }}" style="font-weight: 600;">Itens (um por linha). Use "Texto | https://link" para definir o endereço.</label>
+                {% set ns = namespace(lines=[]) %}
+                {% for item in section.items %}
+                    {% set _ = ns.lines.append(item.label ~ (' | ' ~ item.url if item.url else '')) %}
+                {% endfor %}
+                <textarea id="items-{{ section.id }}" name="items" rows="5" style="padding: 12px 14px; border-radius: var(--radius); border: 1px solid #d3d8e6; font-size: 1rem;">{{ ns.lines | join('\n') }}</textarea>
+            {% elif section.type == 'custom' %}
+                <p style="color: var(--muted); font-size: 0.95rem;">
+                    Utilize este bloco apenas se precisar de um layout muito específico. O conteúdo será inserido diretamente como HTML.
+                </p>
+                <textarea id="html-{{ section.id }}" name="html" rows="10" style="padding: 12px 14px; border-radius: var(--radius); border: 1px solid #d3d8e6; font-family: 'Fira Code', 'Courier New', monospace; font-size: 0.95rem; line-height: 1.5;">{{ section.html }}</textarea>
+            {% endif %}
+
+            <button type="submit" style="align-self: flex-start; padding: 12px 18px; background: var(--primary); color: white; border: none; border-radius: var(--radius); font-size: 1rem; font-weight: 600; cursor: pointer;">Salvar bloco</button>
+        </form>
+    </div>
+{% else %}
+    <div class="card" style="text-align: center;">
+        <p style="margin: 0; color: var(--muted);">Nenhum bloco cadastrado ainda. Utilize os modelos acima para começar a construir a página.</p>
+    </div>
+{% endfor %}
 {% endblock %}

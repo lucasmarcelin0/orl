@@ -1,0 +1,63 @@
+{
+  "title": "Prefeitura Municipal de Orlândia",
+  "description": "Portal oficial com serviços, notícias e informações da Prefeitura Municipal de Orlândia.",
+  "sections": [
+    {
+      "id": "hero-1",
+      "type": "hero",
+      "title": "Bem-vindo a Orlândia",
+      "subtitle": "Serviços e informações sempre atualizados para você cuidar da sua cidade.",
+      "background_image": "https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&w=1600&q=80",
+      "primary_text": "Serviços ao cidadão",
+      "primary_url": "#",
+      "secondary_text": "Portal da transparência",
+      "secondary_url": "#"
+    },
+    {
+      "id": "texto-1",
+      "type": "text",
+      "title": "Notícias e avisos",
+      "body": "Utilize este bloco para destacar as principais novidades da prefeitura.\nEscreva mensagens curtas e objetivas para facilitar a leitura dos cidadãos.",
+      "alignment": "left"
+    },
+    {
+      "id": "lista-1",
+      "type": "list",
+      "title": "Acesso rápido",
+      "body": "Links úteis para serviços digitais e informações públicas.",
+      "items": [
+        {
+          "label": "Emissão de guias",
+          "url": "#"
+        },
+        {
+          "label": "Agendamento de serviços",
+          "url": "#"
+        },
+        {
+          "label": "Portal da transparência",
+          "url": "#"
+        }
+      ]
+    },
+    {
+      "id": "imagem-1",
+      "type": "image",
+      "title": "Programas municipais",
+      "body": "Divulgue campanhas, programas de saúde, educação e assistência social com imagens atrativas e links úteis.",
+      "image_url": "https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1600&q=80",
+      "image_alt": "Vista aérea da cidade",
+      "link_text": "Saiba mais",
+      "link_url": "#",
+      "alignment": "right"
+    },
+    {
+      "id": "cta-1",
+      "type": "cta",
+      "title": "Fale com a prefeitura",
+      "body": "Disponibilize canais de atendimento e incentive o cidadão a entrar em contato.",
+      "button_text": "Abrir canais de atendimento",
+      "button_url": "#"
+    }
+  ]
+}

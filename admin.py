@@ -5,7 +5,8 @@ from __future__ import annotations
 from datetime import datetime
 from functools import wraps
 from pathlib import Path
-from typing import Callable, Optional
+from typing import Any, Callable, Dict, List, Optional
+from uuid import uuid4
 
 from flask import (
     Blueprint,
@@ -18,54 +19,42 @@ from flask import (
     url_for,
 )
 
+from content_store import create_backup, load_content, save_content
+
 
 admin_bp = Blueprint("admin", __name__, template_folder="templates/admin")
 
 
-def _get_index_path() -> Path:
-    """Retorna o caminho completo do template index.html."""
+def _get_content_path() -> Path:
+    """Retorna o caminho completo do arquivo JSON com o conteúdo público."""
 
-    path = current_app.config.get("INDEX_TEMPLATE_PATH")
+    path = current_app.config.get("PAGE_CONTENT_PATH")
     if path is None:
-        raise RuntimeError("INDEX_TEMPLATE_PATH não está configurado na aplicação.")
+        raise RuntimeError("PAGE_CONTENT_PATH não está configurado na aplicação.")
     return Path(path)
 
 
-def _read_index_content() -> str:
-    """Lê o conteúdo atual do index.html."""
+def _load_page_content() -> Dict[str, Any]:
+    """Lê o conteúdo atual do site."""
 
-    path = _get_index_path()
-    if not path.exists():
-        return ""
-    return path.read_text(encoding="utf-8")
+    path = _get_content_path()
+    return load_content(path)
 
 
-def _write_index_content(content: str) -> None:
-    """Atualiza o arquivo index.html com o conteúdo fornecido."""
+def _save_page_content(data: Dict[str, Any]) -> None:
+    """Persiste as alterações realizadas no painel."""
 
-    path = _get_index_path()
-    path.write_text(content, encoding="utf-8")
-
-
-def _create_backup(original_content: str) -> Optional[Path]:
-    """Gera um backup do conteúdo anterior do index.html."""
-
-    if not original_content:
-        return None
-
-    backup_dir = Path(current_app.root_path) / "backups"
-    backup_dir.mkdir(exist_ok=True)
-
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    backup_path = backup_dir / f"index_{timestamp}.html"
-    backup_path.write_text(original_content, encoding="utf-8")
-    return backup_path
+    path = _get_content_path()
+    backups_dir = Path(current_app.root_path) / "backups"
+    if path.exists():
+        create_backup(path, backups_dir)
+    save_content(path, data)
 
 
 def _get_last_modified() -> Optional[datetime]:
-    """Retorna a data da última modificação do index.html."""
+    """Retorna a data da última modificação do arquivo de conteúdo."""
 
-    path = _get_index_path()
+    path = _get_content_path()
     if not path.exists():
         return None
     return datetime.fromtimestamp(path.stat().st_mtime)
@@ -78,8 +67,99 @@ def _get_last_backup() -> Optional[Path]:
     if not backup_dir.exists():
         return None
 
-    backups = sorted(backup_dir.glob("index_*.html"), reverse=True)
+    backups = sorted(backup_dir.glob("page_content_*.json"), reverse=True)
     return backups[0] if backups else None
+
+
+def _find_section(sections: List[Dict[str, Any]], section_id: str) -> Optional[Dict[str, Any]]:
+    for section in sections:
+        if section.get("id") == section_id:
+            return section
+    return None
+
+
+def _normalize_sections(data: Dict[str, Any]) -> List[Dict[str, Any]]:
+    sections = data.setdefault("sections", [])
+    if not isinstance(sections, list):
+        raise ValueError("Estrutura inválida: 'sections' deve ser uma lista.")
+    return sections
+
+
+def _create_section(section_type: str) -> Dict[str, Any]:
+    base: Dict[str, Any] = {"id": str(uuid4()), "type": section_type}
+    if section_type == "hero":
+        base.update(
+            {
+                "title": "Novo destaque",
+                "subtitle": "Apresente a principal mensagem da prefeitura.",
+                "background_image": "",
+                "primary_text": "Saiba mais",
+                "primary_url": "#",
+                "secondary_text": "",
+                "secondary_url": "",
+            }
+        )
+    elif section_type == "text":
+        base.update(
+            {
+                "title": "Título da seção",
+                "body": "Descreva as informações importantes para o cidadão.",
+                "alignment": "left",
+            }
+        )
+    elif section_type == "image":
+        base.update(
+            {
+                "title": "Imagem em destaque",
+                "body": "Explique o contexto da imagem e adicione um link se necessário.",
+                "image_url": "",
+                "image_alt": "",
+                "link_text": "",
+                "link_url": "",
+                "alignment": "right",
+            }
+        )
+    elif section_type == "cta":
+        base.update(
+            {
+                "title": "Chamada para ação",
+                "body": "Convide o cidadão a realizar um procedimento específico.",
+                "button_text": "Acessar",
+                "button_url": "#",
+            }
+        )
+    elif section_type == "list":
+        base.update(
+            {
+                "title": "Lista de links",
+                "body": "Organize atalhos úteis separando um por linha.",
+                "items": [],
+            }
+        )
+    elif section_type == "custom":
+        base.update(
+            {
+                "title": "Bloco personalizado",
+                "html": "<p>Insira aqui um conteúdo mais avançado.</p>",
+            }
+        )
+    else:
+        raise ValueError("Tipo de bloco desconhecido.")
+    return base
+
+
+def _parse_list_items(raw_items: str) -> List[Dict[str, str]]:
+    items: List[Dict[str, str]] = []
+    for line in raw_items.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        if "|" not in line:
+            items.append({"label": line, "url": "#"})
+            continue
+        label, url = line.split("|", 1)
+        items.append({"label": label.strip(), "url": url.strip()})
+    return items
 
 
 def _is_authenticated() -> bool:
@@ -138,29 +218,107 @@ def logout():
 def dashboard():
     """Tela principal do painel administrativo."""
 
-    current_content = _read_index_content()
+    try:
+        page_data = _load_page_content()
+    except ValueError as error:  # pragma: no cover - apenas para feedback
+        flash(str(error), "error")
+        page_data = {"title": "Página inicial", "description": "", "sections": []}
+
+    page_data.setdefault("title", "Página inicial")
+    page_data.setdefault("description", "")
+    sections = _normalize_sections(page_data)
     last_modified = _get_last_modified()
     last_backup = _get_last_backup()
 
     if request.method == "POST":
-        new_content = request.form.get("content", "")
+        action = request.form.get("action")
+        section_id = request.form.get("section_id")
 
-        if not new_content.strip():
-            flash("O conteúdo não pode ficar vazio.", "error")
-        else:
-            try:
-                _create_backup(current_content)
-                _write_index_content(new_content)
-            except OSError as error:  # pragma: no cover - apenas para feedback ao usuário
-                current_app.logger.exception("Erro ao salvar conteúdo do index.html")
-                flash(f"Não foi possível salvar o arquivo: {error}", "error")
+        try:
+            if action == "update_page":
+                page_data["title"] = request.form.get("page_title", "Página inicial").strip()
+                page_data["description"] = request.form.get("page_description", "").strip()
+                _save_page_content(page_data)
+                flash("Informações gerais atualizadas com sucesso!", "success")
+            elif action == "add_section":
+                section_type = request.form.get("section_type", "")
+                new_section = _create_section(section_type)
+                sections.append(new_section)
+                _save_page_content(page_data)
+                flash("Novo bloco adicionado. Personalize os campos e salve.", "success")
+            elif action == "delete_section" and section_id:
+                section = _find_section(sections, section_id)
+                if not section:
+                    raise ValueError("Bloco não encontrado.")
+                sections.remove(section)
+                _save_page_content(page_data)
+                flash("Bloco removido com sucesso.", "success")
+            elif action == "move_up" and section_id:
+                index = next((i for i, sec in enumerate(sections) if sec.get("id") == section_id), None)
+                if index is None or index == 0:
+                    raise ValueError("Não é possível mover este bloco para cima.")
+                sections[index - 1], sections[index] = sections[index], sections[index - 1]
+                _save_page_content(page_data)
+                flash("Ordem atualizada.", "success")
+            elif action == "move_down" and section_id:
+                index = next((i for i, sec in enumerate(sections) if sec.get("id") == section_id), None)
+                if index is None or index == len(sections) - 1:
+                    raise ValueError("Não é possível mover este bloco para baixo.")
+                sections[index + 1], sections[index] = sections[index], sections[index + 1]
+                _save_page_content(page_data)
+                flash("Ordem atualizada.", "success")
+            elif action == "update_section" and section_id:
+                section = _find_section(sections, section_id)
+                if not section:
+                    raise ValueError("Bloco não encontrado.")
+
+                section_type = section.get("type")
+                section["title"] = request.form.get("title", "").strip()
+
+                if section_type == "hero":
+                    section["subtitle"] = request.form.get("subtitle", "").strip()
+                    section["background_image"] = request.form.get("background_image", "").strip()
+                    section["primary_text"] = request.form.get("primary_text", "").strip()
+                    section["primary_url"] = request.form.get("primary_url", "").strip()
+                    section["secondary_text"] = request.form.get("secondary_text", "").strip()
+                    section["secondary_url"] = request.form.get("secondary_url", "").strip()
+                elif section_type == "text":
+                    section["body"] = request.form.get("body", "").strip()
+                    section["alignment"] = request.form.get("alignment", "left")
+                elif section_type == "image":
+                    section["body"] = request.form.get("body", "").strip()
+                    section["image_url"] = request.form.get("image_url", "").strip()
+                    section["image_alt"] = request.form.get("image_alt", "").strip()
+                    section["link_text"] = request.form.get("link_text", "").strip()
+                    section["link_url"] = request.form.get("link_url", "").strip()
+                    section["alignment"] = request.form.get("alignment", "right")
+                elif section_type == "cta":
+                    section["body"] = request.form.get("body", "").strip()
+                    section["button_text"] = request.form.get("button_text", "").strip()
+                    section["button_url"] = request.form.get("button_url", "").strip()
+                elif section_type == "list":
+                    section["body"] = request.form.get("body", "").strip()
+                    raw_items = request.form.get("items", "")
+                    section["items"] = _parse_list_items(raw_items)
+                elif section_type == "custom":
+                    section["html"] = request.form.get("html", "")
+                else:
+                    raise ValueError("Tipo de bloco desconhecido.")
+
+                _save_page_content(page_data)
+                flash("Bloco atualizado com sucesso!", "success")
             else:
-                flash("Página inicial atualizada com sucesso!", "success")
-                return redirect(url_for("admin.dashboard"))
+                flash("Ação não reconhecida.", "error")
+
+            return redirect(url_for("admin.dashboard"))
+        except (ValueError, OSError) as error:  # pragma: no cover - apenas feedback
+            current_app.logger.warning("Erro ao atualizar painel: %s", error)
+            flash(str(error), "error")
 
     return render_template(
         "admin/dashboard.html",
-        content=current_content,
+        page=page_data,
+        sections=sections,
         last_modified=last_modified,
         last_backup=last_backup,
     )
