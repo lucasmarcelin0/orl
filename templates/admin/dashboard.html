@@ -1,0 +1,64 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Editor da Página Inicial{% endblock %}
+
+{% block content %}
+<div class="card">
+    <h2 style="margin-top: 0;">Editor da página inicial</h2>
+    <p style="color: var(--muted); margin-bottom: 24px;">
+        Utilize o editor abaixo para alterar diretamente o arquivo <strong>index.html</strong> que é exibido para a população no site oficial.
+        Antes de salvar, revise o conteúdo com atenção. Um backup automático é criado a cada alteração.
+    </p>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 24px; color: var(--muted); font-size: 0.95rem;">
+        <div>
+            <strong>Última atualização:</strong>
+            {% if last_modified %}
+                {{ last_modified.strftime('%d/%m/%Y %H:%M') }}
+            {% else %}
+                Ainda não registrada.
+            {% endif %}
+        </div>
+        <div>
+            <strong>Último backup:</strong>
+            {% if last_backup %}
+                {{ last_backup.name }}
+            {% else %}
+                Ainda não disponível.
+            {% endif %}
+        </div>
+    </div>
+
+    <form method="post" style="display: flex; flex-direction: column; gap: 16px;">
+        <label for="content" style="font-weight: 600;">Conteúdo do arquivo index.html</label>
+        <textarea
+            id="content"
+            name="content"
+            rows="25"
+            required
+            style="width: 100%; padding: 16px; border-radius: var(--radius); border: 1px solid #d3d8e6; font-family: 'Fira Code', 'Courier New', monospace; font-size: 0.95rem; line-height: 1.5; white-space: pre;">
+{{ content|e }}
+        </textarea>
+
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <button
+                type="submit"
+                style="padding: 12px 18px; background: var(--primary); color: white; border: none; border-radius: var(--radius); font-size: 1rem; font-weight: 600; cursor: pointer;"
+            >
+                Salvar alterações
+            </button>
+            <a
+                href="{{ url_for('index') }}"
+                target="_blank"
+                style="display: inline-flex; align-items: center; padding: 12px 18px; border-radius: var(--radius); border: 1px solid #d3d8e6; font-weight: 600;"
+            >
+                Visualizar site
+            </a>
+        </div>
+    </form>
+
+    <p style="margin-top: 24px; color: var(--muted); font-size: 0.9rem;">
+        Dica: mantenha a estrutura HTML original e edite apenas os textos necessários. Para alterações mais avançadas procure a equipe de tecnologia.
+    </p>
+</div>
+{% endblock %}

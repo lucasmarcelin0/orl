@@ -1,0 +1,31 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Entrar - Administração{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 480px; margin: 0 auto;">
+    <h2 style="margin-top: 0; margin-bottom: 16px;">Acesso administrativo</h2>
+    <p style="margin-top: 0; color: var(--muted);">
+        Informe a senha de administração para atualizar a página principal do site.
+    </p>
+
+    <form method="post" style="display: flex; flex-direction: column; gap: 16px;">
+        <label for="password" style="font-weight: 600;">Senha</label>
+        <input
+            id="password"
+            type="password"
+            name="password"
+            required
+            autofocus
+            style="padding: 12px 14px; border-radius: var(--radius); border: 1px solid #d3d8e6; font-size: 1rem;"
+        >
+
+        <button
+            type="submit"
+            style="padding: 12px 18px; background: var(--primary); color: white; border: none; border-radius: var(--radius); font-size: 1rem; font-weight: 600; cursor: pointer;"
+        >
+            Entrar
+        </button>
+    </form>
+</div>
+{% endblock %}
