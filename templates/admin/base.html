@@ -133,12 +133,7 @@
             <h1>Administração - Prefeitura de Orlândia</h1>
             <nav>
                 <a href="{{ url_for('index') }}" target="_blank">Ver site</a>
-                {% if session.get('admin_authenticated') %}
-                    <a href="{{ url_for('admin.dashboard') }}">Editor</a>
-                    <a href="{{ url_for('admin.logout') }}">Sair</a>
-                {% else %}
-                    <a href="{{ url_for('admin.login') }}">Entrar</a>
-                {% endif %}
+                <a href="{{ url_for('admin.index') }}">Editor</a>
             </nav>
         </div>
     </header>

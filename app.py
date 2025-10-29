@@ -57,7 +57,12 @@ def create_app() -> Flask:
     def show_page(slug: str) -> str:
         """Exibe o conteúdo dinâmico associado ao slug informado."""
 
-        page = Page.query.filter_by(slug=slug).first()
+        try:
+            page = Page.query.filter_by(slug=slug).first()
+        except OperationalError:
+            # Comentário: quando o banco ainda não foi inicializado, evita erro 500.
+            abort(404)
+
         if page is None:
             abort(404)
         return render_template("dynamic_page.html", page=page)
