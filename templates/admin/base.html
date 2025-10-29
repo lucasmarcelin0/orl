@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Administração - Prefeitura de Orlândia{% endblock %}</title>
+    <style>
+        :root {
+            --primary: #1a4f8c;
+            --primary-dark: #12345d;
+            --danger: #e63946;
+            --success: #2a9d8f;
+            --background: #f5f7fb;
+            --text: #1f2d3d;
+            --muted: #6b7c93;
+            --radius: 12px;
+            --shadow: 0 10px 25px rgba(18, 52, 93, 0.08);
+        }
+
+        * {
+            box-sizing: border-box;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background: var(--background);
+            color: var(--text);
+        }
+
+        a {
+            color: var(--primary);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        header {
+            background: white;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .header-content {
+            max-width: 1024px;
+            margin: 0 auto;
+            padding: 18px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-content h1 {
+            margin: 0;
+            font-size: 1.4rem;
+            color: var(--primary);
+        }
+
+        nav {
+            display: flex;
+            gap: 16px;
+        }
+
+        nav a {
+            font-weight: 600;
+        }
+
+        main {
+            max-width: 1024px;
+            margin: 32px auto;
+            padding: 0 24px 48px;
+        }
+
+        .card {
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 32px;
+        }
+
+        .messages {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .message {
+            padding: 14px 18px;
+            border-radius: var(--radius);
+            border-left: 4px solid transparent;
+        }
+
+        .message.success {
+            background: rgba(42, 157, 143, 0.12);
+            border-color: var(--success);
+            color: var(--success);
+        }
+
+        .message.error {
+            background: rgba(230, 57, 70, 0.12);
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        footer {
+            text-align: center;
+            padding: 24px;
+            color: var(--muted);
+            font-size: 0.85rem;
+        }
+
+        @media (max-width: 720px) {
+            .header-content {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+
+            nav {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1>Administração - Prefeitura de Orlândia</h1>
+            <nav>
+                <a href="{{ url_for('index') }}" target="_blank">Ver site</a>
+                {% if session.get('admin_authenticated') %}
+                    <a href="{{ url_for('admin.dashboard') }}">Editor</a>
+                    <a href="{{ url_for('admin.logout') }}">Sair</a>
+                {% else %}
+                    <a href="{{ url_for('admin.login') }}">Entrar</a>
+                {% endif %}
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        {% with messages = get_flashed_messages(with_categories=True) %}
+            {% if messages %}
+                <div class="messages">
+                    {% for category, message in messages %}
+                        <div class="message {{ category }}">{{ message }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+        Painel administrativo destinado aos colaboradores autorizados da Prefeitura Municipal de Orlândia.
+    </footer>
+</body>
+</html>
