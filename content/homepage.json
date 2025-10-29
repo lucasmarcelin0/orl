@@ -1,0 +1,176 @@
+{
+  "hero": {
+    "title": "Bem-vindo à Orlândia",
+    "subtitle": "Encontre informações, serviços e notícias sobre nossa cidade. Um governo transparente e próximo do cidadão.",
+    "search_placeholder": "O que você está procurando?",
+    "actions": [
+      {"label": "Acessar serviços", "url": "#servicos"},
+      {"label": "Portal da Transparência", "url": "#transparencia"}
+    ]
+  },
+  "quick_access": {
+    "title": "Acesso Rápido",
+    "items": [
+      {"label": "Editais e Licitações", "url": "#"},
+      {"label": "Concursos Públicos", "url": "#"},
+      {"label": "IPTU Online", "url": "#"},
+      {"label": "Alvarás", "url": "#"}
+    ]
+  },
+  "emergency": {
+    "title": "Serviços de Emergência",
+    "description": "Em caso de emergência, entre em contato com os serviços abaixo:",
+    "contacts": [
+      {"name": "SAMU", "phone": "192"},
+      {"name": "Bombeiros", "phone": "193"},
+      {"name": "Polícia Militar", "phone": "190"},
+      {"name": "Pronto Socorro", "phone": "(16) 3820-2000"}
+    ]
+  },
+  "sections": [
+    {
+      "id": "services",
+      "title": "Serviços ao Cidadão",
+      "description": "Acesse os principais serviços oferecidos pela prefeitura de forma rápida e fácil",
+      "items": [
+        {
+          "title": "Acesso à Informação",
+          "description": "Consulte informações públicas e dados governamentais",
+          "icon": "fas fa-info-circle",
+          "url": "#"
+        },
+        {
+          "title": "Cidadão Web",
+          "description": "Serviços online para o cidadão de Orlândia",
+          "icon": "fas fa-laptop-house",
+          "url": "#"
+        },
+        {
+          "title": "Portal da Transparência",
+          "description": "Acompanhe as finanças e gastos públicos",
+          "icon": "fas fa-chart-line",
+          "url": "#"
+        },
+        {
+          "title": "Jornal Oficial",
+          "description": "Publicações oficiais do município",
+          "icon": "fas fa-newspaper",
+          "url": "#"
+        },
+        {
+          "title": "Consulta CEP",
+          "description": "Encontre códigos de endereçamento postal",
+          "icon": "fas fa-map-marked-alt",
+          "url": "#"
+        },
+        {
+          "title": "Glossário de Termos",
+          "description": "Entenda os termos técnicos utilizados",
+          "icon": "fas fa-book",
+          "url": "#"
+        },
+        {
+          "title": "Cirurgia Eletiva",
+          "description": "Informações sobre procedimentos cirúrgicos",
+          "icon": "fas fa-procedures",
+          "url": "#"
+        },
+        {
+          "title": "Estudante Universitário",
+          "description": "Programas e benefícios para estudantes",
+          "icon": "fas fa-user-graduate",
+          "url": "#"
+        }
+      ]
+    },
+    {
+      "id": "news",
+      "title": "Notícias e Avisos",
+      "description": "Fique por dentro das últimas novidades e comunicados oficiais",
+      "items": [
+        {
+          "title": "Prefeitura anuncia novo programa de assistência social",
+          "description": "Iniciativa visa atender famílias em situação de vulnerabilidade com apoio integral.",
+          "date": "15 de Outubro, 2023",
+          "image": "https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?auto=format&fit=crop&w=1170&q=80",
+          "url": "#"
+        },
+        {
+          "title": "Orlândia comemora melhor índice de saneamento básico",
+          "description": "Cidade alcança 98% de cobertura de água tratada e esgoto sanitário.",
+          "date": "12 de Outubro, 2023",
+          "image": "https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&w=1174&q=80",
+          "url": "#"
+        },
+        {
+          "title": "Secretaria de Educação abre inscrições para cursos técnicos",
+          "description": "Oportunidades em diversas áreas com vagas limitadas.",
+          "date": "10 de Outubro, 2023",
+          "image": "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1170&q=80",
+          "url": "#"
+        }
+      ]
+    },
+    {
+      "id": "transparency",
+      "title": "Transparência e Dados Abertos",
+      "description": "Acesso rápido aos principais relatórios e dados públicos",
+      "items": [
+        {"title": "Plano Plurianual", "icon": "fas fa-chart-pie", "url": "#"},
+        {"title": "Relatórios de Gestão", "icon": "fas fa-file-alt", "url": "#"},
+        {"title": "Gastos com COVID-19", "icon": "fas fa-virus", "url": "#"},
+        {"title": "Pesquisa de Satisfação", "icon": "fas fa-smile", "url": "#"},
+        {"title": "Lista de Obras", "icon": "fas fa-hard-hat", "url": "#"},
+        {"title": "Iluminação Pública", "icon": "fas fa-lightbulb", "url": "#"}
+      ]
+    }
+  ],
+  "footer": {
+    "columns": [
+      {
+        "title": "Prefeitura Municipal",
+        "items": [
+          {"label": "Sobre a Prefeitura", "url": "#"},
+          {"label": "Prefeito e Secretários", "url": "#"},
+          {"label": "Estrutura Organizacional", "url": "#"},
+          {"label": "História de Orlândia", "url": "#"},
+          {"label": "Editais e Licitações", "url": "#"}
+        ]
+      },
+      {
+        "title": "Serviços",
+        "items": [
+          {"label": "Saúde", "url": "#"},
+          {"label": "Educação", "url": "#"},
+          {"label": "Assistência Social", "url": "#"},
+          {"label": "Obras e Infraestrutura", "url": "#"},
+          {"label": "Meio Ambiente", "url": "#"}
+        ]
+      },
+      {
+        "title": "Transparência",
+        "items": [
+          {"label": "Portal da Transparência", "url": "#"},
+          {"label": "Receitas e Despesas", "url": "#"},
+          {"label": "Licitações", "url": "#"},
+          {"label": "Convênios", "url": "#"},
+          {"label": "Leis Municipais", "url": "#"}
+        ]
+      },
+      {
+        "title": "Contato",
+        "items": [
+          {"label": "Fale Conosco", "url": "#"},
+          {"label": "Ouvidoria", "url": "#"},
+          {"label": "Telefones Úteis", "url": "#"},
+          {"label": "Localização", "url": "#"},
+          {"label": "Trabalhe Conosco", "url": "#"}
+        ]
+      }
+    ],
+    "bottom": {
+      "copyright": "2023 Prefeitura Municipal de Orlândia - Todos os direitos reservados",
+      "signature": "Desenvolvido com carinho para os cidadãos de Orlândia"
+    }
+  }
+}
