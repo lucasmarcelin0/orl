@@ -1,44 +1,235 @@
 {% extends "base.html" %}
 
-{% block title %}Prefeitura de Orlândia - Portal do Cidadão{% endblock %}
-
 {% block content %}
-<section class="hero">
-    <h2>Bem-vindo ao portal digital da Prefeitura</h2>
-    <p>
-        Centralizamos aqui serviços, notícias e conteúdos institucionais para facilitar o relacionamento
-        com os cidadãos e permitir que o time interno mantenha todas as páginas sempre atualizadas.
-    </p>
-</section>
-
-<section class="content-intro">
-    <h3>Conteúdo sob medida para a população</h3>
-    <p>
-        Utilize o painel administrativo para criar novas páginas, editar textos existentes e organizar
-        as informações em tempo real. Cada atualização aparece imediatamente no menu principal do site.
-    </p>
-</section>
-
-<section class="pages-showcase">
-    <header class="showcase-header">
-        <h3>Páginas em destaque</h3>
-        <p>Selecione uma das seções abaixo para conhecer mais sobre os serviços municipais.</p>
-    </header>
-    {% if pages %}
-        <div class="pages-grid">
-            {% for page in pages %}
-                <article class="page-card">
-                    <h4>{{ page.title }}</h4>
-                    <p>{{ page.content | striptags | truncate(160, True, '…') }}</p>
-                    <a class="page-link" href="/{{ page.slug }}">Acessar página</a>
-                </article>
-            {% endfor %}
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <h2>Bem-vindo à Orlândia</h2>
+            <p>Encontre informações, serviços e notícias sobre nossa cidade. Um governo transparente e próximo do cidadão.</p>
+            <div class="search-box">
+                <input type="text" placeholder="O que você está procurando?">
+                <button><i class="fas fa-search"></i> Buscar</button>
+            </div>
         </div>
-    {% else %}
-        <p class="empty-state">
-            Nenhuma página dinâmica foi cadastrada ainda. Acesse o painel administrativo para criar as
-            primeiras seções do portal.
-        </p>
-    {% endif %}
-</section>
+    </section>
+
+    <!-- Quick Access -->
+    <section class="quick-access">
+        <div class="container">
+            <h3>Acesso Rápido</h3>
+            <div class="quick-links">
+                <a href="#" class="quick-link">Editais e Licitações</a>
+                <a href="#" class="quick-link">Concursos Públicos</a>
+                <a href="#" class="quick-link">IPTU Online</a>
+                <a href="#" class="quick-link">Alvarás</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Emergency Section -->
+    <section class="container">
+        <div class="emergency">
+            <h3><i class="fas fa-exclamation-triangle"></i> Serviços de Emergência</h3>
+            <p>Em caso de emergência, entre em contato com os serviços abaixo:</p>
+            <div class="emergency-contacts">
+                <div class="emergency-contact">
+                    <i class="fas fa-ambulance"></i>
+                    <div>
+                        <strong>SAMU</strong>
+                        <div>192</div>
+                    </div>
+                </div>
+                <div class="emergency-contact">
+                    <i class="fas fa-fire-extinguisher"></i>
+                    <div>
+                        <strong>Bombeiros</strong>
+                        <div>193</div>
+                    </div>
+                </div>
+                <div class="emergency-contact">
+                    <i class="fas fa-shield-alt"></i>
+                    <div>
+                        <strong>Polícia Militar</strong>
+                        <div>190</div>
+                    </div>
+                </div>
+                <div class="emergency-contact">
+                    <i class="fas fa-hospital"></i>
+                    <div>
+                        <strong>Pronto Socorro</strong>
+                        <div>(16) 3820-2000</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section class="services">
+        <div class="container">
+            <div class="section-title">
+                <h2>Serviços ao Cidadão</h2>
+                <p>Acesse os principais serviços oferecidos pela prefeitura de forma rápida e fácil</p>
+            </div>
+            <div class="services-grid">
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <h3>Acesso à Informação</h3>
+                    <p>Consulte informações públicas e dados governamentais</p>
+                    <a href="#">Acessar <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-laptop-house"></i>
+                    </div>
+                    <h3>Cidadão Web</h3>
+                    <p>Serviços online para o cidadão de Orlândia</p>
+                    <a href="#">Acessar <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <h3>Portal da Transparência</h3>
+                    <p>Acompanhe as finanças e gastos públicos</p>
+                    <a href="#">Acessar <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-newspaper"></i>
+                    </div>
+                    <h3>Jornal Oficial</h3>
+                    <p>Publicações oficiais do município</p>
+                    <a href="#">Acessar <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-map-marked-alt"></i>
+                    </div>
+                    <h3>Consulta CEP</h3>
+                    <p>Encontre códigos de endereçamento postal</p>
+                    <a href="#">Acessar <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-book"></i>
+                    </div>
+                    <h3>Glossário de Termos</h3>
+                    <p>Entenda os termos técnicos utilizados</p>
+                    <a href="#">Acessar <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-procedures"></i>
+                    </div>
+                    <h3>Cirurgia Eletiva</h3>
+                    <p>Informações sobre procedimentos cirúrgicos</p>
+                    <a href="#">Acessar <i class="fas fa-arrow-right"></i></a>
+                </div>
+                <div class="service-card">
+                    <div class="service-icon">
+                        <i class="fas fa-user-graduate"></i>
+                    </div>
+                    <h3>Estudante Universitário</h3>
+                    <p>Programas e benefícios para estudantes</p>
+                    <a href="#">Acessar <i class="fas fa-arrow-right"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- News Section -->
+    <section class="news">
+        <div class="container">
+            <div class="section-title">
+                <h2>Notícias e Avisos</h2>
+                <p>Fique por dentro das últimas novidades e comunicados oficiais</p>
+            </div>
+            <div class="news-grid">
+                <div class="news-card">
+                    <div class="news-img">
+                        <img src="https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Prefeitura anuncia novo programa">
+                    </div>
+                    <div class="news-content">
+                        <div class="news-date">15 de Outubro, 2023</div>
+                        <h3>Prefeitura anuncia novo programa de assistência social</h3>
+                        <p>Iniciativa visa atender famílias em situação de vulnerabilidade com apoio integral.</p>
+                        <a href="#">Leia mais <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+                <div class="news-card">
+                    <div class="news-img">
+                        <img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1174&q=80" alt="Orlândia comemora saneamento">
+                    </div>
+                    <div class="news-content">
+                        <div class="news-date">12 de Outubro, 2023</div>
+                        <h3>Orlândia comemora melhor índice de saneamento básico</h3>
+                        <p>Cidade alcança 98% de cobertura de água tratada e esgoto sanitário.</p>
+                        <a href="#">Leia mais <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+                <div class="news-card">
+                    <div class="news-img">
+                        <img src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Cursos técnicos">
+                    </div>
+                    <div class="news-content">
+                        <div class="news-date">10 de Outubro, 2023</div>
+                        <h3>Secretaria de Educação abre inscrições para cursos técnicos</h3>
+                        <p>Oportunidades em diversas áreas com vagas limitadas.</p>
+                        <a href="#">Leia mais <i class="fas fa-arrow-right"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Transparency Section -->
+    <section class="transparency">
+        <div class="container">
+            <div class="section-title">
+                <h2>Transparência e Dados Abertos</h2>
+                <p>Acesso rápido aos principais relatórios e dados públicos</p>
+            </div>
+            <div class="transparency-grid">
+                <div class="transparency-item">
+                    <div class="transparency-icon">
+                        <i class="fas fa-chart-pie"></i>
+                    </div>
+                    <h3>Plano Plurianual</h3>
+                </div>
+                <div class="transparency-item">
+                    <div class="transparency-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h3>Relatórios de Gestão</h3>
+                </div>
+                <div class="transparency-item">
+                    <div class="transparency-icon">
+                        <i class="fas fa-virus"></i>
+                    </div>
+                    <h3>Gastos com COVID-19</h3>
+                </div>
+                <div class="transparency-item">
+                    <div class="transparency-icon">
+                        <i class="fas fa-smile"></i>
+                    </div>
+                    <h3>Pesquisa de Satisfação</h3>
+                </div>
+                <div class="transparency-item">
+                    <div class="transparency-icon">
+                        <i class="fas fa-hard-hat"></i>
+                    </div>
+                    <h3>Lista de Obras</h3>
+                </div>
+                <div class="transparency-item">
+                    <div class="transparency-icon">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <h3>Iluminação Pública</h3>
+                </div>
+            </div>
+        </div>
+    </section>
 {% endblock %}
