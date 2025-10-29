@@ -1,0 +1,13 @@
+{# Página dinâmica responsável por exibir conteúdos cadastrados no painel. #}
+{% extends "base.html" %}
+
+{% block title %}{{ page.title }} - Prefeitura de Orlândia{% endblock %}
+
+{% block content %}
+<section class="page-header">
+    <h2>{{ page.title }}</h2>
+</section>
+<section class="page-body">
+    {{ page.content | safe }}
+</section>
+{% endblock %}
