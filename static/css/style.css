@@ -46,15 +46,23 @@ body {
     display: flex;
     flex-wrap: wrap;
     gap: 0.75rem;
-    justify-content: center;
+    justify-content: space-between;
     align-items: center;
     background-color: #fff;
     border-bottom: 1px solid var(--border-color);
     box-shadow: 0 2px 8px var(--shadow-color);
-    padding: 0.75rem 1rem;
+    padding: 0.75rem 1.5rem;
 }
 
-.site-nav a {
+.nav-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.site-nav a,
+.nav-links a {
     text-decoration: none;
     color: var(--text-color);
     font-weight: 600;
@@ -64,9 +72,35 @@ body {
 }
 
 .site-nav a:hover,
-.site-nav a:focus {
+.site-nav a:focus,
+.nav-links a:hover,
+.nav-links a:focus {
     background-color: var(--primary-color);
     color: #fff;
+}
+
+.admin-link {
+    margin-left: auto;
+    background-color: var(--primary-color);
+    color: #fff;
+    box-shadow: 0 4px 12px var(--shadow-color);
+}
+
+.admin-link:hover,
+.admin-link:focus {
+    background-color: #0846a3;
+    color: #fff;
+}
+
+@media (max-width: 768px) {
+    .site-nav {
+        justify-content: center;
+    }
+
+    .admin-link {
+        width: 100%;
+        text-align: center;
+    }
 }
 
 .site-content {
@@ -93,6 +127,80 @@ body {
 .hero p {
     font-size: 1.05rem;
     margin-bottom: 0;
+}
+
+.content-intro,
+.pages-showcase {
+    background-color: #fff;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-top: 1.5rem;
+    box-shadow: 0 8px 20px var(--shadow-color);
+}
+
+.content-intro h3,
+.pages-showcase h3 {
+    margin-top: 0;
+    color: var(--primary-color);
+}
+
+.pages-showcase p {
+    margin-bottom: 1rem;
+}
+
+.showcase-header {
+    margin-bottom: 1.5rem;
+}
+
+.pages-grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.page-card {
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background-color: #fdfdff;
+    box-shadow: 0 6px 14px var(--shadow-color);
+}
+
+.page-card h4 {
+    margin: 0;
+    color: var(--primary-color);
+}
+
+.page-card p {
+    margin: 0;
+    flex: 1 1 auto;
+}
+
+.page-link {
+    align-self: flex-start;
+    text-decoration: none;
+    color: #fff;
+    background-color: var(--primary-color);
+    padding: 0.5rem 1rem;
+    border-radius: 999px;
+    font-weight: 600;
+    transition: background-color 0.2s ease;
+}
+
+.page-link:hover,
+.page-link:focus {
+    background-color: #0846a3;
+}
+
+.empty-state {
+    margin: 0;
+    padding: 1rem;
+    border-radius: 8px;
+    background-color: #f1f4fb;
+    border: 1px dashed var(--border-color);
 }
 
 .page-body {
