@@ -17,11 +17,14 @@
     </header>
 
     <nav class="site-nav">
-        {# Comentário: gera o menu dinamicamente com base nas páginas visíveis. #}
-        <a href="/">Início</a>
-        {% for page in pages %}
-            <a href="/{{ page.slug }}">{{ page.title }}</a>
-        {% endfor %}
+        <div class="nav-links">
+            {# Comentário: gera o menu dinamicamente com base nas páginas visíveis. #}
+            <a href="/">Início</a>
+            {% for page in pages %}
+                <a href="/{{ page.slug }}">{{ page.title }}</a>
+            {% endfor %}
+        </div>
+        <a class="admin-link" href="{{ url_for('admin.index') }}">Painel Administrativo</a>
     </nav>
 
     <main class="site-content">
