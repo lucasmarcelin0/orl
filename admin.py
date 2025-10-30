@@ -12,6 +12,7 @@ from models import db, HomepageSection, Page, SectionItem
 
 
 SECTION_INLINE_FORM_COLUMNS = (
+    "id",
     "title",
     "summary",
     "link_url",
