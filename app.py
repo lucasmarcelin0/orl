@@ -34,6 +34,7 @@ from models import (
     db,
     EmergencyService,
     Document,
+    FooterColumn,
     HomepageSection,
     Page,
     QuickLink,
@@ -73,13 +74,30 @@ def create_app() -> Flask:
 
         inspector = inspect(engine)
         try:
-            columns = {column["name"] for column in inspector.get_columns("document")}
+            document_columns = {
+                column["name"] for column in inspector.get_columns("document")
+            }
         except Exception:  # pragma: no cover - fallback defensivo
-            return
+            document_columns = set()
 
-        if "section_item_id" not in columns:
+        if document_columns and "section_item_id" not in document_columns:
             with engine.begin() as connection:
-                connection.execute(text("ALTER TABLE document ADD COLUMN section_item_id INTEGER"))
+                connection.execute(
+                    text("ALTER TABLE document ADD COLUMN section_item_id INTEGER")
+                )
+
+        try:
+            quick_link_columns = {
+                column["name"] for column in inspector.get_columns("quick_link")
+            }
+        except Exception:  # pragma: no cover - tabela inexistente em instalações novas
+            quick_link_columns = set()
+
+        if quick_link_columns and "footer_column_id" not in quick_link_columns:
+            with engine.begin() as connection:
+                connection.execute(
+                    text("ALTER TABLE quick_link ADD COLUMN footer_column_id INTEGER")
+                )
 
     def ensure_homepage_sections() -> None:
         """Carrega um conteúdo inicial da home quando o banco está vazio."""
@@ -349,35 +367,96 @@ def create_app() -> Flask:
             ]
 
         try:
-            footer_links = (
-                QuickLink.query.filter_by(
-                    location=QuickLink.LOCATION_FOOTER,
-                    is_active=True,
-                )
-                .order_by(QuickLink.display_order.asc(), QuickLink.id.asc())
+            footer_columns = (
+                FooterColumn.query.filter_by(is_active=True)
+                .order_by(FooterColumn.display_order.asc(), FooterColumn.id.asc())
                 .all()
             )
-            footer_configured = (
-                QuickLink.query.filter_by(location=QuickLink.LOCATION_FOOTER).count() > 0
-            )
         except OperationalError:
-            footer_links = []
-            footer_configured = False
+            footer_columns = []
 
-        if not footer_links and not footer_configured:
-            footer_links = [
-                {"label": "Licitações", "url": url_for("licitacoes")},
-                {"label": "Concursos", "url": url_for("concursos")},
-                {"label": "IPTU Online", "url": url_for("iptu_online")},
-                {"label": "Alvarás", "url": url_for("alvaras")},
-            ]
+        footer_columns_payload = []
+
+        if footer_columns:
+            column_ids = [column.id for column in footer_columns]
+
+            if column_ids:
+                try:
+                    footer_links = (
+                        QuickLink.query.filter(
+                            QuickLink.location == QuickLink.LOCATION_FOOTER,
+                            QuickLink.is_active.is_(True),
+                            QuickLink.footer_column_id.in_(column_ids),
+                        )
+                        .order_by(QuickLink.display_order.asc(), QuickLink.id.asc())
+                        .all()
+                    )
+                except OperationalError:
+                    footer_links = []
+            else:
+                footer_links = []
+
+            links_by_column: dict[int | None, list[QuickLink]] = {
+                column_id: [] for column_id in column_ids
+            }
+            for link in footer_links:
+                links_by_column.setdefault(link.footer_column_id, []).append(link)
+
+            for column in footer_columns:
+                footer_columns_payload.append(
+                    {
+                        "title": column.title,
+                        "links": links_by_column.get(column.id, []),
+                    }
+                )
+        else:
+            try:
+                legacy_footer_links = (
+                    QuickLink.query.filter_by(
+                        location=QuickLink.LOCATION_FOOTER,
+                        is_active=True,
+                        footer_column_id=None,
+                    )
+                    .order_by(QuickLink.display_order.asc(), QuickLink.id.asc())
+                    .all()
+                )
+                legacy_configured = (
+                    QuickLink.query.filter_by(
+                        location=QuickLink.LOCATION_FOOTER
+                    ).count()
+                    > 0
+                )
+            except OperationalError:
+                legacy_footer_links = []
+                legacy_configured = False
+
+            if legacy_footer_links:
+                footer_columns_payload = [
+                    {"title": "Serviços online", "links": legacy_footer_links}
+                ]
+            elif not legacy_configured:
+                footer_columns_payload = [
+                    {
+                        "title": "Serviços online",
+                        "links": [
+                            {"label": "Licitações", "url": url_for("licitacoes")},
+                            {"label": "Concursos", "url": url_for("concursos")},
+                            {"label": "IPTU Online", "url": url_for("iptu_online")},
+                            {"label": "Alvarás", "url": url_for("alvaras")},
+                        ],
+                    }
+                ]
+            else:
+                footer_columns_payload = [
+                    {"title": "Serviços online", "links": []}
+                ]
 
         return {
             "pages": visible_pages,
             "page_columns": _chunk_pages(visible_pages, columns=3),
             "admin_navigation": admin_navigation,
             "admin_index_url": admin_index_url,
-            "service_links": footer_links,
+            "footer_columns": footer_columns_payload,
             "quick_access_links": quick_access_links,
             "current_year": datetime.utcnow().year,
         }

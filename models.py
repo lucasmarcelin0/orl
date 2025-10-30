@@ -118,6 +118,25 @@ class EmergencyService(db.Model):
         return f"<EmergencyService {self.name!r}>"
 
 
+class FooterColumn(db.Model):
+    """Bloco configurável contendo links exibidos no rodapé."""
+
+    id = Column(Integer, primary_key=True)
+    title = Column(String(150), nullable=False)
+    display_order = Column(Integer, nullable=False, default=0)
+    is_active = Column(Boolean, nullable=False, default=True)
+
+    links = relationship(
+        "QuickLink",
+        back_populates="footer_column",
+        order_by="QuickLink.display_order, QuickLink.id",
+        cascade="all, delete-orphan",
+    )
+
+    def __repr__(self) -> str:  # pragma: no cover - representação auxiliar
+        return f"<FooterColumn {self.title!r}>"
+
+
 class QuickLink(db.Model):
     """Atalho configurável exibido no acesso rápido ou no rodapé."""
 
@@ -128,8 +147,11 @@ class QuickLink(db.Model):
     label = Column(String(150), nullable=False)
     url = Column(String(500), nullable=False)
     location = Column(String(50), nullable=False, default=LOCATION_QUICK_ACCESS)
+    footer_column_id = Column(Integer, ForeignKey("footer_column.id"), nullable=True)
     display_order = Column(Integer, nullable=False, default=0)
     is_active = Column(Boolean, nullable=False, default=True)
+
+    footer_column = relationship("FooterColumn", back_populates="links")
 
     def __repr__(self) -> str:  # pragma: no cover - representação auxiliar
         return f"<QuickLink {self.label!r} ({self.location})>"

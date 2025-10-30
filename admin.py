@@ -25,6 +25,7 @@ from models import (
     db,
     Document,
     EmergencyService,
+    FooterColumn,
     HomepageSection,
     Page,
     QuickLink,
@@ -786,15 +787,41 @@ class DocumentAdminView(DocumentUploadMixin, BasicAuthMixin, ModelView):
         return form_class
 
 
+class FooterColumnAdminView(BasicAuthMixin, ModelView):
+    """Administra as colunas configuráveis exibidas no rodapé."""
+
+    column_list = ("title", "display_order", "is_active")
+    column_default_sort = ("display_order", False)
+    column_labels = {
+        "title": "Título da coluna",
+        "display_order": "Ordem de exibição",
+        "is_active": "Ativa",
+    }
+    form_columns = ("title", "display_order", "is_active")
+    column_searchable_list = ("title",)
+    column_filters = (
+        sqla_filters.BooleanEqualFilter(FooterColumn.is_active, "Ativa"),
+    )
+    form_widget_args = {
+        "title": {
+            "placeholder": "Ex.: Serviços online",
+        },
+        "display_order": {
+            "placeholder": "0",
+        },
+    }
+
+
 class QuickLinkAdminView(BasicAuthMixin, ModelView):
     """Gerencia os atalhos exibidos no acesso rápido e no rodapé."""
 
-    column_list = ("label", "location", "display_order", "is_active")
+    column_list = ("label", "location", "footer_column", "display_order", "is_active")
     column_default_sort = ("display_order", False)
     column_labels = {
         "label": "Texto exibido",
         "url": "Endereço (URL)",
         "location": "Local",
+        "footer_column": "Coluna do rodapé",
         "display_order": "Ordem de exibição",
         "is_active": "Ativo",
     }
@@ -805,8 +832,18 @@ class QuickLinkAdminView(BasicAuthMixin, ModelView):
         sqla_filters.FilterEqual(QuickLink.location, "Local", options=QUICK_LINK_LOCATIONS),
         sqla_filters.BooleanEqualFilter(QuickLink.is_active, "Ativo"),
     )
+    column_formatters = {
+        "footer_column": lambda _v, _c, m, _p: getattr(m.footer_column, "title", "-"),
+    }
     column_searchable_list = ("label", "url")
-    form_columns = ("label", "url", "location", "display_order", "is_active")
+    form_columns = (
+        "label",
+        "url",
+        "location",
+        "footer_column",
+        "display_order",
+        "is_active",
+    )
     form_choices = {
         "location": QUICK_LINK_LOCATIONS,
     }
@@ -820,7 +857,33 @@ class QuickLinkAdminView(BasicAuthMixin, ModelView):
         "display_order": {
             "placeholder": "0",
         },
+        "footer_column": {
+            "data-placeholder": "Selecione a coluna em que o link será exibido",
+        },
     }
+    form_args = {
+        "footer_column": {
+            "label": "Coluna do rodapé",
+            "allow_blank": True,
+            "blank_text": "Selecione uma coluna",
+        }
+    }
+    form_ajax_refs = {
+        "footer_column": {
+            "fields": ("title",),
+            "page_size": 10,
+            "filters": (FooterColumn.is_active.is_(True),),
+        }
+    }
+
+    def on_model_change(self, form, model: QuickLink, is_created: bool) -> None:  # type: ignore[override]
+        if model.location == QuickLink.LOCATION_FOOTER:
+            if model.footer_column is None:
+                raise ValueError("Selecione uma coluna do rodapé para este link.")
+        else:
+            model.footer_column = None
+
+        super().on_model_change(form, model, is_created)
 
 
 class EmergencyServiceAdminView(BasicAuthMixin, ModelView):
@@ -912,6 +975,14 @@ def init_admin(app) -> Admin:
             db.session,
             category="Página inicial",
             name="Documentos",
+        )
+    )
+    admin.add_view(
+        FooterColumnAdminView(
+            FooterColumn,
+            db.session,
+            category="Página inicial",
+            name="Colunas do rodapé",
         )
     )
     admin.add_view(
