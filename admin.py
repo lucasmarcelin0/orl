@@ -421,6 +421,7 @@ class SectionItemAdminView(BasicAuthMixin, ModelView):
         },
         "image_url": {
             "placeholder": "URL da imagem ilustrativa (opcional)",
+            "data-card-image-input": "1",
         },
         "badge": {
             "placeholder": "Ex.: Novo, Destaque, Inscrições abertas",
