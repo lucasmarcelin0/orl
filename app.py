@@ -292,18 +292,9 @@ def create_app() -> Flask:
         except OperationalError:
             sections = []
 
-        sections_map = {section.section_type: section for section in sections}
-        custom_sections = [
-            section
-            for section in sections
-            if section.section_type not in {"services", "news", "transparency"}
-        ]
-
         return render_template(
             "index.html",
             sections=sections,
-            sections_map=sections_map,
-            custom_sections=custom_sections,
         )
 
     @app.route("/destaques/<int:item_id>")
