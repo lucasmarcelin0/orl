@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}{{ item.title }} - Prefeitura de Orlândia{% endblock %}
+
+{% block content %}
+<section class="page-header service-detail-header">
+    <h2>{{ item.title }}</h2>
+    {% if item.section and item.section.name %}
+    <p class="service-detail-section">{{ item.section.name }}</p>
+    {% endif %}
+</section>
+<section class="page-body service-detail-body">
+    {% if item.icon_class %}
+    <div class="service-detail-icon">
+        <i class="{{ item.icon_class }}" aria-hidden="true"></i>
+    </div>
+    {% endif %}
+    <div class="service-detail-content">
+        {% if item.summary %}
+        {{ item.summary | safe }}
+        {% else %}
+        <p>As informações completas deste serviço não estão disponíveis.</p>
+        {% endif %}
+    </div>
+    <p class="service-detail-back">
+        <a href="{{ url_for('index') }}#{{ item.section.slug }}">&larr; Voltar para a lista</a>
+    </p>
+</section>
+{% endblock %}

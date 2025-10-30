@@ -421,6 +421,62 @@ nav a:hover::after {
     text-decoration: underline;
 }
 
+.service-detail-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: var(--white-color);
+    padding: 2rem;
+    text-align: center;
+}
+
+.service-detail-section {
+    font-size: 1rem;
+    margin-top: 0.5rem;
+    opacity: 0.85;
+}
+
+.service-detail-body {
+    background-color: var(--light-bg-color);
+    padding: 2.5rem 1.5rem;
+    max-width: 900px;
+    margin: -3rem auto 3rem;
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+    border-radius: 1rem;
+}
+
+.service-detail-icon {
+    font-size: 3rem;
+    color: var(--primary-color);
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.service-detail-content p {
+    margin-bottom: 1rem;
+    line-height: 1.7;
+}
+
+.service-detail-content ul,
+.service-detail-content ol {
+    margin-left: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.service-detail-back {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.service-detail-back a {
+    color: var(--primary-color);
+    font-weight: 600;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.service-detail-back a:hover {
+    color: var(--secondary-color);
+}
+
 .transparency-icon {
     width: 60px;
     height: 60px;
