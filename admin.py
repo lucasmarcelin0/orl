@@ -5,10 +5,14 @@ from __future__ import annotations
 import re
 import unicodedata
 
-from flask import current_app, request, Response
-from flask_admin import Admin, AdminIndexView
+from datetime import datetime
+from pathlib import Path
+
+from flask import current_app, request, Response, url_for
+from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
 from flask_ckeditor import CKEditorField
+from sqlalchemy.exc import OperationalError
 
 from forms import PageForm
 from models import db, HomepageSection, Page, SectionItem
@@ -118,6 +122,134 @@ class ProtectedAdminIndexView(BasicAuthMixin, AdminIndexView):
     """Tela inicial do painel administrativo com autenticação básica."""
 
     name = "Início"
+
+    @expose("/")
+    def index(self):  # type: ignore[override]
+        """Exibe um painel inicial com atalhos e métricas úteis."""
+
+        def _safe_query(fn, default):
+            try:
+                return fn()
+            except OperationalError:
+                return default
+
+        total_pages = _safe_query(lambda: Page.query.count(), 0)
+        published_pages = _safe_query(
+            lambda: Page.query.filter_by(visible=True).count(), 0
+        )
+        total_sections = _safe_query(lambda: HomepageSection.query.count(), 0)
+        active_sections = _safe_query(
+            lambda: HomepageSection.query.filter_by(is_active=True).count(), 0
+        )
+        total_items = _safe_query(lambda: SectionItem.query.count(), 0)
+        active_items = _safe_query(
+            lambda: SectionItem.query.filter_by(is_active=True).count(), 0
+        )
+
+        recent_pages = _safe_query(
+            lambda: Page.query.order_by(Page.id.desc()).limit(5).all(), []
+        )
+        recent_sections = _safe_query(
+            lambda: HomepageSection.query.order_by(HomepageSection.id.desc())
+            .limit(5)
+            .all(),
+            [],
+        )
+        recent_items = _safe_query(
+            lambda: SectionItem.query.order_by(SectionItem.id.desc()).limit(5).all(),
+            [],
+        )
+
+        homepage_path = Path(current_app.root_path) / "templates" / "index.html"
+        homepage_last_modified = None
+        if homepage_path.exists():
+            homepage_last_modified = datetime.fromtimestamp(
+                homepage_path.stat().st_mtime
+            )
+
+        def _safe_url(endpoint: str, **values):
+            try:
+                return url_for(endpoint, **values)
+            except Exception:  # pragma: no cover - rotas podem não existir
+                return None
+
+        quick_actions = [
+            {
+                "title": "Criar nova página",
+                "description": "Publique rapidamente comunicados e conteúdos institucionais.",
+                "url": _safe_url("page.create_view"),
+            },
+            {
+                "title": "Gerenciar páginas",
+                "description": "Atualize textos existentes e defina o que aparece no menu.",
+                "url": _safe_url("page.index_view"),
+            },
+            {
+                "title": "Organizar seções da home",
+                "description": "Controle a ordem das áreas em destaque na página inicial.",
+                "url": _safe_url("homepagesection.index_view"),
+            },
+            {
+                "title": "Adicionar cartões de destaque",
+                "description": "Inclua novos links, notícias e serviços para a população.",
+                "url": _safe_url("sectionitem.create_view"),
+            },
+        ]
+
+        recent_activity = []
+        for page in recent_pages:
+            recent_activity.append(
+                {
+                    "label": "Página",
+                    "name": page.title,
+                    "status": "Visível" if page.visible else "Oculta",
+                    "url": _safe_url("page.edit_view", id=page.id),
+                }
+            )
+        for section in recent_sections:
+            recent_activity.append(
+                {
+                    "label": "Seção",
+                    "name": section.name,
+                    "status": "Ativa" if section.is_active else "Inativa",
+                    "url": _safe_url("homepagesection.edit_view", id=section.id),
+                }
+            )
+        for item in recent_items:
+            section_name = getattr(item.section, "name", "Seção")
+            recent_activity.append(
+                {
+                    "label": "Cartão",
+                    "name": item.title,
+                    "status": section_name,
+                    "url": _safe_url("sectionitem.edit_view", id=item.id),
+                }
+            )
+
+        stats = {
+            "pages": {
+                "total": total_pages,
+                "published": published_pages,
+            },
+            "sections": {
+                "total": total_sections,
+                "active": active_sections,
+            },
+            "items": {
+                "total": total_items,
+                "active": active_items,
+            },
+        }
+
+        context = {
+            "stats": stats,
+            "quick_actions": [action for action in quick_actions if action["url"]],
+            "recent_activity": recent_activity[:9],
+            "homepage_last_modified": homepage_last_modified,
+            "admin_name": self.admin.name,
+        }
+
+        return self.render("admin/index.html", **context)
 
 
 class HomepageSectionAdminView(BasicAuthMixin, ModelView):
