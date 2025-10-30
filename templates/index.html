@@ -162,6 +162,37 @@
     </section>
     {% endif %}
 
+    {% if documents %}
+    <section class="documents" id="documentos-oficiais">
+        <div class="container">
+            <div class="section-title">
+                <h2>Documentos oficiais</h2>
+                <p>Acesse planos, relatórios e legislações publicadas pela Prefeitura.</p>
+            </div>
+            <ul class="document-list">
+                {% for document in documents %}
+                <li>
+                    {% if document.public_path %}
+                    <a href="{{ url_for('static', filename=document.public_path) }}" target="_blank" rel="noopener">
+                        <i class="{{ document.icon_class or 'fas fa-file-alt' }}"></i>
+                        {{ document.title }}
+                    </a>
+                    {% else %}
+                    <span class="document-list__label">
+                        <i class="{{ document.icon_class or 'fas fa-file-alt' }}"></i>
+                        {{ document.title }}
+                    </span>
+                    {% endif %}
+                    {% if document.description %}
+                    <p class="document-description">{{ document.description }}</p>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </section>
+    {% endif %}
+
     {% set transparency_section = sections_map.get('transparency') %}
     {% if transparency_section %}
     <section class="transparency" id="{{ transparency_section.slug }}">

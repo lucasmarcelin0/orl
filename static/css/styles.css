@@ -751,6 +751,75 @@ nav a:hover::after {
     gap: 20px;
 }
 
+.documents {
+    background-color: var(--light-bg-color);
+    padding: 60px 0;
+}
+
+.documents .section-title {
+    text-align: left;
+    margin-bottom: 24px;
+}
+
+.document-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.document-list li {
+    background: var(--white-color);
+    border-radius: var(--border-radius);
+    padding: 18px 20px;
+    box-shadow: var(--box-shadow);
+}
+
+.document-list a {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: var(--transition);
+}
+
+.document-list__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 600;
+    color: var(--dark-color);
+}
+
+.document-list a:hover,
+.document-list a:focus {
+    transform: translateY(-2px);
+    color: var(--secondary-color);
+}
+
+.document-list i {
+    font-size: 1.3rem;
+}
+
+.document-description {
+    margin-top: 6px;
+    color: var(--gray-color);
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+    .documents {
+        padding: 40px 0;
+    }
+
+    .document-list li {
+        padding: 16px 18px;
+    }
+}
+
 .transparency-item {
     background-color: white;
     border-radius: var(--border-radius);

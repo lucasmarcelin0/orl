@@ -218,6 +218,7 @@
                     </span>
                     <span>{{ stats.pages.published }} páginas visíveis</span>
                     <span>{{ stats.sections.active }} seções ativas</span>
+                    <span>{{ stats.documents.active }} documentos publicados</span>
                 </div>
             </div>
         </section>
@@ -260,6 +261,19 @@
                     <span style="width: {{ '%.0f' % item_ratio }}%;"></span>
                 </div>
                 <small>Inclua serviços e links úteis para facilitar o atendimento.</small>
+            </article>
+
+            <article class="stat-card">
+                <h3>Documentos publicados</h3>
+                <div class="stat-value">
+                    <strong>{{ stats.documents.active }}</strong>
+                    <span>de {{ stats.documents.total }} disponíveis</span>
+                </div>
+                <div class="progress-bar">
+                    {% set document_ratio = 0 if stats.documents.total == 0 else (stats.documents.active / stats.documents.total) * 100 %}
+                    <span style="width: {{ '%.0f' % document_ratio }}%;"></span>
+                </div>
+                <small>Compartilhe editais, planos e relatórios atualizados.</small>
             </article>
         </section>
 

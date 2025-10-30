@@ -36,3 +36,19 @@ class Config:
     CKEDITOR_UPLOADS_PATH = str(BASE_DIR / "static" / "uploads")
     CKEDITOR_ALLOWED_IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
     CKEDITOR_MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5 MB
+
+    # Comentário: diretório e tipos aceitos para os documentos publicados no site.
+    DOCUMENTS_UPLOAD_PATH = str(BASE_DIR / "static" / "uploads" / "documents")
+    DOCUMENTS_ALLOWED_EXTENSIONS = {
+        "pdf",
+        "doc",
+        "docx",
+        "xls",
+        "xlsx",
+        "ppt",
+        "pptx",
+        "odt",
+        "ods",
+        "odp",
+        "zip",
+    }
