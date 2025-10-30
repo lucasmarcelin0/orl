@@ -7,6 +7,7 @@ import unicodedata
 
 from datetime import datetime
 from pathlib import Path
+from types import SimpleNamespace
 
 from flask import current_app, request, Response, url_for
 from flask_admin import Admin, AdminIndexView, expose
@@ -144,6 +145,15 @@ class ProtectedAdminIndexView(BasicAuthMixin, AdminIndexView):
 
     name = "Início"
 
+    def _to_namespace(self, data):
+        """Converte estruturas de dicionário em objetos com acesso por atributo."""
+
+        if isinstance(data, dict):
+            return SimpleNamespace(
+                **{key: self._to_namespace(value) for key, value in data.items()}
+            )
+        return data
+
     @expose("/")
     def index(self):  # type: ignore[override]
         """Exibe um painel inicial com atalhos e métricas úteis."""
@@ -247,20 +257,22 @@ class ProtectedAdminIndexView(BasicAuthMixin, AdminIndexView):
                 }
             )
 
-        stats = {
-            "pages": {
-                "total": total_pages,
-                "published": published_pages,
-            },
-            "sections": {
-                "total": total_sections,
-                "active": active_sections,
-            },
-            "items": {
-                "total": total_items,
-                "active": active_items,
-            },
-        }
+        stats = self._to_namespace(
+            {
+                "pages": {
+                    "total": total_pages,
+                    "published": published_pages,
+                },
+                "sections": {
+                    "total": total_sections,
+                    "active": active_sections,
+                },
+                "items": {
+                    "total": total_items,
+                    "active": active_items,
+                },
+            }
+        )
 
         context = {
             "stats": stats,
