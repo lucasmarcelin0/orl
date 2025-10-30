@@ -18,6 +18,7 @@ from flask_admin.form.upload import FileUploadField
 from flask_admin.model.form import InlineFormAdmin
 from flask_ckeditor import CKEditorField
 from sqlalchemy.exc import OperationalError
+from wtforms import HiddenField
 
 from forms import PageForm
 from models import (
@@ -496,6 +497,7 @@ class DocumentInlineForm(DocumentUploadMixin, InlineFormAdmin):
     """Permite gerenciar documentos diretamente no formulário do item."""
 
     form_columns = (
+        "id",
         "title",
         "description",
         "icon_class",
@@ -505,6 +507,9 @@ class DocumentInlineForm(DocumentUploadMixin, InlineFormAdmin):
     )
     form_label = "Documentos"
     form_widget_args = {
+        "id": {
+            "type": "hidden",
+        },
         "title": {
             "placeholder": "Nome exibido aos cidadãos",
         },
@@ -530,6 +535,7 @@ class DocumentInlineForm(DocumentUploadMixin, InlineFormAdmin):
 
     def postprocess_form(self, form_class):  # type: ignore[override]
         form_class = super().postprocess_form(form_class)
+        form_class.id = HiddenField()
         form_class.file_path = self._build_document_upload_field()
         return form_class
 
