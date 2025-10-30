@@ -108,6 +108,32 @@
                     {% if item.summary %}
                     <p>{{ item.summary }}</p>
                     {% endif %}
+                    {% set item_documents = item.documents | selectattr('is_active') | list %}
+                    {% if item_documents %}
+                    <div class="section-item-documents">
+                        <h4 class="section-item-documents__title">Documentos</h4>
+                        <ul class="section-item-documents__list">
+                            {% for document in item_documents %}
+                            <li>
+                                {% if document.public_path %}
+                                <a href="{{ url_for('static', filename=document.public_path) }}" target="_blank" rel="noopener">
+                                    <i class="{{ document.icon_class or 'fas fa-file-alt' }}" aria-hidden="true"></i>
+                                    <span>{{ document.title }}</span>
+                                </a>
+                                {% else %}
+                                <span class="section-item-documents__label">
+                                    <i class="{{ document.icon_class or 'fas fa-file-alt' }}" aria-hidden="true"></i>
+                                    <span>{{ document.title }}</span>
+                                </span>
+                                {% endif %}
+                                {% if document.description %}
+                                <p class="section-item-documents__description">{{ document.description }}</p>
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
                     {% set has_custom_link = item.link_url and item.link_url != '#' %}
                     {% if has_custom_link or item.id %}
                     <a href="{{ item.link_url if has_custom_link else url_for('home_item_detail', item_id=item.id) }}">{{ item.link_label or 'Acessar' }} <i class="fas fa-arrow-right"></i></a>
@@ -151,6 +177,32 @@
                         {% if summary_text %}
                         <p class="news-summary" data-full-summary="{{ summary_text | e }}">{{ summary_text }}</p>
                         {% endif %}
+                        {% set item_documents = item.documents | selectattr('is_active') | list %}
+                        {% if item_documents %}
+                        <div class="section-item-documents">
+                            <h4 class="section-item-documents__title">Documentos</h4>
+                            <ul class="section-item-documents__list">
+                                {% for document in item_documents %}
+                                <li>
+                                    {% if document.public_path %}
+                                    <a href="{{ url_for('static', filename=document.public_path) }}" target="_blank" rel="noopener">
+                                        <i class="{{ document.icon_class or 'fas fa-file-alt' }}" aria-hidden="true"></i>
+                                        <span>{{ document.title }}</span>
+                                    </a>
+                                    {% else %}
+                                    <span class="section-item-documents__label">
+                                        <i class="{{ document.icon_class or 'fas fa-file-alt' }}" aria-hidden="true"></i>
+                                        <span>{{ document.title }}</span>
+                                    </span>
+                                    {% endif %}
+                                    {% if document.description %}
+                                    <p class="section-item-documents__description">{{ document.description }}</p>
+                                    {% endif %}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
                         {% set has_custom_link = item.link_url and item.link_url != '#' %}
                         {% if has_custom_link or item.id %}
                         <a class="news-read-more" href="{{ item.link_url if has_custom_link else url_for('news_detail', item_id=item.id) }}">{{ item.link_label or 'Leia mais' }} <i class="fas fa-arrow-right"></i></a>
@@ -162,37 +214,6 @@
             {% else %}
             <p>Nenhuma notícia cadastrada até o momento.</p>
             {% endif %}
-        </div>
-    </section>
-    {% endif %}
-
-    {% if documents %}
-    <section class="documents" id="documentos-oficiais">
-        <div class="container">
-            <div class="section-title">
-                <h2>Documentos oficiais</h2>
-                <p>Acesse planos, relatórios e legislações publicadas pela Prefeitura.</p>
-            </div>
-            <ul class="document-list">
-                {% for document in documents %}
-                <li>
-                    {% if document.public_path %}
-                    <a href="{{ url_for('static', filename=document.public_path) }}" target="_blank" rel="noopener">
-                        <i class="{{ document.icon_class or 'fas fa-file-alt' }}"></i>
-                        {{ document.title }}
-                    </a>
-                    {% else %}
-                    <span class="document-list__label">
-                        <i class="{{ document.icon_class or 'fas fa-file-alt' }}"></i>
-                        {{ document.title }}
-                    </span>
-                    {% endif %}
-                    {% if document.description %}
-                    <p class="document-description">{{ document.description }}</p>
-                    {% endif %}
-                </li>
-                {% endfor %}
-            </ul>
         </div>
     </section>
     {% endif %}
@@ -270,6 +291,32 @@
                     <h3>{{ item.title }}</h3>
                     {% if item.summary %}
                     <p>{{ item.summary }}</p>
+                    {% endif %}
+                    {% set item_documents = item.documents | selectattr('is_active') | list %}
+                    {% if item_documents %}
+                    <div class="section-item-documents">
+                        <h4 class="section-item-documents__title">Documentos</h4>
+                        <ul class="section-item-documents__list">
+                            {% for document in item_documents %}
+                            <li>
+                                {% if document.public_path %}
+                                <a href="{{ url_for('static', filename=document.public_path) }}" target="_blank" rel="noopener">
+                                    <i class="{{ document.icon_class or 'fas fa-file-alt' }}" aria-hidden="true"></i>
+                                    <span>{{ document.title }}</span>
+                                </a>
+                                {% else %}
+                                <span class="section-item-documents__label">
+                                    <i class="{{ document.icon_class or 'fas fa-file-alt' }}" aria-hidden="true"></i>
+                                    <span>{{ document.title }}</span>
+                                </span>
+                                {% endif %}
+                                {% if document.description %}
+                                <p class="section-item-documents__description">{{ document.description }}</p>
+                                {% endif %}
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
                     {% endif %}
                     {% set has_custom_link = item.link_url and item.link_url != '#' %}
                     {% if has_custom_link or item.id %}

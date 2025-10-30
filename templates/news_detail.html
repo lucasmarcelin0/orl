@@ -22,6 +22,32 @@
         <p>O conteúdo completo desta notícia não está disponível.</p>
         {% endif %}
     </div>
+    {% set item_documents = item.documents | selectattr('is_active') | list %}
+    {% if item_documents %}
+    <div class="section-item-documents section-item-documents--detail">
+        <h3 class="section-item-documents__title">Documentos relacionados</h3>
+        <ul class="section-item-documents__list">
+            {% for document in item_documents %}
+            <li>
+                {% if document.public_path %}
+                <a href="{{ url_for('static', filename=document.public_path) }}" target="_blank" rel="noopener">
+                    <i class="{{ document.icon_class or 'fas fa-file-alt' }}" aria-hidden="true"></i>
+                    <span>{{ document.title }}</span>
+                </a>
+                {% else %}
+                <span class="section-item-documents__label">
+                    <i class="{{ document.icon_class or 'fas fa-file-alt' }}" aria-hidden="true"></i>
+                    <span>{{ document.title }}</span>
+                </span>
+                {% endif %}
+                {% if document.description %}
+                <p class="section-item-documents__description">{{ document.description }}</p>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+    {% endif %}
     <p class="news-detail-back">
         <a href="{{ url_for('index') }}#{{ item.section.slug }}">&larr; Voltar para a lista de notícias</a>
     </p>

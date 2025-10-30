@@ -763,72 +763,77 @@ nav a:hover::after {
     gap: 20px;
 }
 
-.documents {
-    background-color: var(--light-bg-color);
-    padding: 60px 0;
+.section-item-documents {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
 }
 
-.documents .section-title {
-    text-align: left;
-    margin-bottom: 24px;
+.section-item-documents__title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--dark-color);
+    margin-bottom: 0.75rem;
 }
 
-.document-list {
+.section-item-documents__list {
     list-style: none;
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
 }
 
-.document-list li {
+.section-item-documents__list li {
     background: var(--white-color);
     border-radius: var(--border-radius);
-    padding: 18px 20px;
+    padding: 0.9rem 1rem;
     box-shadow: var(--box-shadow);
 }
 
-.document-list a {
+.section-item-documents__list a,
+.section-item-documents__label {
     display: inline-flex;
     align-items: center;
-    gap: 12px;
+    gap: 0.6rem;
     font-weight: 600;
     color: var(--primary-color);
     text-decoration: none;
-    transition: var(--transition);
 }
 
-.document-list__label {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    font-weight: 600;
+.section-item-documents__label {
     color: var(--dark-color);
 }
 
-.document-list a:hover,
-.document-list a:focus {
-    transform: translateY(-2px);
+.section-item-documents__list a:hover,
+.section-item-documents__list a:focus {
     color: var(--secondary-color);
+    transform: translateY(-1px);
 }
 
-.document-list i {
-    font-size: 1.3rem;
+.section-item-documents__list i {
+    font-size: 1.1rem;
 }
 
-.document-description {
-    margin-top: 6px;
+.section-item-documents__description {
+    margin-top: 0.4rem;
     color: var(--gray-color);
     font-size: 0.95rem;
-    line-height: 1.5;
+    line-height: 1.4;
+}
+
+.section-item-documents--detail {
+    margin-top: 2rem;
 }
 
 @media (max-width: 768px) {
-    .documents {
-        padding: 40px 0;
+    .section-item-documents {
+        padding-top: 0.75rem;
     }
 
-    .document-list li {
-        padding: 16px 18px;
+    .section-item-documents__list li {
+        padding: 0.85rem 0.9rem;
     }
 }
 

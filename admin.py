@@ -429,6 +429,25 @@ def _section_filter_options() -> list[tuple[int, str]]:
     return [(section.id, section.name) for section in sections]
 
 
+def _section_item_filter_options() -> list[tuple[int, str]]:
+    """Retorna os itens disponíveis para vincular documentos."""
+
+    try:
+        items = (
+            SectionItem.query.outerjoin(HomepageSection)
+            .order_by(SectionItem.title.asc())
+            .all()
+        )
+    except OperationalError:
+        return []
+
+    options: list[tuple[int, str]] = []
+    for item in items:
+        section_name = getattr(item.section, "name", "Sem seção")
+        options.append((item.id, f"{section_name} - {item.title}"))
+    return options
+
+
 class SectionItemAdminView(BasicAuthMixin, ModelView):
     """Administração individual dos cartões que compõem as seções."""
 
@@ -530,42 +549,8 @@ class SectionItemAdminView(BasicAuthMixin, ModelView):
     }
 
 
-class DocumentAdminView(BasicAuthMixin, ModelView):
-    """Gerencia os arquivos disponibilizados para download na página inicial."""
-
-    column_list = ("title", "display_order", "is_active")
-    column_default_sort = ("display_order", False)
-    column_labels = {
-        "title": "Título",
-        "description": "Descrição",
-        "icon_class": "Ícone (classe CSS)",
-        "file_path": "Arquivo",
-        "display_order": "Ordem de exibição",
-        "is_active": "Ativo",
-    }
-    form_columns = (
-        "title",
-        "description",
-        "icon_class",
-        "file_path",
-        "display_order",
-        "is_active",
-    )
-    form_widget_args = {
-        "title": {
-            "placeholder": "Nome exibido aos cidadãos",
-        },
-        "description": {
-            "placeholder": "Complemento opcional exibido abaixo do link",
-            "rows": 3,
-        },
-        "icon_class": {
-            "placeholder": "Ex.: fas fa-file-download",
-        },
-        "display_order": {
-            "placeholder": "0",
-        },
-    }
+class DocumentUploadMixin:
+    """Funcionalidades compartilhadas para upload e nomenclatura de documentos."""
 
     def _documents_upload_path(self) -> Path:
         config_path = current_app.config.get("DOCUMENTS_UPLOAD_PATH")
@@ -589,8 +574,7 @@ class DocumentAdminView(BasicAuthMixin, ModelView):
             extension = "dat"
         return f"documento-{uuid.uuid4().hex}.{extension}"
 
-    def scaffold_form(self):  # type: ignore[override]
-        form_class = super().scaffold_form()
+    def _build_document_upload_field(self) -> FileUploadField:
         upload_field = FileUploadField(
             "Arquivo",
             base_path=str(self._documents_upload_path()),
@@ -598,7 +582,78 @@ class DocumentAdminView(BasicAuthMixin, ModelView):
             allowed_extensions=self._allowed_extensions(),
         )
         upload_field.allow_overwrite = False
-        form_class.file_path = upload_field
+        return upload_field
+
+
+class DocumentAdminView(DocumentUploadMixin, BasicAuthMixin, ModelView):
+    """Gerencia os arquivos disponibilizados para download na página inicial."""
+
+    column_list = ("title", "section_item", "display_order", "is_active")
+    column_default_sort = ("display_order", False)
+    column_labels = {
+        "title": "Título",
+        "description": "Descrição",
+        "icon_class": "Ícone (classe CSS)",
+        "file_path": "Arquivo",
+        "section_item": "Item da seção",
+        "display_order": "Ordem de exibição",
+        "is_active": "Ativo",
+    }
+    form_columns = (
+        "title",
+        "description",
+        "icon_class",
+        "file_path",
+        "section_item",
+        "display_order",
+        "is_active",
+    )
+    column_formatters = {
+        "section_item": lambda _v, _c, m, _p: getattr(m.section_item, "title", "-"),
+    }
+    column_filters = (
+        sqla_filters.BooleanEqualFilter(Document.is_active, "Ativo"),
+        sqla_filters.FilterEqual(
+            Document.section_item_id,
+            "Item da seção",
+            options=_section_item_filter_options,
+        ),
+    )
+    column_searchable_list = ("title", "description")
+    form_widget_args = {
+        "title": {
+            "placeholder": "Nome exibido aos cidadãos",
+        },
+        "description": {
+            "placeholder": "Complemento opcional exibido abaixo do link",
+            "rows": 3,
+        },
+        "icon_class": {
+            "placeholder": "Ex.: fas fa-file-download",
+        },
+        "section_item": {
+            "data-placeholder": "Selecione um item para vincular o documento",
+        },
+        "display_order": {
+            "placeholder": "0",
+        },
+    }
+    form_args = {
+        "section_item": {
+            "label": "Item da seção",
+            "allow_blank": True,
+        }
+    }
+    form_ajax_refs = {
+        "section_item": {
+            "fields": ("title",),
+            "page_size": 10,
+        }
+    }
+
+    def scaffold_form(self):  # type: ignore[override]
+        form_class = super().scaffold_form()
+        form_class.file_path = self._build_document_upload_field()
         return form_class
 
 
