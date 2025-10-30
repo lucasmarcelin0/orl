@@ -96,4 +96,19 @@ document.addEventListener('DOMContentLoaded', function() {
             readMoreLink.classList.add('news-read-more--active');
         }
     });
+
+    const emergencyToggleButton = document.querySelector('[data-js="emergency-toggle"]');
+    const emergencyContacts = document.querySelector('#emergencyContacts');
+
+    if (emergencyToggleButton && emergencyContacts) {
+        const hiddenClass = 'is-hidden';
+        const showLabel = emergencyToggleButton.dataset.showLabel || 'Mostrar contatos de emergência';
+        const hideLabel = emergencyToggleButton.dataset.hideLabel || 'Ocultar contatos de emergência';
+
+        emergencyToggleButton.addEventListener('click', () => {
+            const isHidden = emergencyContacts.classList.toggle(hiddenClass);
+            emergencyToggleButton.setAttribute('aria-expanded', (!isHidden).toString());
+            emergencyToggleButton.textContent = isHidden ? showLabel : hideLabel;
+        });
+    }
 });
