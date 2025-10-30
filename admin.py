@@ -11,7 +11,7 @@ from types import SimpleNamespace
 
 from flask import current_app, request, Response, url_for
 from flask_admin import Admin, AdminIndexView, expose
-from flask_admin.contrib.sqla import ModelView
+from flask_admin.contrib.sqla import ModelView, filters as sqla_filters
 from flask_admin.form import rules
 from flask_ckeditor import CKEditorField
 from sqlalchemy.exc import OperationalError
@@ -395,6 +395,17 @@ class SectionItemAdminView(BasicAuthMixin, ModelView):
 
     column_list = ("title", "section", "display_order", "is_active")
     column_default_sort = ("display_order", False)
+    column_filters = (
+        sqla_filters.FilterEqual(
+            SectionItem.section_id,
+            "Seção",
+            options=lambda: [
+                (section.id, section.name)
+                for section in HomepageSection.query.order_by(HomepageSection.name)
+            ],
+        ),
+        sqla_filters.BooleanEqualFilter(SectionItem.is_active, "Ativo"),
+    )
     column_formatters = {
         "section": lambda _v, _c, m, _p: getattr(m.section, "name", "-"),
     }
