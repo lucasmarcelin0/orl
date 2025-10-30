@@ -20,7 +20,14 @@ from flask_ckeditor import CKEditorField
 from sqlalchemy.exc import OperationalError
 
 from forms import PageForm
-from models import db, Document, HomepageSection, Page, SectionItem
+from models import (
+    db,
+    Document,
+    EmergencyService,
+    HomepageSection,
+    Page,
+    SectionItem,
+)
 
 
 SECTION_INLINE_FORM_COLUMNS = (
@@ -703,6 +710,50 @@ class DocumentAdminView(DocumentUploadMixin, BasicAuthMixin, ModelView):
         return form_class
 
 
+class EmergencyServiceAdminView(BasicAuthMixin, ModelView):
+    """Permite gerenciar os serviços exibidos no painel de emergência."""
+
+    column_list = ("name", "phone", "display_order", "is_active")
+    column_default_sort = ("display_order", False)
+    column_labels = {
+        "name": "Nome do serviço",
+        "phone": "Telefone/Contato",
+        "description": "Descrição",
+        "icon_class": "Ícone (classe CSS)",
+        "display_order": "Ordem de exibição",
+        "is_active": "Ativo",
+    }
+    form_columns = (
+        "name",
+        "phone",
+        "description",
+        "icon_class",
+        "display_order",
+        "is_active",
+    )
+    column_filters = (
+        sqla_filters.BooleanEqualFilter(EmergencyService.is_active, "Ativo"),
+    )
+    column_searchable_list = ("name", "phone", "description")
+    form_widget_args = {
+        "name": {
+            "placeholder": "Ex.: SAMU",
+        },
+        "phone": {
+            "placeholder": "Ex.: 192",
+        },
+        "icon_class": {
+            "placeholder": "Ex.: fas fa-ambulance",
+        },
+        "display_order": {
+            "placeholder": "0",
+        },
+        "description": {
+            "rows": 3,
+        },
+    }
+
+
 def init_admin(app) -> Admin:
     """Inicializa o painel administrativo integrado ao aplicativo Flask."""
 
@@ -748,6 +799,14 @@ def init_admin(app) -> Admin:
             db.session,
             category="Página inicial",
             name="Documentos",
+        )
+    )
+    admin.add_view(
+        EmergencyServiceAdminView(
+            EmergencyService,
+            db.session,
+            category="Página inicial",
+            name="Serviços de emergência",
         )
     )
 
