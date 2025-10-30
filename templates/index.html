@@ -29,9 +29,20 @@
     <!-- Emergency Section -->
     <section class="container">
         <div class="emergency">
-            <h3><i class="fas fa-exclamation-triangle"></i> Serviços de Emergência</h3>
+            <div class="emergency-header">
+                <h3><i class="fas fa-exclamation-triangle"></i> Serviços de Emergência</h3>
+                <button
+                    type="button"
+                    class="emergency-toggle"
+                    data-js="emergency-toggle"
+                    aria-expanded="true"
+                    aria-controls="emergencyContacts"
+                    data-show-label="Mostrar contatos de emergência"
+                    data-hide-label="Ocultar contatos de emergência"
+                >Ocultar contatos de emergência</button>
+            </div>
             <p>Em caso de emergência, entre em contato com os serviços abaixo:</p>
-            <div class="emergency-contacts">
+            <div class="emergency-contacts" id="emergencyContacts">
                 <div class="emergency-contact">
                     <i class="fas fa-ambulance"></i>
                     <div>
