@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+from collections import OrderedDict
 from datetime import datetime
 import json
 from pathlib import Path
+from typing import Iterable
 
 import click
-from flask import abort, Flask, render_template
+from flask import abort, Flask, render_template, url_for
 from flask_migrate import Migrate
 from flask_ckeditor import CKEditor
 from sqlalchemy.exc import OperationalError
@@ -97,17 +99,69 @@ def create_app() -> Flask:
     with app.app_context():
         ensure_homepage_sections()
 
+    def _chunk_pages(pages: Iterable[Page], columns: int = 3) -> list[list[Page]]:
+        pages = list(pages)
+        if not pages:
+            return []
+
+        columns = max(1, columns)
+        per_column = max(1, (len(pages) + columns - 1) // columns)
+        return [pages[i : i + per_column] for i in range(0, len(pages), per_column)]
+
     @app.context_processor
     def inject_navigation_pages() -> dict[str, object]:
-        """Disponibiliza as páginas visíveis e o ano atual em todos os templates."""
+        """Disponibiliza as páginas e links auxiliares em todos os templates."""
 
         try:
             visible_pages = Page.query.filter_by(visible=True).order_by(Page.title).all()
         except OperationalError:
             # Comentário: primeira execução pode ocorrer antes da criação das tabelas.
             visible_pages = []
+
+        admin_navigation: OrderedDict[str, list[dict[str, str]]] = OrderedDict()
+        admin_index_url = None
+
+        admin_ext = app.extensions.get("admin", [])
+        if admin_ext:
+            admin = admin_ext[0]
+            for view in admin._views:
+                endpoint = getattr(view, "endpoint", None)
+                if not endpoint:
+                    continue
+
+                view_endpoint = f"{endpoint}.index_view"
+                try:
+                    view_url = url_for(view_endpoint)
+                except Exception:  # pragma: no cover - fallback seguro
+                    continue
+
+                if endpoint == "admin":
+                    admin_index_url = view_url
+
+                category = view.category or "Painel administrativo"
+                admin_navigation.setdefault(category, []).append(
+                    {"name": view.name, "url": view_url}
+                )
+
+        if admin_index_url is None:
+            try:
+                admin_index_url = url_for("admin.index")
+            except Exception:  # pragma: no cover - rota indisponível
+                admin_index_url = None
+
+        service_links = [
+            {"label": "Licitações", "url": url_for("licitacoes")},
+            {"label": "Concursos", "url": url_for("concursos")},
+            {"label": "IPTU Online", "url": url_for("iptu_online")},
+            {"label": "Alvarás", "url": url_for("alvaras")},
+        ]
+
         return {
             "pages": visible_pages,
+            "page_columns": _chunk_pages(visible_pages, columns=3),
+            "admin_navigation": admin_navigation,
+            "admin_index_url": admin_index_url,
+            "service_links": service_links,
             "current_year": datetime.utcnow().year,
         }
 

@@ -15,7 +15,13 @@ class PageForm(FlaskForm):
     title = StringField("Título", validators=[DataRequired(), Length(max=150)])
 
     # Comentário: slug utilizado na URL e no menu. Precisa ser curto para compor URLs amigáveis.
-    slug = StringField("Slug", validators=[DataRequired(), Length(max=150)])
+    slug = StringField(
+        "Slug",
+        validators=[Length(max=150)],
+        description=(
+            "Identificador usado na URL. Se deixado em branco, será gerado automaticamente."
+        ),
+    )
 
     # Comentário: campo de conteúdo com editor WYSIWYG fornecido pelo CKEditor.
     content = CKEditorField("Conteúdo", validators=[DataRequired()])
