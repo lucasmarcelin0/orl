@@ -15,6 +15,7 @@ from flask import (
     abort,
     Flask,
     jsonify,
+    redirect,
     render_template,
     request,
     send_from_directory,
@@ -22,13 +23,14 @@ from flask import (
 )
 from flask_migrate import Migrate
 from flask_ckeditor import CKEditor
-from sqlalchemy import inspect, text
+from sqlalchemy import inspect, or_, text
 from sqlalchemy.exc import OperationalError
 from werkzeug.utils import secure_filename
 
 from admin import init_admin
 from config import Config
-from models import db, EmergencyService, HomepageSection, Page, SectionItem
+
+from models import db, EmergencyService, Document,  HomepageSection, Page, SectionItem
 
 # Comentário: extensões globais reutilizadas pela aplicação.
 migrate = Migrate()
@@ -361,6 +363,88 @@ def create_app() -> Flask:
             "index.html",
             sections=sections,
             emergency_services=emergency_services,
+        )
+
+    @app.route("/buscar")
+    def search() -> str:
+        """Permite localizar páginas, serviços e documentos pelo termo informado."""
+
+        query = (request.args.get("q", "") or "").strip()
+        if not query:
+            return redirect(url_for("index"))
+
+        search_pattern = f"%{query}%"
+
+        try:
+            page_results = (
+                Page.query.filter(Page.visible.is_(True))
+                .filter(
+                    or_(
+                        Page.title.ilike(search_pattern),
+                        Page.content.ilike(search_pattern),
+                    )
+                )
+                .order_by(Page.title.asc())
+                .all()
+            )
+        except OperationalError:
+            page_results = []
+
+        try:
+            section_item_results = (
+                SectionItem.query.join(HomepageSection)
+                .filter(
+                    HomepageSection.is_active.is_(True),
+                    SectionItem.is_active.is_(True),
+                    or_(
+                        SectionItem.title.ilike(search_pattern),
+                        SectionItem.summary.ilike(search_pattern),
+                        SectionItem.badge.ilike(search_pattern),
+                        SectionItem.display_date.ilike(search_pattern),
+                    ),
+                )
+                .order_by(
+                    HomepageSection.display_order.asc(),
+                    SectionItem.display_order.asc(),
+                    SectionItem.id.asc(),
+                )
+                .all()
+            )
+        except OperationalError:
+            section_item_results = []
+
+        try:
+            document_results = (
+                Document.query.join(SectionItem)
+                .join(HomepageSection)
+                .filter(
+                    Document.is_active.is_(True),
+                    SectionItem.is_active.is_(True),
+                    HomepageSection.is_active.is_(True),
+                    or_(
+                        Document.title.ilike(search_pattern),
+                        Document.description.ilike(search_pattern),
+                    ),
+                )
+                .order_by(Document.display_order.asc(), Document.title.asc())
+                .all()
+            )
+        except OperationalError:
+            document_results = []
+
+        total_results = (
+            len(page_results)
+            + len(section_item_results)
+            + len(document_results)
+        )
+
+        return render_template(
+            "search_results.html",
+            query=query,
+            page_results=page_results,
+            section_item_results=section_item_results,
+            document_results=document_results,
+            total_results=total_results,
         )
 
     @app.route("/destaques/<int:item_id>")
