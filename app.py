@@ -27,7 +27,7 @@ from werkzeug.utils import secure_filename
 
 from admin import init_admin
 from config import Config
-from models import db, Document, HomepageSection, Page, SectionItem
+from models import db, HomepageSection, Page, SectionItem
 
 # Comentário: extensões globais reutilizadas pela aplicação.
 migrate = Migrate()
@@ -275,21 +275,11 @@ def create_app() -> Flask:
             if section.section_type not in {"services", "news", "transparency"}
         ]
 
-        try:
-            documents = (
-                Document.query.filter_by(is_active=True)
-                .order_by(Document.display_order.asc(), Document.id.asc())
-                .all()
-            )
-        except OperationalError:
-            documents = []
-
         return render_template(
             "index.html",
             sections=sections,
             sections_map=sections_map,
             custom_sections=custom_sections,
-            documents=documents,
         )
 
     @app.route("/destaques/<int:item_id>")
