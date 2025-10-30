@@ -124,7 +124,22 @@ class HomepageSectionAdminView(BasicAuthMixin, ModelView):
     inline_models = [
         (
             SectionItem,
-            dict(form_columns=SECTION_INLINE_FORM_COLUMNS),
+            dict(
+                form_columns=SECTION_INLINE_FORM_COLUMNS,
+                form_args={
+                    "id": {"label": "ID"},
+                    "title": {"label": "Título"},
+                    "summary": {"label": "Resumo"},
+                    "link_url": {"label": "Endereço do link"},
+                    "link_label": {"label": "Texto do link"},
+                    "icon_class": {"label": "Ícone (classe CSS)"},
+                    "image_url": {"label": "Imagem (URL)"},
+                    "badge": {"label": "Selo"},
+                    "display_date": {"label": "Data exibida"},
+                    "display_order": {"label": "Ordem de exibição"},
+                    "is_active": {"label": "Ativo"},
+                },
+            ),
         )
     ]
 
