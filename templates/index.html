@@ -80,102 +80,33 @@
         </div>
     </section>
 
-    {% set services_section = sections_map.get('services') %}
-    {% if services_section %}
-    <section class="services" id="{{ services_section.slug }}">
-        <div class="container">
-            <div class="section-title">
-                <h2>{{ services_section.name }}</h2>
-                {% if services_section.description %}
-                <p>{{ services_section.description }}</p>
-                {% endif %}
-            </div>
-            {% set service_items = services_section.items | selectattr('is_active') | list %}
-            {% if service_items %}
-            <div class="services-grid">
-                {% for item in service_items %}
-                <div class="service-card">
-                    {% if item.image_url %}
-                    <div class="service-media">
-                        <img src="{{ item.image_url }}" alt="{{ item.title }}">
-                    </div>
-                    {% elif item.icon_class %}
-                    <div class="service-icon">
-                        <i class="{{ item.icon_class }}"></i>
-                    </div>
-                    {% endif %}
-                    <h3>{{ item.title }}</h3>
-                    {% if item.summary %}
-                    <p>{{ item.summary }}</p>
-                    {% endif %}
-                    {% set item_documents = item.documents | selectattr('is_active') | list %}
-                    {% if item_documents %}
-                    <div class="section-item-documents">
-                        <h4 class="section-item-documents__title">Documentos</h4>
-                        <ul class="section-item-documents__list">
-                            {% for document in item_documents %}
-                            <li>
-                                {% if document.public_path %}
-                                <a href="{{ url_for('static', filename=document.public_path) }}" target="_blank" rel="noopener">
-                                    <i class="{{ document.icon_class or 'fas fa-file-alt' }}" aria-hidden="true"></i>
-                                    <span>{{ document.title }}</span>
-                                </a>
-                                {% else %}
-                                <span class="section-item-documents__label">
-                                    <i class="{{ document.icon_class or 'fas fa-file-alt' }}" aria-hidden="true"></i>
-                                    <span>{{ document.title }}</span>
-                                </span>
-                                {% endif %}
-                                {% if document.description %}
-                                <p class="section-item-documents__description">{{ document.description }}</p>
-                                {% endif %}
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% endif %}
-                    {% set has_custom_link = item.link_url and item.link_url != '#' %}
-                    {% if has_custom_link or item.id %}
-                    <a href="{{ item.link_url if has_custom_link else url_for('home_item_detail', item_id=item.id) }}">{{ item.link_label or 'Acessar' }} <i class="fas fa-arrow-right"></i></a>
+    {% for section in sections %}
+        {% if section.section_type == 'services' %}
+        <section class="services" id="{{ section.slug }}">
+            <div class="container">
+                <div class="section-title">
+                    <h2>{{ section.name }}</h2>
+                    {% if section.description %}
+                    <p>{{ section.description }}</p>
                     {% endif %}
                 </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <p>Sem serviços cadastrados no momento.</p>
-            {% endif %}
-        </div>
-    </section>
-    {% endif %}
-
-    {% set news_section = sections_map.get('news') %}
-    {% if news_section %}
-    <section class="news" id="{{ news_section.slug }}">
-        <div class="container">
-            <div class="section-title">
-                <h2>{{ news_section.name }}</h2>
-                {% if news_section.description %}
-                <p>{{ news_section.description }}</p>
-                {% endif %}
-            </div>
-            {% set news_items = news_section.items | selectattr('is_active') | list %}
-            {% if news_items %}
-            <div class="news-grid">
-                {% for item in news_items %}
-                <div class="news-card">
-                    {% if item.image_url %}
-                    <div class="news-img">
-                        <img src="{{ item.image_url }}" alt="{{ item.title }}">
-                    </div>
-                    {% endif %}
-                    <div class="news-content">
-                        {% if item.display_date %}
-                        <div class="news-date">{{ item.display_date }}</div>
+                {% set service_items = section.items | selectattr('is_active') | list %}
+                {% if service_items %}
+                <div class="services-grid">
+                    {% for item in service_items %}
+                    <div class="service-card">
+                        {% if item.image_url %}
+                        <div class="service-media">
+                            <img src="{{ item.image_url }}" alt="{{ item.title }}">
+                        </div>
+                        {% elif item.icon_class %}
+                        <div class="service-icon">
+                            <i class="{{ item.icon_class }}"></i>
+                        </div>
                         {% endif %}
                         <h3>{{ item.title }}</h3>
-                        {% set summary_text = (item.summary or '') | striptags %}
-                        {% if summary_text %}
-                        <p class="news-summary" data-full-summary="{{ summary_text | e }}">{{ summary_text }}</p>
+                        {% if item.summary %}
+                        <p>{{ item.summary }}</p>
                         {% endif %}
                         {% set item_documents = item.documents | selectattr('is_active') | list %}
                         {% if item_documents %}
@@ -205,130 +136,192 @@
                         {% endif %}
                         {% set has_custom_link = item.link_url and item.link_url != '#' %}
                         {% if has_custom_link or item.id %}
-                        <a class="news-read-more" href="{{ item.link_url if has_custom_link else url_for('news_detail', item_id=item.id) }}">{{ item.link_label or 'Leia mais' }} <i class="fas fa-arrow-right"></i></a>
+                        <a href="{{ item.link_url if has_custom_link else url_for('home_item_detail', item_id=item.id) }}">{{ item.link_label or 'Acessar' }} <i class="fas fa-arrow-right"></i></a>
                         {% endif %}
                     </div>
+                    {% endfor %}
                 </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <p>Nenhuma notícia cadastrada até o momento.</p>
-            {% endif %}
-        </div>
-    </section>
-    {% endif %}
-
-    {% set transparency_section = sections_map.get('transparency') %}
-    {% if transparency_section %}
-    <section class="transparency" id="{{ transparency_section.slug }}">
-        <div class="container">
-            <div class="section-title">
-                <h2>{{ transparency_section.name }}</h2>
-                {% if transparency_section.description %}
-                <p>{{ transparency_section.description }}</p>
+                {% else %}
+                <p>Sem serviços cadastrados no momento.</p>
                 {% endif %}
             </div>
-            {% set transparency_items = transparency_section.items | selectattr('is_active') | list %}
-            {% set transparency_links = {
-                'Plano Plurianual': url_for('plano_plurianual'),
-                'Relatórios de Gestão': url_for('relatorios_gestao'),
-                'Gastos com COVID-19': url_for('gastos_covid19'),
-                'Pesquisa de Satisfação': url_for('pesquisa_satisfacao'),
-                'Lista de Obras': url_for('lista_obras'),
-                'Iluminação Pública': url_for('iluminacao_publica')
-            } %}
-            {% if transparency_items %}
-            <div class="transparency-grid">
-                {% for item in transparency_items %}
-                <div class="transparency-item">
-                    {% if item.icon_class %}
-                    <div class="transparency-icon">
-                        <i class="{{ item.icon_class }}"></i>
-                    </div>
-                    {% endif %}
-                    <h3>{{ item.title }}</h3>
-                    {% if item.summary %}
-                    <p>{{ item.summary }}</p>
-                    {% endif %}
-                    {% set has_custom_link = item.link_url and item.link_url != '#' %}
-                    {% set fallback_link = transparency_links.get(item.title) %}
-                    {% if has_custom_link or fallback_link %}
-                    <a href="{{ item.link_url if has_custom_link else fallback_link }}">{{ item.link_label or 'Consultar' }}</a>
+        </section>
+        {% elif section.section_type == 'news' %}
+        <section class="news" id="{{ section.slug }}">
+            <div class="container">
+                <div class="section-title">
+                    <h2>{{ section.name }}</h2>
+                    {% if section.description %}
+                    <p>{{ section.description }}</p>
                     {% endif %}
                 </div>
-                {% endfor %}
-            </div>
-            {% else %}
-            <p>Transparência ainda não configurada.</p>
-            {% endif %}
-        </div>
-    </section>
-    {% endif %}
-
-    {% for section in custom_sections %}
-    <section class="services" id="{{ section.slug }}">
-        <div class="container">
-            <div class="section-title">
-                <h2>{{ section.name }}</h2>
-                {% if section.description %}
-                <p>{{ section.description }}</p>
+                {% set news_items = section.items | selectattr('is_active') | list %}
+                {% if news_items %}
+                <div class="news-grid">
+                    {% for item in news_items %}
+                    <div class="news-card">
+                        {% if item.image_url %}
+                        <div class="news-img">
+                            <img src="{{ item.image_url }}" alt="{{ item.title }}">
+                        </div>
+                        {% endif %}
+                        <div class="news-content">
+                            {% if item.display_date %}
+                            <div class="news-date">{{ item.display_date }}</div>
+                            {% endif %}
+                            <h3>{{ item.title }}</h3>
+                            {% set summary_text = (item.summary or '') | striptags %}
+                            {% if summary_text %}
+                            <p class="news-summary" data-full-summary="{{ summary_text | e }}">{{ summary_text }}</p>
+                            {% endif %}
+                            {% set item_documents = item.documents | selectattr('is_active') | list %}
+                            {% if item_documents %}
+                            <div class="section-item-documents">
+                                <h4 class="section-item-documents__title">Documentos</h4>
+                                <ul class="section-item-documents__list">
+                                    {% for document in item_documents %}
+                                    <li>
+                                        {% if document.public_path %}
+                                        <a href="{{ url_for('static', filename=document.public_path) }}" target="_blank" rel="noopener">
+                                            <i class="{{ document.icon_class or 'fas fa-file-alt' }}" aria-hidden="true"></i>
+                                            <span>{{ document.title }}</span>
+                                        </a>
+                                        {% else %}
+                                        <span class="section-item-documents__label">
+                                            <i class="{{ document.icon_class or 'fas fa-file-alt' }}" aria-hidden="true"></i>
+                                            <span>{{ document.title }}</span>
+                                        </span>
+                                        {% endif %}
+                                        {% if document.description %}
+                                        <p class="section-item-documents__description">{{ document.description }}</p>
+                                        {% endif %}
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                            {% endif %}
+                            {% set has_custom_link = item.link_url and item.link_url != '#' %}
+                            {% if has_custom_link or item.id %}
+                            <a class="news-read-more" href="{{ item.link_url if has_custom_link else url_for('news_detail', item_id=item.id) }}">{{ item.link_label or 'Leia mais' }} <i class="fas fa-arrow-right"></i></a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p>Nenhuma notícia cadastrada até o momento.</p>
                 {% endif %}
             </div>
-            {% set custom_items = section.items | selectattr('is_active') | list %}
-            {% if custom_items %}
-            <div class="services-grid">
-                {% for item in custom_items %}
-                <div class="service-card">
-                    {% if item.image_url %}
-                    <div class="service-media">
-                        <img src="{{ item.image_url }}" alt="{{ item.title }}">
-                    </div>
-                    {% elif item.icon_class %}
-                    <div class="service-icon">
-                        <i class="{{ item.icon_class }}"></i>
-                    </div>
-                    {% endif %}
-                    <h3>{{ item.title }}</h3>
-                    {% if item.summary %}
-                    <p>{{ item.summary }}</p>
-                    {% endif %}
-                    {% set item_documents = item.documents | selectattr('is_active') | list %}
-                    {% if item_documents %}
-                    <div class="section-item-documents">
-                        <h4 class="section-item-documents__title">Documentos</h4>
-                        <ul class="section-item-documents__list">
-                            {% for document in item_documents %}
-                            <li>
-                                {% if document.public_path %}
-                                <a href="{{ url_for('static', filename=document.public_path) }}" target="_blank" rel="noopener">
-                                    <i class="{{ document.icon_class or 'fas fa-file-alt' }}" aria-hidden="true"></i>
-                                    <span>{{ document.title }}</span>
-                                </a>
-                                {% else %}
-                                <span class="section-item-documents__label">
-                                    <i class="{{ document.icon_class or 'fas fa-file-alt' }}" aria-hidden="true"></i>
-                                    <span>{{ document.title }}</span>
-                                </span>
-                                {% endif %}
-                                {% if document.description %}
-                                <p class="section-item-documents__description">{{ document.description }}</p>
-                                {% endif %}
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    {% endif %}
-                    {% set has_custom_link = item.link_url and item.link_url != '#' %}
-                    {% if has_custom_link or item.id %}
-                    <a href="{{ item.link_url if has_custom_link else url_for('home_item_detail', item_id=item.id) }}">{{ item.link_label or 'Saiba mais' }} <i class="fas fa-arrow-right"></i></a>
+        </section>
+        {% elif section.section_type == 'transparency' %}
+        <section class="transparency" id="{{ section.slug }}">
+            <div class="container">
+                <div class="section-title">
+                    <h2>{{ section.name }}</h2>
+                    {% if section.description %}
+                    <p>{{ section.description }}</p>
                     {% endif %}
                 </div>
-                {% endfor %}
+                {% set transparency_items = section.items | selectattr('is_active') | list %}
+                {% set transparency_links = {
+                    'Plano Plurianual': url_for('plano_plurianual'),
+                    'Relatórios de Gestão': url_for('relatorios_gestao'),
+                    'Gastos com COVID-19': url_for('gastos_covid19'),
+                    'Pesquisa de Satisfação': url_for('pesquisa_satisfacao'),
+                    'Lista de Obras': url_for('lista_obras'),
+                    'Iluminação Pública': url_for('iluminacao_publica')
+                } %}
+                {% if transparency_items %}
+                <div class="transparency-grid">
+                    {% for item in transparency_items %}
+                    <div class="transparency-item">
+                        {% if item.icon_class %}
+                        <div class="transparency-icon">
+                            <i class="{{ item.icon_class }}"></i>
+                        </div>
+                        {% endif %}
+                        <h3>{{ item.title }}</h3>
+                        {% if item.summary %}
+                        <p>{{ item.summary }}</p>
+                        {% endif %}
+                        {% set has_custom_link = item.link_url and item.link_url != '#' %}
+                        {% set fallback_link = transparency_links.get(item.title) %}
+                        {% if has_custom_link or fallback_link %}
+                        <a href="{{ item.link_url if has_custom_link else fallback_link }}">{{ item.link_label or 'Consultar' }}</a>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p>Transparência ainda não configurada.</p>
+                {% endif %}
             </div>
-            {% else %}
-            <p>Nenhum item cadastrado ainda.</p>
-            {% endif %}
-        </div>
-    </section>
+        </section>
+        {% else %}
+        <section class="services" id="{{ section.slug }}">
+            <div class="container">
+                <div class="section-title">
+                    <h2>{{ section.name }}</h2>
+                    {% if section.description %}
+                    <p>{{ section.description }}</p>
+                    {% endif %}
+                </div>
+                {% set custom_items = section.items | selectattr('is_active') | list %}
+                {% if custom_items %}
+                <div class="services-grid">
+                    {% for item in custom_items %}
+                    <div class="service-card">
+                        {% if item.image_url %}
+                        <div class="service-media">
+                            <img src="{{ item.image_url }}" alt="{{ item.title }}">
+                        </div>
+                        {% elif item.icon_class %}
+                        <div class="service-icon">
+                            <i class="{{ item.icon_class }}"></i>
+                        </div>
+                        {% endif %}
+                        <h3>{{ item.title }}</h3>
+                        {% if item.summary %}
+                        <p>{{ item.summary }}</p>
+                        {% endif %}
+                        {% set item_documents = item.documents | selectattr('is_active') | list %}
+                        {% if item_documents %}
+                        <div class="section-item-documents">
+                            <h4 class="section-item-documents__title">Documentos</h4>
+                            <ul class="section-item-documents__list">
+                                {% for document in item_documents %}
+                                <li>
+                                    {% if document.public_path %}
+                                    <a href="{{ url_for('static', filename=document.public_path) }}" target="_blank" rel="noopener">
+                                        <i class="{{ document.icon_class or 'fas fa-file-alt' }}" aria-hidden="true"></i>
+                                        <span>{{ document.title }}</span>
+                                    </a>
+                                    {% else %}
+                                    <span class="section-item-documents__label">
+                                        <i class="{{ document.icon_class or 'fas fa-file-alt' }}" aria-hidden="true"></i>
+                                        <span>{{ document.title }}</span>
+                                    </span>
+                                    {% endif %}
+                                    {% if document.description %}
+                                    <p class="section-item-documents__description">{{ document.description }}</p>
+                                    {% endif %}
+                                </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        {% endif %}
+                        {% set has_custom_link = item.link_url and item.link_url != '#' %}
+                        {% if has_custom_link or item.id %}
+                        <a href="{{ item.link_url if has_custom_link else url_for('home_item_detail', item_id=item.id) }}">{{ item.link_label or 'Saiba mais' }} <i class="fas fa-arrow-right"></i></a>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p>Nenhum item cadastrado ainda.</p>
+                {% endif %}
+            </div>
+        </section>
+        {% endif %}
     {% endfor %}
 {% endblock %}
