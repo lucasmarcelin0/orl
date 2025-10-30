@@ -28,6 +28,67 @@
     padding: 0 8px;
 }
 
+.section-item-documents {
+    margin-top: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.section-item-documents__group {
+    margin: 0;
+}
+
+.section-item-documents__group > label {
+    display: none;
+}
+
+.section-item-documents__group > .col-md-10,
+.section-item-documents__group > .col-lg-10,
+.section-item-documents__group > .col-sm-10,
+.section-item-documents__group > .col-xl-10 {
+    max-width: 100%;
+    flex: 1 1 100%;
+}
+
+.section-item-documents__inline {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding: 20px;
+    background: rgba(26, 79, 140, 0.04);
+    border: 1px solid var(--section-item-border);
+    border-radius: 12px;
+}
+
+.section-item-documents__inline .inline-field-list {
+    display: grid;
+    gap: 14px;
+}
+
+.section-item-documents__inline .inline-field.card {
+    margin: 0;
+    border-radius: 12px;
+    border: 1px solid rgba(26, 79, 140, 0.14);
+    background: #ffffff;
+    box-shadow: 0 8px 18px rgba(18, 52, 93, 0.08);
+}
+
+.section-item-documents__inline .inline-field.card legend {
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(26, 79, 140, 0.12);
+}
+
+.section-item-documents__inline .inline-field.card legend small {
+    font-weight: 600;
+    color: var(--section-item-preview-accent);
+}
+
+.section-item-documents__inline > .btn {
+    align-self: flex-start;
+}
+
 .section-item-designer__preview {
     position: sticky;
     top: 96px;
