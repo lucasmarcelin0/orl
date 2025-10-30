@@ -550,7 +550,13 @@ class SectionItemAdminView(BasicAuthMixin, ModelView):
         "is_active": "Ativo",
     }
     form_overrides = {"summary": CKEditorField}
+    # Comentário: preservamos o campo ``id`` no formulário para satisfazer as
+    # regras de layout do Flask-Admin, mas o renderizamos como oculto para que
+    # os administradores não o modifiquem manualmente.
     form_widget_args = {
+        "id": {
+            "type": "hidden",
+        },
         "title": {
             "placeholder": "Título principal exibido no cartão",
         },
@@ -579,6 +585,7 @@ class SectionItemAdminView(BasicAuthMixin, ModelView):
         },
     }
     form_create_rules = form_edit_rules = (
+        rules.Field("id"),
         rules.HTML('<div class="section-item-designer">'),
         rules.FieldSet(
             (
