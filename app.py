@@ -28,7 +28,7 @@ from werkzeug.utils import secure_filename
 
 from admin import init_admin
 from config import Config
-from models import db, HomepageSection, Page, SectionItem
+from models import db, EmergencyService, HomepageSection, Page, SectionItem
 
 # Comentário: extensões globais reutilizadas pela aplicação.
 migrate = Migrate()
@@ -130,10 +130,63 @@ def create_app() -> Flask:
 
         db.session.commit()
 
+    def ensure_emergency_services() -> None:
+        """Popula serviços de emergência padrão em instalações novas."""
+
+        defaults = [
+            {
+                "name": "SAMU",
+                "phone": "192",
+                "icon_class": "fas fa-ambulance",
+            },
+            {
+                "name": "Bombeiros",
+                "phone": "193",
+                "icon_class": "fas fa-fire-extinguisher",
+            },
+            {
+                "name": "Polícia Militar",
+                "phone": "190",
+                "icon_class": "fas fa-shield-alt",
+            },
+            {
+                "name": "Pronto Socorro",
+                "phone": "(16) 3820-2000",
+                "icon_class": "fas fa-hospital",
+            },
+        ]
+
+        try:
+            db.create_all()
+        except OperationalError:
+            return
+
+        try:
+            has_services = EmergencyService.query.count() > 0
+        except OperationalError:
+            return
+
+        if has_services:
+            return
+
+        for order, data in enumerate(defaults):
+            db.session.add(
+                EmergencyService(
+                    name=data.get("name", "Serviço"),
+                    phone=data.get("phone"),
+                    icon_class=data.get("icon_class"),
+                    display_order=order,
+                    is_active=True,
+                )
+            )
+
+        db.session.commit()
+
     with app.app_context():
         ensure_database_schema()
         init_admin(app)
         ensure_homepage_sections()
+        ensure_emergency_services()
 
     def _resolve_upload_path() -> Path:
         upload_path = Path(app.config.get("CKEDITOR_UPLOADS_PATH", "static/uploads"))
@@ -292,9 +345,22 @@ def create_app() -> Flask:
         except OperationalError:
             sections = []
 
+        try:
+            emergency_services = (
+                EmergencyService.query.filter_by(is_active=True)
+                .order_by(
+                    EmergencyService.display_order.asc(),
+                    EmergencyService.name.asc(),
+                )
+                .all()
+            )
+        except OperationalError:
+            emergency_services = []
+
         return render_template(
             "index.html",
             sections=sections,
+            emergency_services=emergency_services,
         )
 
     @app.route("/destaques/<int:item_id>")

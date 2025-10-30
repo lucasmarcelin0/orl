@@ -85,6 +85,21 @@ class Document(db.Model):
         return f"uploads/documents/{sanitized}" if sanitized else ""
 
 
+class EmergencyService(db.Model):
+    """Serviço de emergência exibido em destaque na página inicial."""
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(120), nullable=False)
+    phone = Column(String(60), nullable=True)
+    description = Column(Text, nullable=True)
+    icon_class = Column(String(120), nullable=True)
+    display_order = Column(Integer, nullable=False, default=0)
+    is_active = Column(Boolean, nullable=False, default=True)
+
+    def __repr__(self) -> str:  # pragma: no cover - representação auxiliar
+        return f"<EmergencyService {self.name!r}>"
+
+
 class SectionItem(db.Model):
     """Representa um cartão individual dentro de uma seção da home."""
 
