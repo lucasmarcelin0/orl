@@ -418,6 +418,17 @@ class HomepageSectionAdminView(BasicAuthMixin, ModelView):
     ]
 
 
+def _section_filter_options() -> list[tuple[int, str]]:
+    """Retorna as opções disponíveis para o filtro de seção."""
+
+    try:
+        sections = HomepageSection.query.order_by(HomepageSection.name).all()
+    except OperationalError:
+        return []
+
+    return [(section.id, section.name) for section in sections]
+
+
 class SectionItemAdminView(BasicAuthMixin, ModelView):
     """Administração individual dos cartões que compõem as seções."""
 
@@ -427,10 +438,7 @@ class SectionItemAdminView(BasicAuthMixin, ModelView):
         sqla_filters.FilterEqual(
             SectionItem.section_id,
             "Seção",
-            options=lambda: [
-                (section.id, section.name)
-                for section in HomepageSection.query.order_by(HomepageSection.name)
-            ],
+            options=_section_filter_options,
         ),
         sqla_filters.BooleanEqualFilter(SectionItem.is_active, "Ativo"),
     )
