@@ -192,6 +192,23 @@ def create_app() -> Flask:
             custom_sections=custom_sections,
         )
 
+    @app.route("/destaques/<int:item_id>")
+    def home_item_detail(item_id: int) -> str:
+        """Exibe uma página detalhada para itens das seções da página inicial."""
+
+        try:
+            item = SectionItem.query.get(item_id)
+        except OperationalError:
+            abort(404)
+
+        if item is None or item.section is None:
+            abort(404)
+
+        if item.section.section_type == "news":
+            abort(404)
+
+        return render_template("home_item_detail.html", item=item)
+
     @app.route("/licitacoes")
     def licitacoes() -> str:
         """Disponibiliza a página com os editais e processos licitatórios."""

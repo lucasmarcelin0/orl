@@ -88,8 +88,9 @@
                     {% if item.summary %}
                     <p>{{ item.summary }}</p>
                     {% endif %}
-                    {% if item.link_url %}
-                    <a href="{{ item.link_url }}">{{ item.link_label or 'Acessar' }} <i class="fas fa-arrow-right"></i></a>
+                    {% set has_custom_link = item.link_url and item.link_url != '#' %}
+                    {% if has_custom_link or item.id %}
+                    <a href="{{ item.link_url if has_custom_link else url_for('home_item_detail', item_id=item.id) }}">{{ item.link_label or 'Acessar' }} <i class="fas fa-arrow-right"></i></a>
                     {% endif %}
                 </div>
                 {% endfor %}
@@ -205,8 +206,9 @@
                     {% if item.summary %}
                     <p>{{ item.summary }}</p>
                     {% endif %}
-                    {% if item.link_url %}
-                    <a href="{{ item.link_url }}">{{ item.link_label or 'Saiba mais' }} <i class="fas fa-arrow-right"></i></a>
+                    {% set has_custom_link = item.link_url and item.link_url != '#' %}
+                    {% if has_custom_link or item.id %}
+                    <a href="{{ item.link_url if has_custom_link else url_for('home_item_detail', item_id=item.id) }}">{{ item.link_label or 'Saiba mais' }} <i class="fas fa-arrow-right"></i></a>
                     {% endif %}
                 </div>
                 {% endfor %}
