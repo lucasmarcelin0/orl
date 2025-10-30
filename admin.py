@@ -15,6 +15,7 @@ from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView, filters as sqla_filters
 from flask_admin.form import rules
 from flask_admin.form.upload import FileUploadField
+from flask_admin.model.form import InlineFormAdmin
 from flask_ckeditor import CKEditorField
 from sqlalchemy.exc import OperationalError
 
@@ -448,6 +449,84 @@ def _section_item_filter_options() -> list[tuple[int, str]]:
     return options
 
 
+class DocumentUploadMixin:
+    """Funcionalidades compartilhadas para upload e nomenclatura de documentos."""
+
+    def _documents_upload_path(self) -> Path:
+        config_path = current_app.config.get("DOCUMENTS_UPLOAD_PATH")
+        if not config_path:
+            config_path = Path("static") / "uploads" / "documents"
+        upload_path = Path(config_path)
+        if not upload_path.is_absolute():
+            upload_path = Path(current_app.root_path) / upload_path
+        upload_path.mkdir(parents=True, exist_ok=True)
+        return upload_path
+
+    def _allowed_extensions(self) -> set[str]:
+        configured = current_app.config.get("DOCUMENTS_ALLOWED_EXTENSIONS") or {"pdf"}
+        return {ext.lower() for ext in configured}
+
+    def _generate_filename(self, _model, file_data) -> str:
+        extension = Path(file_data.filename or "").suffix.lower()
+        if extension:
+            extension = extension.lstrip(".")
+        else:
+            extension = "dat"
+        return f"documento-{uuid.uuid4().hex}.{extension}"
+
+    def _build_document_upload_field(self) -> FileUploadField:
+        upload_field = FileUploadField(
+            "Arquivo",
+            base_path=str(self._documents_upload_path()),
+            namegen=self._generate_filename,
+            allowed_extensions=self._allowed_extensions(),
+        )
+        upload_field.allow_overwrite = False
+        return upload_field
+
+
+class DocumentInlineForm(DocumentUploadMixin, InlineFormAdmin):
+    """Permite gerenciar documentos diretamente no formulário do item."""
+
+    form_columns = (
+        "title",
+        "description",
+        "icon_class",
+        "file_path",
+        "display_order",
+        "is_active",
+    )
+    form_label = "Documentos"
+    form_widget_args = {
+        "title": {
+            "placeholder": "Nome exibido aos cidadãos",
+        },
+        "description": {
+            "placeholder": "Complemento opcional exibido abaixo do link",
+            "rows": 3,
+        },
+        "icon_class": {
+            "placeholder": "Ex.: fas fa-file-download",
+        },
+        "display_order": {
+            "placeholder": "0",
+        },
+    }
+    form_args = {
+        "title": {"label": "Título"},
+        "description": {"label": "Descrição"},
+        "icon_class": {"label": "Ícone (classe CSS)"},
+        "file_path": {"label": "Arquivo"},
+        "display_order": {"label": "Ordem de exibição"},
+        "is_active": {"label": "Ativo"},
+    }
+
+    def postprocess_form(self, form_class):  # type: ignore[override]
+        form_class = super().postprocess_form(form_class)
+        form_class.file_path = self._build_document_upload_field()
+        return form_class
+
+
 class SectionItemAdminView(BasicAuthMixin, ModelView):
     """Administração individual dos cartões que compõem as seções."""
 
@@ -522,6 +601,7 @@ class SectionItemAdminView(BasicAuthMixin, ModelView):
             ),
             "Complementos visuais",
         ),
+        rules.FieldSet(("documents",), "Documentos vinculados"),
         rules.HTML(
             "<div class=\"section-item-designer__preview\">"
             "<h4>Pré-visualização em tempo real</h4>"
@@ -533,7 +613,7 @@ class SectionItemAdminView(BasicAuthMixin, ModelView):
     )
     extra_css = ("/static/css/admin/section-item-form.css",)
     extra_js = ("/static/js/admin/section-item-form.js",)
-    form_columns = ("section",) + SECTION_INLINE_FORM_COLUMNS
+    form_columns = ("section",) + SECTION_INLINE_FORM_COLUMNS + ("documents",)
     form_labels = {
         "section": "Seção",
         "title": "Título",
@@ -546,43 +626,9 @@ class SectionItemAdminView(BasicAuthMixin, ModelView):
         "display_date": "Data exibida",
         "display_order": "Ordem de exibição",
         "is_active": "Ativo",
+        "documents": "Documentos",
     }
-
-
-class DocumentUploadMixin:
-    """Funcionalidades compartilhadas para upload e nomenclatura de documentos."""
-
-    def _documents_upload_path(self) -> Path:
-        config_path = current_app.config.get("DOCUMENTS_UPLOAD_PATH")
-        if not config_path:
-            config_path = Path("static") / "uploads" / "documents"
-        upload_path = Path(config_path)
-        if not upload_path.is_absolute():
-            upload_path = Path(current_app.root_path) / upload_path
-        upload_path.mkdir(parents=True, exist_ok=True)
-        return upload_path
-
-    def _allowed_extensions(self) -> set[str]:
-        configured = current_app.config.get("DOCUMENTS_ALLOWED_EXTENSIONS") or {"pdf"}
-        return {ext.lower() for ext in configured}
-
-    def _generate_filename(self, _model, file_data) -> str:
-        extension = Path(file_data.filename or "").suffix.lower()
-        if extension:
-            extension = extension.lstrip(".")
-        else:
-            extension = "dat"
-        return f"documento-{uuid.uuid4().hex}.{extension}"
-
-    def _build_document_upload_field(self) -> FileUploadField:
-        upload_field = FileUploadField(
-            "Arquivo",
-            base_path=str(self._documents_upload_path()),
-            namegen=self._generate_filename,
-            allowed_extensions=self._allowed_extensions(),
-        )
-        upload_field.allow_overwrite = False
-        return upload_field
+    inline_models = (DocumentInlineForm(Document),)
 
 
 class DocumentAdminView(DocumentUploadMixin, BasicAuthMixin, ModelView):
