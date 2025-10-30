@@ -162,6 +162,20 @@ def create_app() -> Flask:
 
         return render_template("alvaras.html")
 
+    @app.route("/noticias/<int:item_id>")
+    def news_detail(item_id: int) -> str:
+        """Mostra o conteúdo completo de uma notícia cadastrada na home."""
+
+        try:
+            item = SectionItem.query.get(item_id)
+        except OperationalError:
+            abort(404)
+
+        if item is None or item.section is None or item.section.section_type != "news":
+            abort(404)
+
+        return render_template("news_detail.html", item=item)
+
     @app.route("/<slug>")
     def show_page(slug: str) -> str:
         """Exibe o conteúdo dinâmico associado ao slug informado."""

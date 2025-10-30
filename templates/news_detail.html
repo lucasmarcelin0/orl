@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+
+{% block title %}{{ item.title }} - Notícias - Prefeitura de Orlândia{% endblock %}
+
+{% block content %}
+<section class="page-header news-detail-header">
+    <h2>{{ item.title }}</h2>
+    {% if item.display_date %}
+    <p class="news-detail-date">{{ item.display_date }}</p>
+    {% endif %}
+</section>
+<section class="page-body news-detail-body">
+    {% if item.image_url %}
+    <figure class="news-detail-image">
+        <img src="{{ item.image_url }}" alt="{{ item.title }}">
+    </figure>
+    {% endif %}
+    <div class="news-detail-content">
+        {% if item.summary %}
+        {{ item.summary | safe }}
+        {% else %}
+        <p>O conteúdo completo desta notícia não está disponível.</p>
+        {% endif %}
+    </div>
+    <p class="news-detail-back">
+        <a href="{{ url_for('index') }}#{{ item.section.slug }}">&larr; Voltar para a lista de notícias</a>
+    </p>
+</section>
+{% endblock %}

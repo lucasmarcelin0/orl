@@ -335,6 +335,17 @@ nav a:hover::after {
     gap: 5px;
 }
 
+.news-summary {
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.news-read-more--active {
+    font-weight: 600;
+}
+
 /* Transparency Section */
 .transparency {
     padding: 80px 0;
@@ -357,6 +368,57 @@ nav a:hover::after {
 
 .transparency-item:hover {
     transform: translateY(-5px);
+}
+
+/* News detail page */
+.news-detail-header {
+    text-align: center;
+    padding: 60px 0 20px;
+}
+
+.news-detail-date {
+    color: var(--gray-color);
+    margin-top: 10px;
+}
+
+.news-detail-body {
+    max-width: 900px;
+    margin: 0 auto 80px;
+    background-color: white;
+    padding: 40px;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+}
+
+.news-detail-image img {
+    width: 100%;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+}
+
+.news-detail-content p {
+    margin-bottom: 15px;
+    color: var(--dark-color);
+    line-height: 1.7;
+}
+
+.news-detail-content ul,
+.news-detail-content ol {
+    margin: 15px 0 15px 25px;
+    color: var(--dark-color);
+}
+
+.news-detail-back a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.news-detail-back a:hover {
+    text-decoration: underline;
 }
 
 .transparency-icon {
