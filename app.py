@@ -30,7 +30,15 @@ from werkzeug.utils import secure_filename
 from admin import init_admin
 from config import Config
 
-from models import db, EmergencyService, Document,  HomepageSection, Page, SectionItem
+from models import (
+    db,
+    EmergencyService,
+    Document,
+    HomepageSection,
+    Page,
+    QuickLink,
+    SectionItem,
+)
 
 # Comentário: extensões globais reutilizadas pela aplicação.
 migrate = Migrate()
@@ -315,19 +323,62 @@ def create_app() -> Flask:
             except Exception:  # pragma: no cover - rota indisponível
                 admin_index_url = None
 
-        service_links = [
-            {"label": "Licitações", "url": url_for("licitacoes")},
-            {"label": "Concursos", "url": url_for("concursos")},
-            {"label": "IPTU Online", "url": url_for("iptu_online")},
-            {"label": "Alvarás", "url": url_for("alvaras")},
-        ]
+        try:
+            quick_access_links = (
+                QuickLink.query.filter_by(
+                    location=QuickLink.LOCATION_QUICK_ACCESS,
+                    is_active=True,
+                )
+                .order_by(QuickLink.display_order.asc(), QuickLink.id.asc())
+                .all()
+            )
+            quick_access_configured = (
+                QuickLink.query.filter_by(location=QuickLink.LOCATION_QUICK_ACCESS).count()
+                > 0
+            )
+        except OperationalError:
+            quick_access_links = []
+            quick_access_configured = False
+
+        if not quick_access_links and not quick_access_configured:
+            quick_access_links = [
+                {"label": "Editais e Licitações", "url": url_for("licitacoes")},
+                {"label": "Concursos Públicos", "url": url_for("concursos")},
+                {"label": "IPTU Online", "url": url_for("iptu_online")},
+                {"label": "Alvarás", "url": url_for("alvaras")},
+            ]
+
+        try:
+            footer_links = (
+                QuickLink.query.filter_by(
+                    location=QuickLink.LOCATION_FOOTER,
+                    is_active=True,
+                )
+                .order_by(QuickLink.display_order.asc(), QuickLink.id.asc())
+                .all()
+            )
+            footer_configured = (
+                QuickLink.query.filter_by(location=QuickLink.LOCATION_FOOTER).count() > 0
+            )
+        except OperationalError:
+            footer_links = []
+            footer_configured = False
+
+        if not footer_links and not footer_configured:
+            footer_links = [
+                {"label": "Licitações", "url": url_for("licitacoes")},
+                {"label": "Concursos", "url": url_for("concursos")},
+                {"label": "IPTU Online", "url": url_for("iptu_online")},
+                {"label": "Alvarás", "url": url_for("alvaras")},
+            ]
 
         return {
             "pages": visible_pages,
             "page_columns": _chunk_pages(visible_pages, columns=3),
             "admin_navigation": admin_navigation,
             "admin_index_url": admin_index_url,
-            "service_links": service_links,
+            "service_links": footer_links,
+            "quick_access_links": quick_access_links,
             "current_year": datetime.utcnow().year,
         }
 

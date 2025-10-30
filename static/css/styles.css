@@ -1138,6 +1138,11 @@ footer {
     background-color: rgba(255, 255, 255, 0.3);
 }
 
+.quick-access__empty {
+    margin: 0;
+    font-weight: 500;
+}
+
 /* Emergency Section */
 
 .sr-only {

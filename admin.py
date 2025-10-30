@@ -27,6 +27,7 @@ from models import (
     EmergencyService,
     HomepageSection,
     Page,
+    QuickLink,
     SectionItem,
 )
 
@@ -72,6 +73,12 @@ SECTION_ITEM_PREVIEW_HTML = """
     </footer>
 </section>
 """
+
+
+QUICK_LINK_LOCATIONS = (
+    (QuickLink.LOCATION_QUICK_ACCESS, "Acesso rápido"),
+    (QuickLink.LOCATION_FOOTER, "Rodapé"),
+)
 
 
 class BasicAuthMixin:
@@ -779,6 +786,43 @@ class DocumentAdminView(DocumentUploadMixin, BasicAuthMixin, ModelView):
         return form_class
 
 
+class QuickLinkAdminView(BasicAuthMixin, ModelView):
+    """Gerencia os atalhos exibidos no acesso rápido e no rodapé."""
+
+    column_list = ("label", "location", "display_order", "is_active")
+    column_default_sort = ("display_order", False)
+    column_labels = {
+        "label": "Texto exibido",
+        "url": "Endereço (URL)",
+        "location": "Local",
+        "display_order": "Ordem de exibição",
+        "is_active": "Ativo",
+    }
+    column_choices = {
+        "location": QUICK_LINK_LOCATIONS,
+    }
+    column_filters = (
+        sqla_filters.FilterEqual(QuickLink.location, "Local", options=QUICK_LINK_LOCATIONS),
+        sqla_filters.BooleanEqualFilter(QuickLink.is_active, "Ativo"),
+    )
+    column_searchable_list = ("label", "url")
+    form_columns = ("label", "url", "location", "display_order", "is_active")
+    form_choices = {
+        "location": QUICK_LINK_LOCATIONS,
+    }
+    form_widget_args = {
+        "label": {
+            "placeholder": "Ex.: Portal da transparência",
+        },
+        "url": {
+            "placeholder": "Cole aqui o endereço completo",
+        },
+        "display_order": {
+            "placeholder": "0",
+        },
+    }
+
+
 class EmergencyServiceAdminView(BasicAuthMixin, ModelView):
     """Permite gerenciar os serviços exibidos no painel de emergência."""
 
@@ -868,6 +912,14 @@ def init_admin(app) -> Admin:
             db.session,
             category="Página inicial",
             name="Documentos",
+        )
+    )
+    admin.add_view(
+        QuickLinkAdminView(
+            QuickLink,
+            db.session,
+            category="Página inicial",
+            name="Acesso rápido e rodapé",
         )
     )
     admin.add_view(
