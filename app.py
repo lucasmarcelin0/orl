@@ -319,6 +319,42 @@ def create_app() -> Flask:
 
         return render_template("alvaras.html")
 
+    @app.route("/transparencia/plano-plurianual")
+    def plano_plurianual() -> str:
+        """Disponibiliza os principais documentos do Plano Plurianual."""
+
+        return render_template("transparencia/plano_plurianual.html")
+
+    @app.route("/transparencia/relatorios-gestao")
+    def relatorios_gestao() -> str:
+        """Apresenta os relatórios anuais de gestão do município."""
+
+        return render_template("transparencia/relatorios_gestao.html")
+
+    @app.route("/transparencia/gastos-covid-19")
+    def gastos_covid19() -> str:
+        """Exibe dados sobre despesas realizadas no enfrentamento à COVID-19."""
+
+        return render_template("transparencia/gastos_covid19.html")
+
+    @app.route("/transparencia/pesquisa-satisfacao")
+    def pesquisa_satisfacao() -> str:
+        """Disponibiliza formulários e resultados das pesquisas de satisfação."""
+
+        return render_template("transparencia/pesquisa_satisfacao.html")
+
+    @app.route("/transparencia/lista-obras")
+    def lista_obras() -> str:
+        """Reúne as informações das obras públicas em andamento e concluídas."""
+
+        return render_template("transparencia/lista_obras.html")
+
+    @app.route("/transparencia/iluminacao-publica")
+    def iluminacao_publica() -> str:
+        """Traz relatórios e canais de atendimento da iluminação pública."""
+
+        return render_template("transparencia/iluminacao_publica.html")
+
     @app.route("/noticias/<int:item_id>")
     def news_detail(item_id: int) -> str:
         """Mostra o conteúdo completo de uma notícia cadastrada na home."""
