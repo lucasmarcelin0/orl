@@ -118,6 +118,23 @@ class EmergencyService(db.Model):
         return f"<EmergencyService {self.name!r}>"
 
 
+class QuickLink(db.Model):
+    """Atalho configurável exibido no acesso rápido ou no rodapé."""
+
+    LOCATION_QUICK_ACCESS = "quick_access"
+    LOCATION_FOOTER = "footer"
+
+    id = Column(Integer, primary_key=True)
+    label = Column(String(150), nullable=False)
+    url = Column(String(500), nullable=False)
+    location = Column(String(50), nullable=False, default=LOCATION_QUICK_ACCESS)
+    display_order = Column(Integer, nullable=False, default=0)
+    is_active = Column(Boolean, nullable=False, default=True)
+
+    def __repr__(self) -> str:  # pragma: no cover - representação auxiliar
+        return f"<QuickLink {self.label!r} ({self.location})>"
+
+
 class SectionItem(db.Model):
     """Representa um cartão individual dentro de uma seção da home."""
 
