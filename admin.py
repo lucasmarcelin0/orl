@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+import re
+import unicodedata
+
 from flask import current_app, request, Response
 from flask_admin import Admin, AdminIndexView
 from flask_admin.contrib.sqla import ModelView
@@ -76,6 +79,39 @@ class PageAdminView(BasicAuthMixin, ModelView):
     # Comentário: mensagens padronizadas exibidas após operações CRUD.
     create_modal = False
     edit_modal = False
+
+    def _slugify(self, value: str) -> str:
+        value = unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode(
+            "ascii"
+        )
+        value = re.sub(r"[^\w\s-]", "", value).strip().lower()
+        return re.sub(r"[-\s]+", "-", value)
+
+    def _ensure_unique_slug(self, model: Page) -> None:
+        base_slug = self._slugify(model.slug or model.title)
+        slug = base_slug or "pagina"
+        index = 2
+
+        while True:
+            query = Page.query.filter(Page.slug == slug)
+            if model.id:
+                query = query.filter(Page.id != model.id)
+            if query.first() is None:
+                model.slug = slug
+                break
+            slug = f"{base_slug}-{index}"
+            index += 1
+
+    def on_model_change(self, form, model: Page, is_created: bool) -> None:  # type: ignore[override]
+        if not model.title:
+            raise ValueError("A página precisa de um título para gerar o link.")
+
+        if model.slug:
+            model.slug = self._slugify(model.slug)
+
+        self._ensure_unique_slug(model)
+
+        return super().on_model_change(form, model, is_created)
 
 
 class ProtectedAdminIndexView(BasicAuthMixin, AdminIndexView):
