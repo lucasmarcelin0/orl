@@ -22,6 +22,7 @@ from flask import (
 )
 from flask_migrate import Migrate
 from flask_ckeditor import CKEditor
+from sqlalchemy import inspect, text
 from sqlalchemy.exc import OperationalError
 from werkzeug.utils import secure_filename
 
@@ -45,9 +46,30 @@ def create_app() -> Flask:
     migrate.init_app(app, db)
     ckeditor.init_app(app)
 
-    # Comentário: prepara o painel administrativo com autenticação básica.
-    with app.app_context():
-        init_admin(app)
+    def ensure_database_schema() -> None:
+        """Garante a existência das colunas esperadas em instalações antigas."""
+
+        try:
+            db.create_all()
+        except OperationalError:
+            return
+
+        try:
+            engine = db.session.get_bind()
+        except OperationalError:
+            return
+        if engine is None:
+            return
+
+        inspector = inspect(engine)
+        try:
+            columns = {column["name"] for column in inspector.get_columns("document")}
+        except Exception:  # pragma: no cover - fallback defensivo
+            return
+
+        if "section_item_id" not in columns:
+            with engine.begin() as connection:
+                connection.execute(text("ALTER TABLE document ADD COLUMN section_item_id INTEGER"))
 
     def ensure_homepage_sections() -> None:
         """Carrega um conteúdo inicial da home quando o banco está vazio."""
@@ -109,6 +131,8 @@ def create_app() -> Flask:
         db.session.commit()
 
     with app.app_context():
+        ensure_database_schema()
+        init_admin(app)
         ensure_homepage_sections()
 
     def _resolve_upload_path() -> Path:
@@ -407,7 +431,7 @@ def create_app() -> Flask:
         """Cria o banco de dados (caso não exista) e inicia a aplicação."""
 
         with app.app_context():
-            db.create_all()
+            ensure_database_schema()
             click.echo("Banco de dados verificado com sucesso.")
         app.run(host=host, port=port, debug=debug)
 
@@ -421,5 +445,5 @@ app = create_app()
 if __name__ == "__main__":
     # Comentário: execução direta do módulo para ambientes de desenvolvimento.
     with app.app_context():
-        db.create_all()
+        ensure_database_schema()
     app.run(debug=True)
