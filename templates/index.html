@@ -18,10 +18,10 @@
         <div class="container">
             <h3>Acesso Rápido</h3>
             <div class="quick-links">
-                <a href="#" class="quick-link">Editais e Licitações</a>
-                <a href="#" class="quick-link">Concursos Públicos</a>
-                <a href="#" class="quick-link">IPTU Online</a>
-                <a href="#" class="quick-link">Alvarás</a>
+                <a href="{{ url_for('licitacoes') }}" class="quick-link">Editais e Licitações</a>
+                <a href="{{ url_for('concursos') }}" class="quick-link">Concursos Públicos</a>
+                <a href="{{ url_for('iptu_online') }}" class="quick-link">IPTU Online</a>
+                <a href="{{ url_for('alvaras') }}" class="quick-link">Alvarás</a>
             </div>
         </div>
     </section>
