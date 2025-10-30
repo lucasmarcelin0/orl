@@ -6,18 +6,10 @@
         <div class="container">
             <h2>Bem-vindo à Orlândia</h2>
             <p>Encontre informações, serviços e notícias sobre nossa cidade. Um governo transparente e próximo do cidadão.</p>
-            <form class="search-box" action="{{ url_for('search') }}" method="get" role="search">
-                <label class="sr-only" for="homepage-search">Buscar no site</label>
-                <input
-                    id="homepage-search"
-                    type="search"
-                    name="q"
-                    placeholder="O que você está procurando?"
-                    aria-label="Buscar no site"
-                    required
-                >
-                <button type="submit"><i class="fas fa-search"></i> Buscar</button>
-            </form>
+            <div class="search-box">
+                <input type="text" placeholder="O que você está procurando?">
+                <button><i class="fas fa-search"></i> Buscar</button>
+            </div>
         </div>
     </section>
 
