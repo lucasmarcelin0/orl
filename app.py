@@ -176,6 +176,18 @@ def create_app() -> Flask:
             abort(404)
         return render_template("dynamic_page.html", page=page)
 
+    @app.errorhandler(404)
+    def handle_not_found(_: Exception) -> tuple[str, int]:
+        """Exibe uma página personalizada para recursos inexistentes."""
+
+        return render_template("404.html"), 404
+
+    @app.errorhandler(500)
+    def handle_internal_error(_: Exception) -> tuple[str, int]:
+        """Garante mensagem em português quando ocorrer erro interno."""
+
+        return render_template("500.html"), 500
+
     @app.cli.command("bootstrap-app")
     @click.option("--host", default="127.0.0.1", help="Host de execução do servidor.")
     @click.option("--port", default=5000, help="Porta em que o servidor ficará disponível.")
