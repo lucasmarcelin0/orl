@@ -593,35 +593,91 @@ class SectionItemAdminView(BasicAuthMixin, ModelView):
     }
     form_create_rules = form_edit_rules = (
         rules.Field("id"),
-        rules.HTML('<div class="section-item-designer">'),
-        rules.FieldSet(
-            (
-                "section",
-                "is_active",
-                "title",
-                "summary",
-                "link_label",
-                "link_url",
-            ),
-            "Conteúdo do cartão",
-        ),
-        rules.FieldSet(
-            (
-                "icon_class",
-                "image_url",
-                "badge",
-                "display_date",
-                "display_order",
-            ),
-            "Complementos visuais",
-        ),
-        rules.FieldSet(("documents",), "Documentos vinculados"),
         rules.HTML(
-            "<div class=\"section-item-designer__preview\">"
+            "<div class=\"section-item-designer\">"
+            "<div class=\"section-item-designer__form\">"
+            "<section class=\"section-item-section section-item-section--content\">"
+            "<header class=\"section-item-section__header\">"
+            "<h3 class=\"section-item-section__title\">Conteúdo do cartão</h3>"
+            "<p class=\"section-item-section__description\">"
+            "Preencha as informações principais exibidas aos cidadãos."
+            "</p>"
+            "</header>"
+            "<div class=\"section-item-section__body\">"
+            "<div class=\"section-item-section__field section-item-section__field--wide\">"
+        ),
+        rules.Field("section"),
+        rules.HTML("</div>"),
+        rules.HTML(
+            "<div class=\"section-item-section__field section-item-section__field--inline\">"
+        ),
+        rules.Field("is_active"),
+        rules.HTML("</div>"),
+        rules.HTML("<div class=\"section-item-section__field\">"),
+        rules.Field("title"),
+        rules.HTML("</div>"),
+        rules.HTML(
+            "<div class=\"section-item-section__field section-item-section__field--full\">"
+        ),
+        rules.Field("summary"),
+        rules.HTML("</div>"),
+        rules.HTML("<div class=\"section-item-section__field\">"),
+        rules.Field("link_label"),
+        rules.HTML("</div>"),
+        rules.HTML("<div class=\"section-item-section__field\">"),
+        rules.Field("link_url"),
+        rules.HTML("</div>"),
+        rules.HTML("</div></section>"),
+        rules.HTML(
+            "<section class=\"section-item-section section-item-section--visual\">"
+            "<header class=\"section-item-section__header\">"
+            "<h3 class=\"section-item-section__title\">Complementos visuais</h3>"
+            "<p class=\"section-item-section__description\">"
+            "Itens opcionais que reforçam a identidade do cartão."
+            "</p>"
+            "</header>"
+            "<div class=\"section-item-section__body\">"
+            "<div class=\"section-item-section__field\">"
+        ),
+        rules.Field("icon_class"),
+        rules.HTML("</div>"),
+        rules.HTML(
+            "<div class=\"section-item-section__field section-item-section__field--full\">"
+        ),
+        rules.Field("image_url"),
+        rules.HTML("</div>"),
+        rules.HTML("<div class=\"section-item-section__field\">"),
+        rules.Field("badge"),
+        rules.HTML("</div>"),
+        rules.HTML("<div class=\"section-item-section__field\">"),
+        rules.Field("display_date"),
+        rules.HTML("</div>"),
+        rules.HTML(
+            "<div class=\"section-item-section__field section-item-section__field--small\">"
+        ),
+        rules.Field("display_order"),
+        rules.HTML("</div>"),
+        rules.HTML("</div></section>"),
+        rules.HTML(
+            "<section class=\"section-item-section section-item-section--documents\">"
+            "<header class=\"section-item-section__header\">"
+            "<h3 class=\"section-item-section__title\">Documentos vinculados</h3>"
+            "<p class=\"section-item-section__description\">"
+            "Adicione arquivos de apoio relacionados ao conteúdo."
+            "</p>"
+            "</header>"
+            "<div class=\"section-item-section__body\">"
+            "<div class=\"section-item-section__field section-item-section__field--full\">"
+        ),
+        rules.Field("documents"),
+        rules.HTML("</div></div></section>"),
+        rules.HTML("</div>"),
+        rules.HTML(
+            "<aside class=\"section-item-designer__preview\">"
             "<h4>Pré-visualização em tempo real</h4>"
             "<p>Veja como o cartão será apresentado para os moradores.</p>"
             f"{SECTION_ITEM_PREVIEW_HTML}"
-            "</div>"
+            "</aside>"
         ),
         rules.HTML("</div>"),
     )
