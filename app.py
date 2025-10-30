@@ -585,6 +585,4 @@ app = create_app()
 
 if __name__ == "__main__":
     # Comentário: execução direta do módulo para ambientes de desenvolvimento.
-    with app.app_context():
-        ensure_database_schema()
     app.run(debug=True)
