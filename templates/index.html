@@ -95,7 +95,11 @@
             <div class="services-grid">
                 {% for item in service_items %}
                 <div class="service-card">
-                    {% if item.icon_class %}
+                    {% if item.image_url %}
+                    <div class="service-media">
+                        <img src="{{ item.image_url }}" alt="{{ item.title }}">
+                    </div>
+                    {% elif item.icon_class %}
                     <div class="service-icon">
                         <i class="{{ item.icon_class }}"></i>
                     </div>
@@ -254,7 +258,11 @@
             <div class="services-grid">
                 {% for item in custom_items %}
                 <div class="service-card">
-                    {% if item.icon_class %}
+                    {% if item.image_url %}
+                    <div class="service-media">
+                        <img src="{{ item.image_url }}" alt="{{ item.title }}">
+                    </div>
+                    {% elif item.icon_class %}
                     <div class="service-icon">
                         <i class="{{ item.icon_class }}"></i>
                     </div>
