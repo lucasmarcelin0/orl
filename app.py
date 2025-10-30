@@ -8,11 +8,12 @@ import click
 from flask import abort, Flask, render_template
 from flask_migrate import Migrate
 from flask_ckeditor import CKEditor
-from sqlalchemy.exc import OperationalError
+from sqlalchemy.exc import IntegrityError, OperationalError
 
 from admin import init_admin
 from config import Config
 from models import db, Page
+from content.default_pages import DEFAULT_PAGES
 
 # Comentário: extensões globais reutilizadas pela aplicação.
 migrate = Migrate()
@@ -32,6 +33,31 @@ def create_app() -> Flask:
 
     # Comentário: prepara o painel administrativo com autenticação básica.
     init_admin(app)
+
+    def ensure_default_pages() -> None:
+        """Garante que as páginas essenciais existam no banco de dados."""
+
+        try:
+            db.create_all()
+        except OperationalError:
+            return
+
+        for page_data in DEFAULT_PAGES:
+            try:
+                if Page.query.filter_by(slug=page_data["slug"]).first() is None:
+                    page = Page(**page_data)
+                    db.session.add(page)
+            except OperationalError:
+                db.session.rollback()
+                return
+
+        try:
+            db.session.commit()
+        except IntegrityError:
+            db.session.rollback()
+
+    with app.app_context():
+        ensure_default_pages()
 
     @app.context_processor
     def inject_navigation_pages() -> dict[str, object]:

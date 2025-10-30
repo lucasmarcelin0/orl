@@ -18,10 +18,10 @@
         <div class="container">
             <h3>Acesso Rápido</h3>
             <div class="quick-links">
-                <a href="#" class="quick-link">Editais e Licitações</a>
-                <a href="#" class="quick-link">Concursos Públicos</a>
-                <a href="#" class="quick-link">IPTU Online</a>
-                <a href="#" class="quick-link">Alvarás</a>
+                <a href="{{ url_for('show_page', slug='licitacoes') }}" class="quick-link">Editais e Licitações</a>
+                <a href="{{ url_for('show_page', slug='concursos') }}" class="quick-link">Concursos Públicos</a>
+                <a href="{{ url_for('show_page', slug='iptu-online') }}" class="quick-link">IPTU Online</a>
+                <a href="{{ url_for('show_page', slug='alvaras') }}" class="quick-link">Alvarás</a>
             </div>
         </div>
     </section>
@@ -78,7 +78,7 @@
                     </div>
                     <h3>Acesso à Informação</h3>
                     <p>Consulte informações públicas e dados governamentais</p>
-                    <a href="#">Acessar <i class="fas fa-arrow-right"></i></a>
+                    <a href="{{ url_for('show_page', slug='acesso-informacao') }}">Acessar <i class="fas fa-arrow-right"></i></a>
                 </div>
                 <div class="service-card">
                     <div class="service-icon">
@@ -86,7 +86,7 @@
                     </div>
                     <h3>Cidadão Web</h3>
                     <p>Serviços online para o cidadão de Orlândia</p>
-                    <a href="#">Acessar <i class="fas fa-arrow-right"></i></a>
+                    <a href="{{ url_for('show_page', slug='cidadao-web') }}">Acessar <i class="fas fa-arrow-right"></i></a>
                 </div>
                 <div class="service-card">
                     <div class="service-icon">
@@ -94,7 +94,7 @@
                     </div>
                     <h3>Portal da Transparência</h3>
                     <p>Acompanhe as finanças e gastos públicos</p>
-                    <a href="#">Acessar <i class="fas fa-arrow-right"></i></a>
+                    <a href="{{ url_for('show_page', slug='portal-transparencia') }}">Acessar <i class="fas fa-arrow-right"></i></a>
                 </div>
                 <div class="service-card">
                     <div class="service-icon">
@@ -102,7 +102,7 @@
                     </div>
                     <h3>Jornal Oficial</h3>
                     <p>Publicações oficiais do município</p>
-                    <a href="#">Acessar <i class="fas fa-arrow-right"></i></a>
+                    <a href="{{ url_for('show_page', slug='jornal-oficial') }}">Acessar <i class="fas fa-arrow-right"></i></a>
                 </div>
                 <div class="service-card">
                     <div class="service-icon">
@@ -110,7 +110,7 @@
                     </div>
                     <h3>Consulta CEP</h3>
                     <p>Encontre códigos de endereçamento postal</p>
-                    <a href="#">Acessar <i class="fas fa-arrow-right"></i></a>
+                    <a href="{{ url_for('show_page', slug='consulta-cep') }}">Acessar <i class="fas fa-arrow-right"></i></a>
                 </div>
                 <div class="service-card">
                     <div class="service-icon">
@@ -118,7 +118,7 @@
                     </div>
                     <h3>Glossário de Termos</h3>
                     <p>Entenda os termos técnicos utilizados</p>
-                    <a href="#">Acessar <i class="fas fa-arrow-right"></i></a>
+                    <a href="{{ url_for('show_page', slug='glossario-termos') }}">Acessar <i class="fas fa-arrow-right"></i></a>
                 </div>
                 <div class="service-card">
                     <div class="service-icon">
@@ -126,7 +126,7 @@
                     </div>
                     <h3>Cirurgia Eletiva</h3>
                     <p>Informações sobre procedimentos cirúrgicos</p>
-                    <a href="#">Acessar <i class="fas fa-arrow-right"></i></a>
+                    <a href="{{ url_for('show_page', slug='cirurgia-eletiva') }}">Acessar <i class="fas fa-arrow-right"></i></a>
                 </div>
                 <div class="service-card">
                     <div class="service-icon">
@@ -134,7 +134,7 @@
                     </div>
                     <h3>Estudante Universitário</h3>
                     <p>Programas e benefícios para estudantes</p>
-                    <a href="#">Acessar <i class="fas fa-arrow-right"></i></a>
+                    <a href="{{ url_for('show_page', slug='estudante-universitario') }}">Acessar <i class="fas fa-arrow-right"></i></a>
                 </div>
             </div>
         </div>
@@ -156,7 +156,7 @@
                         <div class="news-date">15 de Outubro, 2023</div>
                         <h3>Prefeitura anuncia novo programa de assistência social</h3>
                         <p>Iniciativa visa atender famílias em situação de vulnerabilidade com apoio integral.</p>
-                        <a href="#">Leia mais <i class="fas fa-arrow-right"></i></a>
+                        <a href="{{ url_for('show_page', slug='programa-assistencia-social') }}">Leia mais <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
                 <div class="news-card">
@@ -167,7 +167,7 @@
                         <div class="news-date">12 de Outubro, 2023</div>
                         <h3>Orlândia comemora melhor índice de saneamento básico</h3>
                         <p>Cidade alcança 98% de cobertura de água tratada e esgoto sanitário.</p>
-                        <a href="#">Leia mais <i class="fas fa-arrow-right"></i></a>
+                        <a href="{{ url_for('show_page', slug='indice-saneamento') }}">Leia mais <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
                 <div class="news-card">
@@ -178,7 +178,7 @@
                         <div class="news-date">10 de Outubro, 2023</div>
                         <h3>Secretaria de Educação abre inscrições para cursos técnicos</h3>
                         <p>Oportunidades em diversas áreas com vagas limitadas.</p>
-                        <a href="#">Leia mais <i class="fas fa-arrow-right"></i></a>
+                        <a href="{{ url_for('show_page', slug='cursos-tecnicos') }}">Leia mais <i class="fas fa-arrow-right"></i></a>
                     </div>
                 </div>
             </div>
