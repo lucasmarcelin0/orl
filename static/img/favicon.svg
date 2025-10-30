@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="bg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#0053a5"/>
+      <stop offset="100%" stop-color="#008b57"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="12" fill="url(#bg)"/>
+  <path d="M12 28h40v4H12z" fill="#f9d342"/>
+  <path d="M32 14l12 12H20z" fill="#ffffff" opacity="0.85"/>
+  <circle cx="32" cy="38" r="10" fill="#ffffff" opacity="0.9"/>
+  <text x="32" y="43" font-family="'Montserrat', sans-serif" font-size="16" font-weight="700" text-anchor="middle" fill="#0053a5">ORL</text>
+</svg>
