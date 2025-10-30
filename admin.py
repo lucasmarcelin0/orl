@@ -8,6 +8,7 @@ import unicodedata
 from flask import current_app, request, Response
 from flask_admin import Admin, AdminIndexView
 from flask_admin.contrib.sqla import ModelView
+from flask_admin.form import rules
 from flask_ckeditor import CKEditorField
 
 from forms import PageForm
@@ -27,6 +28,26 @@ SECTION_INLINE_FORM_COLUMNS = (
     "display_order",
     "is_active",
 )
+
+
+SECTION_ITEM_PREVIEW_HTML = """
+<section class=\"section-item-preview\" data-section-item-preview>
+    <header class=\"section-item-preview__header\">
+        <span class=\"section-item-preview__badge\" data-preview-badge>Selo do cartão</span>
+        <span class=\"section-item-preview__date\" data-preview-date>Data exibida</span>
+    </header>
+    <h3 class=\"section-item-preview__title\" data-preview-title>Título do cartão</h3>
+    <div class=\"section-item-preview__summary\" data-preview-summary>
+        Utilize o campo “Resumo” para adicionar o conteúdo que aparecerá no site.
+    </div>
+    <footer class=\"section-item-preview__footer\">
+        <a class=\"section-item-preview__link\" data-preview-link href=\"#\">
+            <span data-preview-link-label>Texto do link</span>
+            <i class=\"fa fa-arrow-right\" aria-hidden=\"true\"></i>
+        </a>
+    </footer>
+</section>
+"""
 
 
 class BasicAuthMixin:
@@ -165,7 +186,13 @@ class HomepageSectionAdminView(BasicAuthMixin, ModelView):
                 form_args={
                     "id": {"label": "ID"},
                     "title": {"label": "Título"},
-                    "summary": {"label": "Resumo"},
+                    "summary": {
+                        "label": "Resumo",
+                        "render_kw": {
+                            "placeholder": "Conteúdo exibido no cartão.",
+                            "data-ckeditor-height": 220,
+                        },
+                    },
                     "link_url": {"label": "Endereço do link"},
                     "link_label": {"label": "Texto do link"},
                     "icon_class": {"label": "Ícone (classe CSS)"},
@@ -175,6 +202,30 @@ class HomepageSectionAdminView(BasicAuthMixin, ModelView):
                     "display_order": {"label": "Ordem de exibição"},
                     "is_active": {"label": "Ativo"},
                 },
+                form_widget_args={
+                    "title": {
+                        "placeholder": "Título exibido ao público",
+                    },
+                    "link_label": {
+                        "placeholder": "Texto do botão ou link",
+                    },
+                    "link_url": {
+                        "placeholder": "https://exemplo.com/pagina",
+                    },
+                    "icon_class": {
+                        "placeholder": "Ex.: fa-solid fa-book",
+                    },
+                    "image_url": {
+                        "placeholder": "Endereço da imagem (opcional)",
+                    },
+                    "badge": {
+                        "placeholder": "Texto do selo destaque",
+                    },
+                    "display_date": {
+                        "placeholder": "Ex.: 12/03/2024",
+                    },
+                },
+                form_overrides={"summary": CKEditorField},
             ),
         )
     ]
@@ -191,6 +242,68 @@ class SectionItemAdminView(BasicAuthMixin, ModelView):
         "display_order": "Ordem de exibição",
         "is_active": "Ativo",
     }
+    form_overrides = {"summary": CKEditorField}
+    form_widget_args = {
+        "title": {
+            "placeholder": "Título principal exibido no cartão",
+        },
+        "summary": {
+            "placeholder": "Conteúdo rico do cartão",
+            "data-ckeditor-height": 260,
+        },
+        "link_label": {
+            "placeholder": "Texto do botão, por exemplo: Saiba mais",
+        },
+        "link_url": {
+            "placeholder": "Cole aqui o endereço que o botão abrirá",
+        },
+        "icon_class": {
+            "placeholder": "Classe CSS do ícone (opcional)",
+        },
+        "image_url": {
+            "placeholder": "URL da imagem ilustrativa (opcional)",
+        },
+        "badge": {
+            "placeholder": "Ex.: Novo, Destaque, Inscrições abertas",
+        },
+        "display_date": {
+            "placeholder": "Texto de data exibido abaixo do selo",
+        },
+    }
+    form_create_rules = form_edit_rules = (
+        rules.HTML('<div class="section-item-designer">'),
+        rules.FieldSet(
+            (
+                "section",
+                "is_active",
+                "title",
+                "summary",
+                "link_label",
+                "link_url",
+            ),
+            "Conteúdo do cartão",
+        ),
+        rules.FieldSet(
+            (
+                "icon_class",
+                "image_url",
+                "badge",
+                "display_date",
+                "display_order",
+            ),
+            "Complementos visuais",
+        ),
+        rules.HTML(
+            "<div class=\"section-item-designer__preview\">"
+            "<h4>Pré-visualização em tempo real</h4>"
+            "<p>Veja como o cartão será apresentado para os moradores.</p>"
+            f"{SECTION_ITEM_PREVIEW_HTML}"
+            "</div>"
+        ),
+        rules.HTML("</div>"),
+    )
+    extra_css = ("/static/css/admin/section-item-form.css",)
+    extra_js = ("/static/js/admin/section-item-form.js",)
     form_columns = ("section",) + SECTION_INLINE_FORM_COLUMNS
     form_labels = {
         "section": "Seção",

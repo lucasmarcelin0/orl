@@ -216,7 +216,118 @@
                 <script {{ admin_csp_nonce_attribute }} src="{{ js_url }}" type="text/javascript"></script>
             {% endfor %}
         {% endif %}
-        {{ ckeditor.config(name='content', language='pt-br', height=400) }}
+        <script {{ admin_csp_nonce_attribute }}>
+            (function () {
+                function whenReady(callback) {
+                    if (document.readyState !== 'loading') {
+                        callback();
+                        return;
+                    }
+                    document.addEventListener('DOMContentLoaded', callback);
+                }
+
+                function buildConfig(textarea) {
+                    const height = Number(textarea.dataset.ckeditorHeight || 360);
+                    const toolbarMode = textarea.dataset.ckeditorToolbar || 'default';
+                    const baseConfig = {
+                        language: 'pt-br',
+                        height: height,
+                        removePlugins: 'flash,iframe,smiley',
+                        toolbar: [
+                            { name: 'clipboard', items: ['Undo', 'Redo'] },
+                            { name: 'styles', items: ['Format'] },
+                            {
+                                name: 'basicstyles',
+                                items: ['Bold', 'Italic', 'Underline', 'Strike', 'RemoveFormat'],
+                            },
+                            {
+                                name: 'paragraph',
+                                items: [
+                                    'NumberedList',
+                                    'BulletedList',
+                                    '-',
+                                    'JustifyLeft',
+                                    'JustifyCenter',
+                                    'JustifyRight',
+                                    'JustifyBlock',
+                                ],
+                            },
+                            { name: 'links', items: ['Link', 'Unlink'] },
+                            { name: 'insert', items: ['Table', 'HorizontalRule', 'SpecialChar'] },
+                            { name: 'tools', items: ['Maximize', 'Source'] },
+                        ],
+                    };
+
+                    if (toolbarMode === 'minimal') {
+                        baseConfig.toolbar = [
+                            {
+                                name: 'basicstyles',
+                                items: ['Bold', 'Italic', 'Underline', 'RemoveFormat'],
+                            },
+                            { name: 'paragraph', items: ['NumberedList', 'BulletedList'] },
+                            { name: 'links', items: ['Link', 'Unlink'] },
+                            { name: 'clipboard', items: ['Undo', 'Redo'] },
+                        ];
+                    }
+
+                    return baseConfig;
+                }
+
+                function ensureId(textarea, index) {
+                    if (textarea.id) {
+                        return textarea.id;
+                    }
+                    const generated = 'ckeditor-' + index + '-' + Date.now();
+                    textarea.id = generated;
+                    return generated;
+                }
+
+                function activateEditors() {
+                    if (!window.CKEDITOR) {
+                        return;
+                    }
+
+                    const textareas = document.querySelectorAll('textarea.ckeditor');
+                    textareas.forEach(function (textarea, index) {
+                        if (textarea.dataset.ckeditorAttached === '1') {
+                            return;
+                        }
+
+                        const id = ensureId(textarea, index);
+                        const config = buildConfig(textarea);
+
+                        if (window.CKEDITOR.instances[id]) {
+                            window.CKEDITOR.instances[id].destroy(true);
+                        }
+
+                        window.CKEDITOR.replace(id, config);
+                        textarea.dataset.ckeditorAttached = '1';
+                    });
+                }
+
+                function waitForEditor() {
+                    if (window.CKEDITOR) {
+                        activateEditors();
+
+                        const observer = new MutationObserver(function () {
+                            activateEditors();
+                        });
+
+                        observer.observe(document.body, {
+                            childList: true,
+                            subtree: true,
+                        });
+
+                        window.refreshRichTextEditors = activateEditors;
+                        return;
+                    }
+
+                    window.setTimeout(waitForEditor, 150);
+                }
+
+                whenReady(waitForEditor);
+            })();
+        </script>
     {% endblock %}
 
 {% block tail %}{% endblock %}
