@@ -258,7 +258,10 @@ def create_app() -> Flask:
         try:
             sections = (
                 HomepageSection.query.filter_by(is_active=True)
-                .order_by(HomepageSection.display_order)
+                .order_by(
+                    HomepageSection.display_order.asc(),
+                    HomepageSection.id.asc(),
+                )
                 .all()
             )
         except OperationalError:

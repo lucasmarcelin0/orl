@@ -46,7 +46,7 @@ class HomepageSection(db.Model):
     items = relationship(
         "SectionItem",
         back_populates="section",
-        order_by="SectionItem.display_order",
+        order_by=lambda: (SectionItem.display_order, SectionItem.id),
         cascade="all, delete-orphan",
     )
 
