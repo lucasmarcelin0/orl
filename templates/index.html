@@ -157,6 +157,14 @@
                 {% endif %}
             </div>
             {% set transparency_items = transparency_section.items | selectattr('is_active') | list %}
+            {% set transparency_links = {
+                'Plano Plurianual': url_for('plano_plurianual'),
+                'Relatórios de Gestão': url_for('relatorios_gestao'),
+                'Gastos com COVID-19': url_for('gastos_covid19'),
+                'Pesquisa de Satisfação': url_for('pesquisa_satisfacao'),
+                'Lista de Obras': url_for('lista_obras'),
+                'Iluminação Pública': url_for('iluminacao_publica')
+            } %}
             {% if transparency_items %}
             <div class="transparency-grid">
                 {% for item in transparency_items %}
@@ -170,8 +178,10 @@
                     {% if item.summary %}
                     <p>{{ item.summary }}</p>
                     {% endif %}
-                    {% if item.link_url %}
-                    <a href="{{ item.link_url }}">{{ item.link_label or 'Consultar' }}</a>
+                    {% set has_custom_link = item.link_url and item.link_url != '#' %}
+                    {% set fallback_link = transparency_links.get(item.title) %}
+                    {% if has_custom_link or fallback_link %}
+                    <a href="{{ item.link_url if has_custom_link else fallback_link }}">{{ item.link_label or 'Consultar' }}</a>
                     {% endif %}
                 </div>
                 {% endfor %}

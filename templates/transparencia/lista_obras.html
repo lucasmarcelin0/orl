@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Lista de Obras | Transparência | Prefeitura Municipal de Orlândia{% endblock %}
+{% block content %}
+    <section class="page-header">
+        <div class="container">
+            <h1>Lista de Obras</h1>
+            <p>Transparência sobre as obras públicas em andamento e concluídas no município.</p>
+        </div>
+    </section>
+    <section class="content-section">
+        <div class="container">
+            <p>O painel abaixo reúne as principais informações sobre obras realizadas com recursos municipais, estaduais e federais, permitindo acompanhar prazos, valores e responsáveis técnicos.</p>
+            <div class="callout">
+                <p>A atualização dos dados ocorre semanalmente. Para solicitar informações adicionais, entre em contato com a Secretaria Municipal de Obras pelo telefone (16) 3820-2060 ou pelo e-mail <a href="mailto:obras@orlandia.sp.gov.br">obras@orlandia.sp.gov.br</a>.</p>
+            </div>
+            <ul class="document-list">
+                <li>
+                    <a href="https://www.orlandia.sp.gov.br/arquivos/obras-andamento.xlsx" target="_blank" rel="noopener">
+                        <i class="fas fa-tools"></i>
+                        Obras em andamento (planilha detalhada)
+                    </a>
+                </li>
+                <li>
+                    <a href="https://www.orlandia.sp.gov.br/arquivos/obras-concluidas.pdf" target="_blank" rel="noopener">
+                        <i class="fas fa-check-circle"></i>
+                        Obras concluídas nos últimos 12 meses
+                    </a>
+                </li>
+                <li>
+                    <a href="https://www.orlandia.sp.gov.br/arquivos/cronograma-obras.pdf" target="_blank" rel="noopener">
+                        <i class="fas fa-calendar"></i>
+                        Cronograma atualizado das obras municipais
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </section>
+{% endblock %}

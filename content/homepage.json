@@ -116,12 +116,12 @@
       "title": "Transparência e Dados Abertos",
       "description": "Acesso rápido aos principais relatórios e dados públicos",
       "items": [
-        {"title": "Plano Plurianual", "icon": "fas fa-chart-pie", "url": "#"},
-        {"title": "Relatórios de Gestão", "icon": "fas fa-file-alt", "url": "#"},
-        {"title": "Gastos com COVID-19", "icon": "fas fa-virus", "url": "#"},
-        {"title": "Pesquisa de Satisfação", "icon": "fas fa-smile", "url": "#"},
-        {"title": "Lista de Obras", "icon": "fas fa-hard-hat", "url": "#"},
-        {"title": "Iluminação Pública", "icon": "fas fa-lightbulb", "url": "#"}
+        {"title": "Plano Plurianual", "icon": "fas fa-chart-pie", "url": "/transparencia/plano-plurianual"},
+        {"title": "Relatórios de Gestão", "icon": "fas fa-file-alt", "url": "/transparencia/relatorios-gestao"},
+        {"title": "Gastos com COVID-19", "icon": "fas fa-virus", "url": "/transparencia/gastos-covid-19"},
+        {"title": "Pesquisa de Satisfação", "icon": "fas fa-smile", "url": "/transparencia/pesquisa-satisfacao"},
+        {"title": "Lista de Obras", "icon": "fas fa-hard-hat", "url": "/transparencia/lista-obras"},
+        {"title": "Iluminação Pública", "icon": "fas fa-lightbulb", "url": "/transparencia/iluminacao-publica"}
       ]
     }
   ],
