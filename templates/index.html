@@ -42,36 +42,26 @@
                     <h3><i class="fas fa-exclamation-triangle"></i> Serviços de Emergência</h3>
                 </div>
                 <p>Em caso de emergência, entre em contato com os serviços abaixo:</p>
+                {% if emergency_services %}
                 <div class="emergency-contacts">
+                    {% for service in emergency_services %}
                     <div class="emergency-contact">
-                        <i class="fas fa-ambulance"></i>
+                        <i class="{{ service.icon_class or 'fas fa-phone' }}" aria-hidden="true"></i>
                         <div>
-                            <strong>SAMU</strong>
-                            <div>192</div>
+                            <strong>{{ service.name }}</strong>
+                            {% if service.phone %}
+                            <div>{{ service.phone }}</div>
+                            {% endif %}
+                            {% if service.description %}
+                            <div class="emergency-contact__description">{{ service.description }}</div>
+                            {% endif %}
                         </div>
                     </div>
-                    <div class="emergency-contact">
-                        <i class="fas fa-fire-extinguisher"></i>
-                        <div>
-                            <strong>Bombeiros</strong>
-                            <div>193</div>
-                        </div>
-                    </div>
-                    <div class="emergency-contact">
-                        <i class="fas fa-shield-alt"></i>
-                        <div>
-                            <strong>Polícia Militar</strong>
-                            <div>190</div>
-                        </div>
-                    </div>
-                    <div class="emergency-contact">
-                        <i class="fas fa-hospital"></i>
-                        <div>
-                            <strong>Pronto Socorro</strong>
-                            <div>(16) 3820-2000</div>
-                        </div>
-                    </div>
+                    {% endfor %}
                 </div>
+                {% else %}
+                <p class="emergency-empty">Nenhum serviço de emergência cadastrado.</p>
+                {% endif %}
             </div>
             <button
                 type="button"

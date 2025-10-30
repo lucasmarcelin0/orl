@@ -1237,6 +1237,17 @@ footer {
     color: var(--secondary-color);
 }
 
+.emergency-contact__description {
+    font-size: 0.85rem;
+    color: #6c5403;
+}
+
+.emergency-empty {
+    color: #856404;
+    font-weight: 600;
+    margin-bottom: 0;
+}
+
 /* Responsive */
 @media (max-width: 992px) {
     nav ul {
