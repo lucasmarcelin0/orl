@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Erro interno | Prefeitura Municipal de Orlândia{% endblock %}
+{% block content %}
+    <section class="page-header">
+        <div class="container">
+            <h1>Desculpe, algo deu errado.</h1>
+            <p>Ocorreu um erro inesperado em nossos servidores. Nossa equipe já foi notificada e está trabalhando para resolver o problema.</p>
+        </div>
+    </section>
+    <section class="content-section">
+        <div class="container">
+            <p>Por favor, tente novamente em instantes. Se o erro persistir, entre em contato com a prefeitura e informe o horário do ocorrido.</p>
+            <a class="button-link" href="{{ url_for('index') }}">Voltar à página inicial</a>
+        </div>
+    </section>
+{% endblock %}

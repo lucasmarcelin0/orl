@@ -60,6 +60,11 @@ class PageAdminView(BasicAuthMixin, ModelView):
 
     # Comentário: campos exibidos nas listagens e formulários do administrador.
     column_list = ("title", "slug", "visible")
+    column_labels = {
+        "title": "Título",
+        "slug": "Identificador (slug)",
+        "visible": "Exibir no menu",
+    }
     form_columns = ("title", "slug", "content", "visible")
 
     # Comentário: substitui o campo padrão pelo editor WYSIWYG do CKEditor.
@@ -76,7 +81,7 @@ class PageAdminView(BasicAuthMixin, ModelView):
 class ProtectedAdminIndexView(BasicAuthMixin, AdminIndexView):
     """Tela inicial do painel administrativo com autenticação básica."""
 
-    pass
+    name = "Início"
 
 
 class HomepageSectionAdminView(BasicAuthMixin, ModelView):
@@ -84,6 +89,12 @@ class HomepageSectionAdminView(BasicAuthMixin, ModelView):
 
     column_list = ("name", "section_type", "display_order", "is_active")
     column_default_sort = ("display_order", False)
+    column_labels = {
+        "name": "Título da seção",
+        "section_type": "Tipo da seção",
+        "display_order": "Ordem de exibição",
+        "is_active": "Ativa",
+    }
     form_columns = (
         "name",
         "slug",
@@ -93,6 +104,15 @@ class HomepageSectionAdminView(BasicAuthMixin, ModelView):
         "is_active",
         "items",
     )
+    form_labels = {
+        "name": "Título da seção",
+        "slug": "Identificador (slug)",
+        "description": "Descrição",
+        "section_type": "Tipo da seção",
+        "display_order": "Ordem de exibição",
+        "is_active": "Seção ativa",
+        "items": "Itens da seção",
+    }
     form_choices = {
         "section_type": [
             ("services", "Serviços"),
@@ -114,7 +134,26 @@ class SectionItemAdminView(BasicAuthMixin, ModelView):
 
     column_list = ("title", "section", "display_order", "is_active")
     column_default_sort = ("display_order", False)
+    column_labels = {
+        "title": "Título",
+        "section": "Seção",
+        "display_order": "Ordem de exibição",
+        "is_active": "Ativo",
+    }
     form_columns = ("section",) + SECTION_INLINE_FORM_COLUMNS
+    form_labels = {
+        "section": "Seção",
+        "title": "Título",
+        "summary": "Resumo",
+        "link_url": "Endereço do link",
+        "link_label": "Texto do link",
+        "icon_class": "Ícone (classe CSS)",
+        "image_url": "Imagem (URL)",
+        "badge": "Selo",
+        "display_date": "Data exibida",
+        "display_order": "Ordem de exibição",
+        "is_active": "Ativo",
+    }
 
 
 def init_admin(app) -> Admin:
@@ -132,12 +171,29 @@ def init_admin(app) -> Admin:
         admin.template_mode = "bootstrap4"
 
     # Comentário: registra a view que permite gerenciar o modelo Page.
-    admin.add_view(PageAdminView(Page, db.session, category="Conteúdo"))
     admin.add_view(
-        HomepageSectionAdminView(HomepageSection, db.session, category="Página inicial")
+        PageAdminView(
+            Page,
+            db.session,
+            category="Conteúdo",
+            name="Páginas institucionais",
+        )
     )
     admin.add_view(
-        SectionItemAdminView(SectionItem, db.session, category="Página inicial")
+        HomepageSectionAdminView(
+            HomepageSection,
+            db.session,
+            category="Página inicial",
+            name="Seções da página",
+        )
+    )
+    admin.add_view(
+        SectionItemAdminView(
+            SectionItem,
+            db.session,
+            category="Página inicial",
+            name="Itens das seções",
+        )
     )
 
     return admin
