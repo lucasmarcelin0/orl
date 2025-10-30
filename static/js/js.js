@@ -16,29 +16,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Search functionality (exemplo básico)
-    const searchBox = document.querySelector('.search-box input');
-    const searchButton = document.querySelector('.search-box button');
-    
-    if (searchBox && searchButton) {
-        searchButton.addEventListener('click', function() {
-            performSearch(searchBox.value);
-        });
-        
-        searchBox.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                performSearch(searchBox.value);
-            }
-        });
-    }
-    
-    function performSearch(query) {
-        if (query.trim() !== '') {
-            alert(`Buscando por: ${query}`);
-            // Aqui você implementaria a lógica de busca real
-        }
-    }
-    
     // Smooth scrolling para âncoras
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function (e) {
