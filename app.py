@@ -5,14 +5,25 @@ from __future__ import annotations
 from collections import OrderedDict
 from datetime import datetime
 import json
+import os
 from pathlib import Path
 from typing import Iterable
+import uuid
 
 import click
-from flask import abort, Flask, render_template, url_for
+from flask import (
+    abort,
+    Flask,
+    jsonify,
+    render_template,
+    request,
+    send_from_directory,
+    url_for,
+)
 from flask_migrate import Migrate
 from flask_ckeditor import CKEditor
 from sqlalchemy.exc import OperationalError
+from werkzeug.utils import secure_filename
 
 from admin import init_admin
 from config import Config
@@ -98,6 +109,81 @@ def create_app() -> Flask:
 
     with app.app_context():
         ensure_homepage_sections()
+
+    def _resolve_upload_path() -> Path:
+        upload_path = Path(app.config.get("CKEDITOR_UPLOADS_PATH", "static/uploads"))
+        if not upload_path.is_absolute():
+            upload_path = Path(app.root_path) / upload_path
+        upload_path.mkdir(parents=True, exist_ok=True)
+        return upload_path
+
+    def _allowed_file(filename: str) -> bool:
+        allowed_extensions = app.config.get("CKEDITOR_ALLOWED_IMAGE_EXTENSIONS", set())
+        if not filename or "." not in filename:
+            return False
+        extension = filename.rsplit(".", 1)[1].lower()
+        return extension in {ext.lower() for ext in allowed_extensions}
+
+    @app.route("/admin/ckeditor/uploads/<path:filename>")
+    def ckeditor_uploaded_file(filename: str):
+        upload_path = _resolve_upload_path()
+        return send_from_directory(str(upload_path), filename)
+
+    @app.route("/admin/ckeditor/upload", methods=["POST"])
+    def upload_ckeditor_image():
+        upload = request.files.get("upload")
+        if upload is None or upload.filename == "":
+            return (
+                jsonify({"uploaded": 0, "error": {"message": "Nenhum arquivo foi enviado."}}),
+                400,
+            )
+
+        if not _allowed_file(upload.filename):
+            return (
+                jsonify(
+                    {
+                        "uploaded": 0,
+                        "error": {
+                            "message": "Formato de arquivo não suportado. Utilize imagens PNG, JPG, JPEG, GIF ou WEBP.",
+                        },
+                    }
+                ),
+                400,
+            )
+
+        max_size = app.config.get("CKEDITOR_MAX_IMAGE_SIZE")
+        if max_size:
+            upload.stream.seek(0, os.SEEK_END)
+            file_size = upload.stream.tell()
+            upload.stream.seek(0)
+            if file_size > max_size:
+                return (
+                    jsonify(
+                        {
+                            "uploaded": 0,
+                            "error": {
+                                "message": "Imagem excede o tamanho máximo permitido de 5 MB.",
+                            },
+                        }
+                    ),
+                    413,
+                )
+
+        secure_name = secure_filename(upload.filename)
+        if not secure_name:
+            return (
+                jsonify({"uploaded": 0, "error": {"message": "Nome de arquivo inválido."}}),
+                400,
+            )
+
+        extension = secure_name.rsplit(".", 1)[1].lower()
+        unique_name = f"ckeditor-{uuid.uuid4().hex}.{extension}"
+        upload_path = _resolve_upload_path()
+        destination = upload_path / unique_name
+        upload.save(destination)
+
+        file_url = url_for("ckeditor_uploaded_file", filename=unique_name)
+        return jsonify({"uploaded": 1, "fileName": unique_name, "url": file_url})
 
     def _chunk_pages(pages: Iterable[Page], columns: int = 3) -> list[list[Page]]:
         pages = list(pages)
