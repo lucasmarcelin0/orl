@@ -42,13 +42,12 @@
                 <button class="mobile-menu-btn"><i class="fas fa-bars"></i></button>
                 <nav>
                     <ul>
-                        <li><a href="#"><i class="fas fa-home"></i> Início</a></li>
-                        <li><a href="#"><i class="fas fa-building"></i> A Prefeitura</a></li>
-                        <li><a href="#"><i class="fas fa-users"></i> Secretarias</a></li>
-                        <li><a href="#"><i class="fas fa-concierge-bell"></i> Serviços</a></li>
-                        <li><a href="#"><i class="fas fa-newspaper"></i> Notícias</a></li>
-                        <li><a href="#"><i class="fas fa-chart-bar"></i> Transparência</a></li>
-                        <li><a href="#"><i class="fas fa-phone"></i> Contato</a></li>
+                        <li><a href="{{ url_for('index') }}"><i class="fas fa-home"></i> Início</a></li>
+                        {% for page in pages %}
+                            {% if page.visible %}
+                                <li><a href="{{ url_for('show_page', slug=page.slug) }}">{{ page.title }}</a></li>
+                            {% endif %}
+                        {% endfor %}
                     </ul>
                 </nav>
                 <div class="overlay"></div>
@@ -68,41 +67,41 @@
                 <div class="footer-column">
                     <h3>Prefeitura Municipal</h3>
                     <ul>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> Sobre a Prefeitura</a></li>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> Prefeito e Secretários</a></li>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> Estrutura Organizacional</a></li>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> História de Orlândia</a></li>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> Editais e Licitações</a></li>
+                        <li><a href="{{ url_for('show_page', slug='sobre-a-prefeitura') }}"><i class="fas fa-chevron-right"></i> Sobre a Prefeitura</a></li>
+                        <li><a href="{{ url_for('show_page', slug='prefeito-e-secretarios') }}"><i class="fas fa-chevron-right"></i> Prefeito e Secretários</a></li>
+                        <li><a href="{{ url_for('show_page', slug='estrutura-organizacional') }}"><i class="fas fa-chevron-right"></i> Estrutura Organizacional</a></li>
+                        <li><a href="{{ url_for('show_page', slug='historia-de-orlandia') }}"><i class="fas fa-chevron-right"></i> História de Orlândia</a></li>
+                        <li><a href="{{ url_for('show_page', slug='editais-e-licitacoes') }}"><i class="fas fa-chevron-right"></i> Editais e Licitações</a></li>
                     </ul>
                 </div>
                 <div class="footer-column">
                     <h3>Serviços</h3>
                     <ul>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> Saúde</a></li>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> Educação</a></li>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> Assistência Social</a></li>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> Obras e Infraestrutura</a></li>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> Meio Ambiente</a></li>
+                        <li><a href="{{ url_for('show_page', slug='servico-saude') }}"><i class="fas fa-chevron-right"></i> Saúde</a></li>
+                        <li><a href="{{ url_for('show_page', slug='servico-educacao') }}"><i class="fas fa-chevron-right"></i> Educação</a></li>
+                        <li><a href="{{ url_for('show_page', slug='assistencia-social') }}"><i class="fas fa-chevron-right"></i> Assistência Social</a></li>
+                        <li><a href="{{ url_for('show_page', slug='obras-e-infraestrutura') }}"><i class="fas fa-chevron-right"></i> Obras e Infraestrutura</a></li>
+                        <li><a href="{{ url_for('show_page', slug='meio-ambiente') }}"><i class="fas fa-chevron-right"></i> Meio Ambiente</a></li>
                     </ul>
                 </div>
                 <div class="footer-column">
                     <h3>Transparência</h3>
                     <ul>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> Portal da Transparência</a></li>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> Receitas e Despesas</a></li>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> Licitações</a></li>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> Convênios</a></li>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> Leis Municipais</a></li>
+                        <li><a href="https://transparencia.orlandia.sp.gov.br" target="_blank" rel="noopener"><i class="fas fa-chevron-right"></i> Portal da Transparência</a></li>
+                        <li><a href="{{ url_for('show_page', slug='receitas-e-despesas') }}"><i class="fas fa-chevron-right"></i> Receitas e Despesas</a></li>
+                        <li><a href="{{ url_for('show_page', slug='licitacoes') }}"><i class="fas fa-chevron-right"></i> Licitações</a></li>
+                        <li><a href="{{ url_for('show_page', slug='convenios') }}"><i class="fas fa-chevron-right"></i> Convênios</a></li>
+                        <li><a href="{{ url_for('show_page', slug='leis-municipais') }}"><i class="fas fa-chevron-right"></i> Leis Municipais</a></li>
                     </ul>
                 </div>
                 <div class="footer-column">
                     <h3>Contato</h3>
                     <ul>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> Fale Conosco</a></li>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> Ouvidoria</a></li>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> Telefones Úteis</a></li>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> Localização</a></li>
-                        <li><a href="#"><i class="fas fa-chevron-right"></i> Trabalhe Conosco</a></li>
+                        <li><a href="{{ url_for('show_page', slug='fale-conosco') }}"><i class="fas fa-chevron-right"></i> Fale Conosco</a></li>
+                        <li><a href="{{ url_for('show_page', slug='ouvidoria') }}"><i class="fas fa-chevron-right"></i> Ouvidoria</a></li>
+                        <li><a href="{{ url_for('show_page', slug='telefones-uteis') }}"><i class="fas fa-chevron-right"></i> Telefones Úteis</a></li>
+                        <li><a href="https://maps.app.goo.gl/7k1wzHmc4hz1G4B39" target="_blank" rel="noopener"><i class="fas fa-chevron-right"></i> Localização</a></li>
+                        <li><a href="{{ url_for('show_page', slug='trabalhe-conosco') }}"><i class="fas fa-chevron-right"></i> Trabalhe Conosco</a></li>
                     </ul>
                 </div>
             </div>
