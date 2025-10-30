@@ -4,10 +4,31 @@
 {% block title %}{{ page.title }} - Prefeitura de Orlândia{% endblock %}
 
 {% block content %}
-<section class="page-header">
-    <h2>{{ page.title }}</h2>
+{% set description = page.content | striptags | replace('\n', ' ') | replace('\r', ' ') | trim %}
+{% set back_url = request.referrer if request.referrer and request.referrer != request.url else url_for('index') %}
+
+<section class="page-header generic-page-header">
+    <div class="container">
+        <p class="page-breadcrumb">
+            <a href="{{ url_for('index') }}">Início</a>
+            <span aria-hidden="true">/</span>
+            <span>{{ page.title }}</span>
+        </p>
+        <h2>{{ page.title }}</h2>
+        {% if description %}
+        <p class="page-support-text">{{ description | truncate(160, True, '…') }}</p>
+        {% endif %}
+    </div>
 </section>
-<section class="page-body">
-    {{ page.content | safe }}
+
+<section class="page-body generic-page-body">
+    <div class="container">
+        <article class="generic-page-content">
+            {{ page.content | safe }}
+        </article>
+        <p class="generic-page-back">
+            <a href="{{ back_url }}">&larr; Voltar</a>
+        </p>
+    </div>
 </section>
 {% endblock %}
