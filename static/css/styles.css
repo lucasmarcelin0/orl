@@ -613,6 +613,18 @@ nav a:hover::after {
     width: 100%;
 }
 
+.service-media {
+    margin: -24px -20px 20px;
+    overflow: hidden;
+}
+
+.service-media img {
+    display: block;
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+
 .service-card:hover {
     transform: translateY(-10px);
     box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
