@@ -75,14 +75,32 @@ class Document(db.Model):
     def filename(self) -> str:
         """Retorna apenas o nome do arquivo armazenado."""
 
-        return (self.file_path or "").split("/")[-1]
+        file_path = (self.file_path or "").strip()
+        if not file_path:
+            return ""
+
+        normalized = file_path.replace("\\", "/")
+        return normalized.rsplit("/", 1)[-1]
 
     @property
     def public_path(self) -> str:
         """Caminho relativo dentro da pasta estática de documentos."""
 
-        sanitized = (self.file_path or "").lstrip("/\\")
-        return f"uploads/documents/{sanitized}" if sanitized else ""
+        file_path = (self.file_path or "").strip()
+        if not file_path:
+            return ""
+
+        normalized = file_path.replace("\\", "/").lstrip("/")
+
+        static_prefix = "static/"
+        if normalized.startswith(static_prefix):
+            normalized = normalized[len(static_prefix) :]
+
+        documents_prefix = "uploads/documents/"
+        if normalized.startswith(documents_prefix):
+            return normalized
+
+        return f"{documents_prefix}{normalized}"
 
 
 class EmergencyService(db.Model):
