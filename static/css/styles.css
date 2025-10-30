@@ -589,8 +589,9 @@ nav a:hover::after {
 
 .services-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 30px;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+    align-items: stretch;
 }
 
 .service-card {
@@ -600,7 +601,12 @@ nav a:hover::after {
     box-shadow: var(--box-shadow);
     transition: var(--transition);
     text-align: center;
-    padding: 30px 20px;
+    padding: 24px 20px;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-width: 420px;
+    margin: 0 auto;
 }
 
 .service-card:hover {
@@ -630,6 +636,12 @@ nav a:hover::after {
 .service-card p {
     color: var(--gray-color);
     margin-bottom: 20px;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-height: 4.8em;
 }
 
 .service-card a {
@@ -641,6 +653,7 @@ nav a:hover::after {
     border-radius: 50px;
     font-weight: 500;
     transition: var(--transition);
+    margin-top: auto;
 }
 
 .service-card a:hover {
