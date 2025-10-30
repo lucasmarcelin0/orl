@@ -231,6 +231,7 @@
                 }
 
                 const uploadEndpoint = '{{ url_for("upload_ckeditor_image") }}';
+                window.__orlImageUploadEndpoint = uploadEndpoint;
 
                 function buildConfig(textarea) {
                     const height = Number(textarea.dataset.ckeditorHeight || 360);
