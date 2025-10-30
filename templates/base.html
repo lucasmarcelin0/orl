@@ -34,7 +34,13 @@
         <div class="header-main">
             <div class="container">
                 <div class="logo">
-                    <img src="{{ url_for('static', filename='img/brasão.png') }}" alt="Brasão de Orlândia">
+                    {% if admin_index_url %}
+                        <a href="{{ admin_index_url }}" title="Acessar painel administrativo">
+                            <img src="{{ url_for('static', filename='img/brasão.png') }}" alt="Brasão de Orlândia">
+                        </a>
+                    {% else %}
+                        <img src="{{ url_for('static', filename='img/brasão.png') }}" alt="Brasão de Orlândia">
+                    {% endif %}
                     <div class="logo-text">
                         <h1>Prefeitura Municipal de Orlândia</h1>
                         <p>Governo transparente e serviço de qualidade</p>
