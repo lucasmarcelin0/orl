@@ -28,50 +28,55 @@
 
     <!-- Emergency Section -->
     <section class="container">
-        <div class="emergency">
-            <div class="emergency-header">
-                <h3><i class="fas fa-exclamation-triangle"></i> Serviços de Emergência</h3>
-                <button
-                    type="button"
-                    class="emergency-toggle"
-                    data-js="emergency-toggle"
-                    aria-expanded="true"
-                    aria-controls="emergencyContacts"
-                    data-show-label="Mostrar contatos de emergência"
-                    data-hide-label="Ocultar contatos de emergência"
-                >Ocultar contatos de emergência</button>
-            </div>
-            <p>Em caso de emergência, entre em contato com os serviços abaixo:</p>
-            <div class="emergency-contacts" id="emergencyContacts">
-                <div class="emergency-contact">
-                    <i class="fas fa-ambulance"></i>
-                    <div>
-                        <strong>SAMU</strong>
-                        <div>192</div>
-                    </div>
+        <div class="emergency-container">
+            <div class="emergency" id="emergencyPanel">
+                <div class="emergency-header">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Serviços de Emergência</h3>
                 </div>
-                <div class="emergency-contact">
-                    <i class="fas fa-fire-extinguisher"></i>
-                    <div>
-                        <strong>Bombeiros</strong>
-                        <div>193</div>
+                <p>Em caso de emergência, entre em contato com os serviços abaixo:</p>
+                <div class="emergency-contacts">
+                    <div class="emergency-contact">
+                        <i class="fas fa-ambulance"></i>
+                        <div>
+                            <strong>SAMU</strong>
+                            <div>192</div>
+                        </div>
                     </div>
-                </div>
-                <div class="emergency-contact">
-                    <i class="fas fa-shield-alt"></i>
-                    <div>
-                        <strong>Polícia Militar</strong>
-                        <div>190</div>
+                    <div class="emergency-contact">
+                        <i class="fas fa-fire-extinguisher"></i>
+                        <div>
+                            <strong>Bombeiros</strong>
+                            <div>193</div>
+                        </div>
                     </div>
-                </div>
-                <div class="emergency-contact">
-                    <i class="fas fa-hospital"></i>
-                    <div>
-                        <strong>Pronto Socorro</strong>
-                        <div>(16) 3820-2000</div>
+                    <div class="emergency-contact">
+                        <i class="fas fa-shield-alt"></i>
+                        <div>
+                            <strong>Polícia Militar</strong>
+                            <div>190</div>
+                        </div>
+                    </div>
+                    <div class="emergency-contact">
+                        <i class="fas fa-hospital"></i>
+                        <div>
+                            <strong>Pronto Socorro</strong>
+                            <div>(16) 3820-2000</div>
+                        </div>
                     </div>
                 </div>
             </div>
+            <button
+                type="button"
+                class="emergency-toggle"
+                data-js="emergency-toggle"
+                aria-expanded="true"
+                aria-controls="emergencyPanel"
+                data-show-label="Mostrar contatos de emergência"
+                data-hide-label="Ocultar contatos de emergência"
+            >
+                <span class="sr-only" data-js="emergency-toggle-label">Ocultar contatos de emergência</span>
+                <i class="fas fa-chevron-up" aria-hidden="true" data-js="emergency-toggle-icon"></i>
+            </button>
         </div>
     </section>
 

@@ -98,17 +98,36 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     const emergencyToggleButton = document.querySelector('[data-js="emergency-toggle"]');
-    const emergencyContacts = document.querySelector('#emergencyContacts');
+    const emergencyPanel = document.querySelector('#emergencyPanel');
+    const emergencyContainer = emergencyToggleButton ? emergencyToggleButton.closest('.emergency-container') : null;
 
-    if (emergencyToggleButton && emergencyContacts) {
-        const hiddenClass = 'is-hidden';
+    if (emergencyToggleButton && emergencyPanel && emergencyContainer) {
         const showLabel = emergencyToggleButton.dataset.showLabel || 'Mostrar contatos de emergência';
         const hideLabel = emergencyToggleButton.dataset.hideLabel || 'Ocultar contatos de emergência';
+        const labelElement = emergencyToggleButton.querySelector('[data-js="emergency-toggle-label"]');
+        const iconElement = emergencyToggleButton.querySelector('[data-js="emergency-toggle-icon"]');
+        const collapsedClass = 'is-collapsed';
+
+        const updateToggleState = (isCollapsed) => {
+            emergencyPanel.hidden = isCollapsed;
+            emergencyToggleButton.setAttribute('aria-expanded', (!isCollapsed).toString());
+            emergencyToggleButton.setAttribute('title', isCollapsed ? showLabel : hideLabel);
+
+            if (labelElement) {
+                labelElement.textContent = isCollapsed ? showLabel : hideLabel;
+            }
+
+            if (iconElement) {
+                iconElement.classList.toggle('fa-chevron-up', !isCollapsed);
+                iconElement.classList.toggle('fa-chevron-down', isCollapsed);
+            }
+        };
 
         emergencyToggleButton.addEventListener('click', () => {
-            const isHidden = emergencyContacts.classList.toggle(hiddenClass);
-            emergencyToggleButton.setAttribute('aria-expanded', (!isHidden).toString());
-            emergencyToggleButton.textContent = isHidden ? showLabel : hideLabel;
+            const isCollapsed = emergencyContainer.classList.toggle(collapsedClass);
+            updateToggleState(isCollapsed);
         });
+
+        updateToggleState(emergencyContainer.classList.contains(collapsedClass));
     }
 });

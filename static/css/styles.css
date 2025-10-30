@@ -984,42 +984,77 @@ footer {
 }
 
 /* Emergency Section */
+
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.emergency-container {
+    position: relative;
+    display: grid;
+    margin: 40px 0;
+}
+
 .emergency {
     background-color: #fff3cd;
     border-left: 5px solid #ffc107;
     padding: 20px;
-    margin: 40px 0;
     border-radius: 5px;
+    grid-area: 1 / 1;
 }
 
 .emergency-header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 16px;
     flex-wrap: wrap;
+    margin-bottom: 10px;
 }
 
 .emergency h3 {
     color: #856404;
-    margin-bottom: 10px;
+    margin: 0;
 }
 
 .emergency-toggle {
+    grid-area: 1 / 1;
+    justify-self: end;
+    align-self: start;
+    width: 44px;
+    height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     background-color: #856404;
     color: #fff;
     border: none;
-    border-radius: 999px;
-    padding: 8px 18px;
+    border-radius: 50%;
     cursor: pointer;
-    font-weight: 600;
     transition: transform 0.2s ease, opacity 0.2s ease;
+    box-shadow: 0 4px 12px rgba(133, 100, 4, 0.25);
+    margin: 12px;
 }
 
 .emergency-toggle:hover,
 .emergency-toggle:focus {
     opacity: 0.9;
     transform: translateY(-1px);
+}
+
+.emergency-container.is-collapsed .emergency {
+    display: none;
+}
+
+.emergency-container.is-collapsed {
+    margin: 0 0 20px;
 }
 
 .emergency p {
