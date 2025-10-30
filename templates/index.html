@@ -64,172 +64,155 @@
         </div>
     </section>
 
-    <!-- Services Section -->
-    <section class="services">
+    {% set services_section = sections_map.get('services') %}
+    {% if services_section %}
+    <section class="services" id="{{ services_section.slug }}">
         <div class="container">
             <div class="section-title">
-                <h2>Serviços ao Cidadão</h2>
-                <p>Acesse os principais serviços oferecidos pela prefeitura de forma rápida e fácil</p>
+                <h2>{{ services_section.name }}</h2>
+                {% if services_section.description %}
+                <p>{{ services_section.description }}</p>
+                {% endif %}
             </div>
+            {% set service_items = services_section.items | selectattr('is_active') | list %}
+            {% if service_items %}
             <div class="services-grid">
+                {% for item in service_items %}
                 <div class="service-card">
+                    {% if item.icon_class %}
                     <div class="service-icon">
-                        <i class="fas fa-info-circle"></i>
+                        <i class="{{ item.icon_class }}"></i>
                     </div>
-                    <h3>Acesso à Informação</h3>
-                    <p>Consulte informações públicas e dados governamentais</p>
-                    <a href="#">Acessar <i class="fas fa-arrow-right"></i></a>
+                    {% endif %}
+                    <h3>{{ item.title }}</h3>
+                    {% if item.summary %}
+                    <p>{{ item.summary }}</p>
+                    {% endif %}
+                    {% if item.link_url %}
+                    <a href="{{ item.link_url }}">{{ item.link_label or 'Acessar' }} <i class="fas fa-arrow-right"></i></a>
+                    {% endif %}
                 </div>
-                <div class="service-card">
-                    <div class="service-icon">
-                        <i class="fas fa-laptop-house"></i>
-                    </div>
-                    <h3>Cidadão Web</h3>
-                    <p>Serviços online para o cidadão de Orlândia</p>
-                    <a href="#">Acessar <i class="fas fa-arrow-right"></i></a>
-                </div>
-                <div class="service-card">
-                    <div class="service-icon">
-                        <i class="fas fa-chart-line"></i>
-                    </div>
-                    <h3>Portal da Transparência</h3>
-                    <p>Acompanhe as finanças e gastos públicos</p>
-                    <a href="#">Acessar <i class="fas fa-arrow-right"></i></a>
-                </div>
-                <div class="service-card">
-                    <div class="service-icon">
-                        <i class="fas fa-newspaper"></i>
-                    </div>
-                    <h3>Jornal Oficial</h3>
-                    <p>Publicações oficiais do município</p>
-                    <a href="#">Acessar <i class="fas fa-arrow-right"></i></a>
-                </div>
-                <div class="service-card">
-                    <div class="service-icon">
-                        <i class="fas fa-map-marked-alt"></i>
-                    </div>
-                    <h3>Consulta CEP</h3>
-                    <p>Encontre códigos de endereçamento postal</p>
-                    <a href="#">Acessar <i class="fas fa-arrow-right"></i></a>
-                </div>
-                <div class="service-card">
-                    <div class="service-icon">
-                        <i class="fas fa-book"></i>
-                    </div>
-                    <h3>Glossário de Termos</h3>
-                    <p>Entenda os termos técnicos utilizados</p>
-                    <a href="#">Acessar <i class="fas fa-arrow-right"></i></a>
-                </div>
-                <div class="service-card">
-                    <div class="service-icon">
-                        <i class="fas fa-procedures"></i>
-                    </div>
-                    <h3>Cirurgia Eletiva</h3>
-                    <p>Informações sobre procedimentos cirúrgicos</p>
-                    <a href="#">Acessar <i class="fas fa-arrow-right"></i></a>
-                </div>
-                <div class="service-card">
-                    <div class="service-icon">
-                        <i class="fas fa-user-graduate"></i>
-                    </div>
-                    <h3>Estudante Universitário</h3>
-                    <p>Programas e benefícios para estudantes</p>
-                    <a href="#">Acessar <i class="fas fa-arrow-right"></i></a>
-                </div>
+                {% endfor %}
             </div>
+            {% else %}
+            <p>Sem serviços cadastrados no momento.</p>
+            {% endif %}
         </div>
     </section>
+    {% endif %}
 
-    <!-- News Section -->
-    <section class="news">
+    {% set news_section = sections_map.get('news') %}
+    {% if news_section %}
+    <section class="news" id="{{ news_section.slug }}">
         <div class="container">
             <div class="section-title">
-                <h2>Notícias e Avisos</h2>
-                <p>Fique por dentro das últimas novidades e comunicados oficiais</p>
+                <h2>{{ news_section.name }}</h2>
+                {% if news_section.description %}
+                <p>{{ news_section.description }}</p>
+                {% endif %}
             </div>
+            {% set news_items = news_section.items | selectattr('is_active') | list %}
+            {% if news_items %}
             <div class="news-grid">
+                {% for item in news_items %}
                 <div class="news-card">
+                    {% if item.image_url %}
                     <div class="news-img">
-                        <img src="https://images.unsplash.com/photo-1582213782179-e0d53f98f2ca?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Prefeitura anuncia novo programa">
+                        <img src="{{ item.image_url }}" alt="{{ item.title }}">
                     </div>
+                    {% endif %}
                     <div class="news-content">
-                        <div class="news-date">15 de Outubro, 2023</div>
-                        <h3>Prefeitura anuncia novo programa de assistência social</h3>
-                        <p>Iniciativa visa atender famílias em situação de vulnerabilidade com apoio integral.</p>
-                        <a href="#">Leia mais <i class="fas fa-arrow-right"></i></a>
+                        {% if item.display_date %}
+                        <div class="news-date">{{ item.display_date }}</div>
+                        {% endif %}
+                        <h3>{{ item.title }}</h3>
+                        {% if item.summary %}
+                        <p>{{ item.summary }}</p>
+                        {% endif %}
+                        {% if item.link_url %}
+                        <a href="{{ item.link_url }}">{{ item.link_label or 'Leia mais' }} <i class="fas fa-arrow-right"></i></a>
+                        {% endif %}
                     </div>
                 </div>
-                <div class="news-card">
-                    <div class="news-img">
-                        <img src="https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1174&q=80" alt="Orlândia comemora saneamento">
-                    </div>
-                    <div class="news-content">
-                        <div class="news-date">12 de Outubro, 2023</div>
-                        <h3>Orlândia comemora melhor índice de saneamento básico</h3>
-                        <p>Cidade alcança 98% de cobertura de água tratada e esgoto sanitário.</p>
-                        <a href="#">Leia mais <i class="fas fa-arrow-right"></i></a>
-                    </div>
-                </div>
-                <div class="news-card">
-                    <div class="news-img">
-                        <img src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Cursos técnicos">
-                    </div>
-                    <div class="news-content">
-                        <div class="news-date">10 de Outubro, 2023</div>
-                        <h3>Secretaria de Educação abre inscrições para cursos técnicos</h3>
-                        <p>Oportunidades em diversas áreas com vagas limitadas.</p>
-                        <a href="#">Leia mais <i class="fas fa-arrow-right"></i></a>
-                    </div>
-                </div>
+                {% endfor %}
             </div>
+            {% else %}
+            <p>Nenhuma notícia cadastrada até o momento.</p>
+            {% endif %}
         </div>
     </section>
+    {% endif %}
 
-    <!-- Transparency Section -->
-    <section class="transparency">
+    {% set transparency_section = sections_map.get('transparency') %}
+    {% if transparency_section %}
+    <section class="transparency" id="{{ transparency_section.slug }}">
         <div class="container">
             <div class="section-title">
-                <h2>Transparência e Dados Abertos</h2>
-                <p>Acesso rápido aos principais relatórios e dados públicos</p>
+                <h2>{{ transparency_section.name }}</h2>
+                {% if transparency_section.description %}
+                <p>{{ transparency_section.description }}</p>
+                {% endif %}
             </div>
+            {% set transparency_items = transparency_section.items | selectattr('is_active') | list %}
+            {% if transparency_items %}
             <div class="transparency-grid">
+                {% for item in transparency_items %}
                 <div class="transparency-item">
+                    {% if item.icon_class %}
                     <div class="transparency-icon">
-                        <i class="fas fa-chart-pie"></i>
+                        <i class="{{ item.icon_class }}"></i>
                     </div>
-                    <h3>Plano Plurianual</h3>
+                    {% endif %}
+                    <h3>{{ item.title }}</h3>
+                    {% if item.summary %}
+                    <p>{{ item.summary }}</p>
+                    {% endif %}
+                    {% if item.link_url %}
+                    <a href="{{ item.link_url }}">{{ item.link_label or 'Consultar' }}</a>
+                    {% endif %}
                 </div>
-                <div class="transparency-item">
-                    <div class="transparency-icon">
-                        <i class="fas fa-file-alt"></i>
-                    </div>
-                    <h3>Relatórios de Gestão</h3>
-                </div>
-                <div class="transparency-item">
-                    <div class="transparency-icon">
-                        <i class="fas fa-virus"></i>
-                    </div>
-                    <h3>Gastos com COVID-19</h3>
-                </div>
-                <div class="transparency-item">
-                    <div class="transparency-icon">
-                        <i class="fas fa-smile"></i>
-                    </div>
-                    <h3>Pesquisa de Satisfação</h3>
-                </div>
-                <div class="transparency-item">
-                    <div class="transparency-icon">
-                        <i class="fas fa-hard-hat"></i>
-                    </div>
-                    <h3>Lista de Obras</h3>
-                </div>
-                <div class="transparency-item">
-                    <div class="transparency-icon">
-                        <i class="fas fa-lightbulb"></i>
-                    </div>
-                    <h3>Iluminação Pública</h3>
-                </div>
+                {% endfor %}
             </div>
+            {% else %}
+            <p>Transparência ainda não configurada.</p>
+            {% endif %}
         </div>
     </section>
+    {% endif %}
+
+    {% for section in custom_sections %}
+    <section class="services" id="{{ section.slug }}">
+        <div class="container">
+            <div class="section-title">
+                <h2>{{ section.name }}</h2>
+                {% if section.description %}
+                <p>{{ section.description }}</p>
+                {% endif %}
+            </div>
+            {% set custom_items = section.items | selectattr('is_active') | list %}
+            {% if custom_items %}
+            <div class="services-grid">
+                {% for item in custom_items %}
+                <div class="service-card">
+                    {% if item.icon_class %}
+                    <div class="service-icon">
+                        <i class="{{ item.icon_class }}"></i>
+                    </div>
+                    {% endif %}
+                    <h3>{{ item.title }}</h3>
+                    {% if item.summary %}
+                    <p>{{ item.summary }}</p>
+                    {% endif %}
+                    {% if item.link_url %}
+                    <a href="{{ item.link_url }}">{{ item.link_label or 'Saiba mais' }} <i class="fas fa-arrow-right"></i></a>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p>Nenhum item cadastrado ainda.</p>
+            {% endif %}
+        </div>
+    </section>
+    {% endfor %}
 {% endblock %}

@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Boolean, Column, Integer, String, Text
+from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text
+from sqlalchemy.orm import relationship
 
 # Comentário: instância global do SQLAlchemy para ser compartilhada entre módulos.
 db = SQLAlchemy()
@@ -29,3 +30,47 @@ class Page(db.Model):
 
     def __repr__(self) -> str:  # pragma: no cover - representação auxiliar
         return f"<Page {self.slug!r}>"
+
+
+class HomepageSection(db.Model):
+    """Define um agrupamento de cartões exibidos na página inicial."""
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(150), nullable=False)
+    slug = Column(String(150), unique=True, nullable=False)
+    description = Column(Text, nullable=True)
+    section_type = Column(String(50), nullable=False, default="custom")
+    display_order = Column(Integer, nullable=False, default=0)
+    is_active = Column(Boolean, nullable=False, default=True)
+
+    items = relationship(
+        "SectionItem",
+        back_populates="section",
+        order_by="SectionItem.display_order",
+        cascade="all, delete-orphan",
+    )
+
+    def __repr__(self) -> str:  # pragma: no cover - representação auxiliar
+        return f"<HomepageSection {self.slug!r}>"
+
+
+class SectionItem(db.Model):
+    """Representa um cartão individual dentro de uma seção da home."""
+
+    id = Column(Integer, primary_key=True)
+    section_id = Column(Integer, ForeignKey("homepage_section.id"), nullable=False)
+    title = Column(String(180), nullable=False)
+    summary = Column(Text, nullable=True)
+    link_url = Column(String(500), nullable=True)
+    link_label = Column(String(100), nullable=True)
+    icon_class = Column(String(120), nullable=True)
+    image_url = Column(String(500), nullable=True)
+    badge = Column(String(120), nullable=True)
+    display_date = Column(String(120), nullable=True)
+    display_order = Column(Integer, nullable=False, default=0)
+    is_active = Column(Boolean, nullable=False, default=True)
+
+    section = relationship("HomepageSection", back_populates="items")
+
+    def __repr__(self) -> str:  # pragma: no cover - representação auxiliar
+        return f"<SectionItem {self.title!r} ({self.section_id})>"

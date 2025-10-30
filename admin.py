@@ -8,7 +8,21 @@ from flask_admin.contrib.sqla import ModelView
 from flask_ckeditor import CKEditorField
 
 from forms import PageForm
-from models import db, Page
+from models import db, HomepageSection, Page, SectionItem
+
+
+SECTION_INLINE_FORM_COLUMNS = (
+    "title",
+    "summary",
+    "link_url",
+    "link_label",
+    "icon_class",
+    "image_url",
+    "badge",
+    "display_date",
+    "display_order",
+    "is_active",
+)
 
 
 class BasicAuthMixin:
@@ -64,6 +78,44 @@ class ProtectedAdminIndexView(BasicAuthMixin, AdminIndexView):
     pass
 
 
+class HomepageSectionAdminView(BasicAuthMixin, ModelView):
+    """Permite gerenciar as seções exibidas na página inicial."""
+
+    column_list = ("name", "section_type", "display_order", "is_active")
+    column_default_sort = ("display_order", False)
+    form_columns = (
+        "name",
+        "slug",
+        "description",
+        "section_type",
+        "display_order",
+        "is_active",
+        "items",
+    )
+    form_choices = {
+        "section_type": [
+            ("services", "Serviços"),
+            ("news", "Notícias"),
+            ("transparency", "Transparência"),
+            ("custom", "Personalizado"),
+        ]
+    }
+    inline_models = [
+        (
+            SectionItem,
+            dict(form_columns=SECTION_INLINE_FORM_COLUMNS),
+        )
+    ]
+
+
+class SectionItemAdminView(BasicAuthMixin, ModelView):
+    """Administração individual dos cartões que compõem as seções."""
+
+    column_list = ("title", "section", "display_order", "is_active")
+    column_default_sort = ("display_order", False)
+    form_columns = ("section",) + SECTION_INLINE_FORM_COLUMNS
+
+
 def init_admin(app) -> Admin:
     """Inicializa o painel administrativo integrado ao aplicativo Flask."""
 
@@ -80,5 +132,11 @@ def init_admin(app) -> Admin:
 
     # Comentário: registra a view que permite gerenciar o modelo Page.
     admin.add_view(PageAdminView(Page, db.session, category="Conteúdo"))
+    admin.add_view(
+        HomepageSectionAdminView(HomepageSection, db.session, category="Página inicial")
+    )
+    admin.add_view(
+        SectionItemAdminView(SectionItem, db.session, category="Página inicial")
+    )
 
     return admin
