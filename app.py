@@ -138,6 +138,30 @@ def create_app() -> Flask:
             custom_sections=custom_sections,
         )
 
+    @app.route("/licitacoes")
+    def licitacoes() -> str:
+        """Disponibiliza a página com os editais e processos licitatórios."""
+
+        return render_template("licitacoes/index.html")
+
+    @app.route("/concursos")
+    def concursos() -> str:
+        """Exibe as informações sobre concursos públicos vigentes."""
+
+        return render_template("concursos.html")
+
+    @app.route("/iptu-online")
+    def iptu_online() -> str:
+        """Apresenta os serviços disponíveis para o IPTU online."""
+
+        return render_template("iptu_online.html")
+
+    @app.route("/alvaras")
+    def alvaras() -> str:
+        """Fornece orientações sobre emissão e renovação de alvarás."""
+
+        return render_template("alvaras.html")
+
     @app.route("/<slug>")
     def show_page(slug: str) -> str:
         """Exibe o conteúdo dinâmico associado ao slug informado."""
