@@ -395,6 +395,9 @@ class SectionItemAdminView(BasicAuthMixin, ModelView):
 
     column_list = ("title", "section", "display_order", "is_active")
     column_default_sort = ("display_order", False)
+    column_formatters = {
+        "section": lambda _v, _c, m, _p: getattr(m.section, "name", "-"),
+    }
     column_labels = {
         "title": "Título",
         "section": "Seção",
