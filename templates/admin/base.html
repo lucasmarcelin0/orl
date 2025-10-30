@@ -200,22 +200,135 @@
     </footer>
 {% endblock %}
 
-{% block tail_js %}
-    <script {{ admin_csp_nonce_attribute }} src="{{ admin_static.url(filename='vendor/jquery.min.js', v='3.5.1') }}" type="text/javascript"></script>
-    <script {{ admin_csp_nonce_attribute }} src="{{ admin_static.url(filename='bootstrap/bootstrap4/js/popper.min.js') }}" type="text/javascript"></script>
-    <script {{ admin_csp_nonce_attribute }} src="{{ admin_static.url(filename='bootstrap/bootstrap4/js/bootstrap.min.js', v='4.2.1') }}" type="text/javascript"></script>
-    <script {{ admin_csp_nonce_attribute }} src="{{ admin_static.url(filename='vendor/moment.min.js', v='2.9.4') }}" type="text/javascript"></script>
-    <script {{ admin_csp_nonce_attribute }} src="{{ admin_static.url(filename='vendor/bootstrap4/util.js', v='4.3.1') }}" type="text/javascript"></script>
-    <script {{ admin_csp_nonce_attribute }} src="{{ admin_static.url(filename='vendor/bootstrap4/dropdown.js', v='4.3.1') }}" type="text/javascript"></script>
-    <script {{ admin_csp_nonce_attribute }} src="{{ admin_static.url(filename='vendor/select2/select2.min.js', v='4.2.1') }}" type="text/javascript"></script>
-    <script {{ admin_csp_nonce_attribute }} src="{{ admin_static.url(filename='vendor/multi-level-dropdowns-bootstrap/bootstrap4-dropdown-ml-hack.js') }}" type="text/javascript"></script>
-    <script {{ admin_csp_nonce_attribute }} src="{{ admin_static.url(filename='admin/js/helpers.js', v='1.0.0') }}" type="text/javascript"></script>
-    {% if admin_view.extra_js %}
-        {% for js_url in admin_view.extra_js %}
-            <script {{ admin_csp_nonce_attribute }} src="{{ js_url }}" type="text/javascript"></script>
-        {% endfor %}
-    {% endif %}
-{% endblock %}
+    {% block tail_js %}
+        {{ ckeditor.load() }}
+        <script {{ admin_csp_nonce_attribute }} src="{{ admin_static.url(filename='vendor/jquery.min.js', v='3.5.1') }}" type="text/javascript"></script>
+        <script {{ admin_csp_nonce_attribute }} src="{{ admin_static.url(filename='bootstrap/bootstrap4/js/popper.min.js') }}" type="text/javascript"></script>
+        <script {{ admin_csp_nonce_attribute }} src="{{ admin_static.url(filename='bootstrap/bootstrap4/js/bootstrap.min.js', v='4.2.1') }}" type="text/javascript"></script>
+        <script {{ admin_csp_nonce_attribute }} src="{{ admin_static.url(filename='vendor/moment.min.js', v='2.9.4') }}" type="text/javascript"></script>
+        <script {{ admin_csp_nonce_attribute }} src="{{ admin_static.url(filename='vendor/bootstrap4/util.js', v='4.3.1') }}" type="text/javascript"></script>
+        <script {{ admin_csp_nonce_attribute }} src="{{ admin_static.url(filename='vendor/bootstrap4/dropdown.js', v='4.3.1') }}" type="text/javascript"></script>
+        <script {{ admin_csp_nonce_attribute }} src="{{ admin_static.url(filename='vendor/select2/select2.min.js', v='4.2.1') }}" type="text/javascript"></script>
+        <script {{ admin_csp_nonce_attribute }} src="{{ admin_static.url(filename='vendor/multi-level-dropdowns-bootstrap/bootstrap4-dropdown-ml-hack.js') }}" type="text/javascript"></script>
+        <script {{ admin_csp_nonce_attribute }} src="{{ admin_static.url(filename='admin/js/helpers.js', v='1.0.0') }}" type="text/javascript"></script>
+        {% if admin_view.extra_js %}
+            {% for js_url in admin_view.extra_js %}
+                <script {{ admin_csp_nonce_attribute }} src="{{ js_url }}" type="text/javascript"></script>
+            {% endfor %}
+        {% endif %}
+        <script {{ admin_csp_nonce_attribute }}>
+            (function () {
+                function whenReady(callback) {
+                    if (document.readyState !== 'loading') {
+                        callback();
+                        return;
+                    }
+                    document.addEventListener('DOMContentLoaded', callback);
+                }
+
+                function buildConfig(textarea) {
+                    const height = Number(textarea.dataset.ckeditorHeight || 360);
+                    const toolbarMode = textarea.dataset.ckeditorToolbar || 'default';
+                    const baseConfig = {
+                        language: 'pt-br',
+                        height: height,
+                        removePlugins: 'flash,iframe,smiley',
+                        toolbar: [
+                            { name: 'clipboard', items: ['Undo', 'Redo'] },
+                            { name: 'styles', items: ['Format'] },
+                            {
+                                name: 'basicstyles',
+                                items: ['Bold', 'Italic', 'Underline', 'Strike', 'RemoveFormat'],
+                            },
+                            {
+                                name: 'paragraph',
+                                items: [
+                                    'NumberedList',
+                                    'BulletedList',
+                                    '-',
+                                    'JustifyLeft',
+                                    'JustifyCenter',
+                                    'JustifyRight',
+                                    'JustifyBlock',
+                                ],
+                            },
+                            { name: 'links', items: ['Link', 'Unlink'] },
+                            { name: 'insert', items: ['Table', 'HorizontalRule', 'SpecialChar'] },
+                            { name: 'tools', items: ['Maximize', 'Source'] },
+                        ],
+                    };
+
+                    if (toolbarMode === 'minimal') {
+                        baseConfig.toolbar = [
+                            {
+                                name: 'basicstyles',
+                                items: ['Bold', 'Italic', 'Underline', 'RemoveFormat'],
+                            },
+                            { name: 'paragraph', items: ['NumberedList', 'BulletedList'] },
+                            { name: 'links', items: ['Link', 'Unlink'] },
+                            { name: 'clipboard', items: ['Undo', 'Redo'] },
+                        ];
+                    }
+
+                    return baseConfig;
+                }
+
+                function ensureId(textarea, index) {
+                    if (textarea.id) {
+                        return textarea.id;
+                    }
+                    const generated = 'ckeditor-' + index + '-' + Date.now();
+                    textarea.id = generated;
+                    return generated;
+                }
+
+                function activateEditors() {
+                    if (!window.CKEDITOR) {
+                        return;
+                    }
+
+                    const textareas = document.querySelectorAll('textarea.ckeditor');
+                    textareas.forEach(function (textarea, index) {
+                        if (textarea.dataset.ckeditorAttached === '1') {
+                            return;
+                        }
+
+                        const id = ensureId(textarea, index);
+                        const config = buildConfig(textarea);
+
+                        if (window.CKEDITOR.instances[id]) {
+                            window.CKEDITOR.instances[id].destroy(true);
+                        }
+
+                        window.CKEDITOR.replace(id, config);
+                        textarea.dataset.ckeditorAttached = '1';
+                    });
+                }
+
+                function waitForEditor() {
+                    if (window.CKEDITOR) {
+                        activateEditors();
+
+                        const observer = new MutationObserver(function () {
+                            activateEditors();
+                        });
+
+                        observer.observe(document.body, {
+                            childList: true,
+                            subtree: true,
+                        });
+
+                        window.refreshRichTextEditors = activateEditors;
+                        return;
+                    }
+
+                    window.setTimeout(waitForEditor, 150);
+                }
+
+                whenReady(waitForEditor);
+            })();
+        </script>
+    {% endblock %}
 
 {% block tail %}{% endblock %}
 </body>

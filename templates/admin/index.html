@@ -1,0 +1,326 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Início do painel - {{ admin_name }}{% endblock %}
+
+{% block head_tail %}
+    {{ super() }}
+    <style>
+        .dashboard {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .hero-card {
+            background: linear-gradient(135deg, rgba(26, 79, 140, 0.95), rgba(26, 79, 140, 0.75));
+            color: white;
+            border-radius: var(--radius);
+            padding: 32px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 32px;
+            align-items: center;
+            box-shadow: var(--shadow);
+        }
+
+        .hero-text {
+            flex: 1 1 320px;
+            min-width: 280px;
+        }
+
+        .hero-text h2 {
+            margin: 0 0 8px;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .hero-text p {
+            margin: 0 0 16px;
+            font-size: 1.05rem;
+            line-height: 1.6;
+            opacity: 0.95;
+        }
+
+        .hero-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            font-size: 0.95rem;
+        }
+
+        .hero-meta span {
+            background: rgba(255, 255, 255, 0.12);
+            padding: 8px 14px;
+            border-radius: 999px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .stat-card small {
+            color: var(--muted);
+        }
+
+        .stat-value {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .stat-value strong {
+            font-size: 2rem;
+            color: var(--primary);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            border-radius: 999px;
+            background: #e5ecf5;
+            overflow: hidden;
+        }
+
+        .progress-bar span {
+            display: block;
+            height: 100%;
+            background: var(--primary);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+            gap: 24px;
+        }
+
+        .panel {
+            background: white;
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .panel h3 {
+            margin: 0;
+            font-size: 1.25rem;
+        }
+
+        .panel p.description {
+            margin: -4px 0 0;
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .quick-actions {
+            display: grid;
+            gap: 16px;
+        }
+
+        .quick-action {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 16px;
+            border-radius: var(--radius);
+            border: 1px solid #d3d8e6;
+            transition: border 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .quick-action:hover {
+            border-color: var(--primary);
+            box-shadow: 0 10px 20px rgba(26, 79, 140, 0.08);
+            text-decoration: none;
+        }
+
+        .quick-action span {
+            color: var(--muted);
+            font-size: 0.95rem;
+        }
+
+        .activity-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .activity-item {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: space-between;
+            padding: 14px 16px;
+            border-radius: var(--radius);
+            border: 1px solid #d3d8e6;
+        }
+
+        .activity-item strong {
+            color: var(--primary);
+        }
+
+        .activity-item span {
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .tips {
+            display: grid;
+            gap: 12px;
+        }
+
+        .tips li {
+            list-style: none;
+            background: #f2f6fc;
+            border-radius: var(--radius);
+            padding: 12px 14px;
+            color: #264c7e;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 1024px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="dashboard">
+        <section class="hero-card">
+            <div class="hero-text">
+                <h2>Bem-vindo(a) ao painel da {{ admin_name }}</h2>
+                <p>
+                    Centralize aqui a atualização do site institucional. Utilize os atalhos para publicar
+                    novas páginas, organizar a página inicial e manter os serviços sempre acessíveis à população.
+                </p>
+                <div class="hero-meta">
+                    <span>Última edição da home:
+                        {% if homepage_last_modified %}
+                            {{ homepage_last_modified.strftime('%d/%m/%Y %H:%M') }}
+                        {% else %}
+                            ainda não registrada
+                        {% endif %}
+                    </span>
+                    <span>{{ stats.pages.published }} páginas visíveis</span>
+                    <span>{{ stats.sections.active }} seções ativas</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="stats-grid">
+            <article class="stat-card">
+                <h3>Conteúdo publicado</h3>
+                <div class="stat-value">
+                    <strong>{{ stats.pages.published }}</strong>
+                    <span>de {{ stats.pages.total }} páginas totais</span>
+                </div>
+                <div class="progress-bar">
+                    {% set page_ratio = 0 if stats.pages.total == 0 else (stats.pages.published / stats.pages.total) * 100 %}
+                    <span style="width: {{ '%.0f' % page_ratio }}%;"></span>
+                </div>
+                <small>Gerencie comunicados e páginas institucionais atualizadas.</small>
+            </article>
+
+            <article class="stat-card">
+                <h3>Seções da página inicial</h3>
+                <div class="stat-value">
+                    <strong>{{ stats.sections.active }}</strong>
+                    <span>de {{ stats.sections.total }} seções</span>
+                </div>
+                <div class="progress-bar">
+                    {% set section_ratio = 0 if stats.sections.total == 0 else (stats.sections.active / stats.sections.total) * 100 %}
+                    <span style="width: {{ '%.0f' % section_ratio }}%;"></span>
+                </div>
+                <small>Ative ou reorganize destaques para orientar o cidadão.</small>
+            </article>
+
+            <article class="stat-card">
+                <h3>Cartões em destaque</h3>
+                <div class="stat-value">
+                    <strong>{{ stats.items.active }}</strong>
+                    <span>de {{ stats.items.total }} disponíveis</span>
+                </div>
+                <div class="progress-bar">
+                    {% set item_ratio = 0 if stats.items.total == 0 else (stats.items.active / stats.items.total) * 100 %}
+                    <span style="width: {{ '%.0f' % item_ratio }}%;"></span>
+                </div>
+                <small>Inclua serviços e links úteis para facilitar o atendimento.</small>
+            </article>
+        </section>
+
+        <section class="dashboard-grid">
+            <div class="panel">
+                <div>
+                    <h3>Atalhos rápidos</h3>
+                    <p class="description">Inicie o trabalho em poucos cliques.</p>
+                </div>
+                <div class="quick-actions">
+                    {% for action in quick_actions %}
+                        <a class="quick-action" href="{{ action.url }}">
+                            <strong>{{ action.title }}</strong>
+                            <span>{{ action.description }}</span>
+                        </a>
+                    {% else %}
+                        <p style="color: var(--muted);">Nenhum atalho disponível no momento.</p>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <aside class="panel">
+                <div>
+                    <h3>Boas práticas</h3>
+                    <p class="description">Sugestões para uma gestão eficiente.</p>
+                </div>
+                <ul class="tips">
+                    <li>Revise títulos e resumos antes de publicar para garantir clareza.</li>
+                    <li>Priorize os serviços mais buscados nas seções superiores da home.</li>
+                    <li>Mantenha links externos testados para evitar páginas indisponíveis.</li>
+                    <li>Combine textos curtos com botões de ação para orientar o cidadão.</li>
+                </ul>
+            </aside>
+        </section>
+
+        <section class="panel">
+            <div>
+                <h3>Atividades recentes</h3>
+                <p class="description">Os últimos itens criados ou atualizados.</p>
+            </div>
+            <div class="activity-list">
+                {% for item in recent_activity %}
+                    {% if item.url %}
+                        <a class="activity-item" href="{{ item.url }}">
+                            <div>
+                                <strong>{{ item.label }} · {{ item.name }}</strong>
+                            </div>
+                            <span>{{ item.status }}</span>
+                        </a>
+                    {% else %}
+                        <div class="activity-item">
+                            <div>
+                                <strong>{{ item.label }} · {{ item.name }}</strong>
+                            </div>
+                            <span>{{ item.status }}</span>
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <p style="color: var(--muted);">Nenhuma atividade registrada ainda. Crie um conteúdo para começar.</p>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+{% endblock %}

@@ -27,3 +27,8 @@ class Config:
     # Comentário: credenciais de acesso ao painel administrativo.
     ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
     ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "senha-segura")
+
+    # Comentário: ajustes globais do CKEditor para oferecer uma experiência completa.
+    CKEDITOR_PKG_TYPE = "full"
+    CKEDITOR_LANGUAGE = "pt-br"
+    CKEDITOR_HEIGHT = 400
