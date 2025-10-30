@@ -66,6 +66,10 @@
                 z-index: 10;
             }
 
+            .cke_notification_warning {
+                display: none !important;
+            }
+
             .header-content {
                 max-width: 1200px;
                 margin: 0 auto;
@@ -226,6 +230,8 @@
                     document.addEventListener('DOMContentLoaded', callback);
                 }
 
+                const uploadEndpoint = '{{ url_for("upload_ckeditor_image") }}';
+
                 function buildConfig(textarea) {
                     const height = Number(textarea.dataset.ckeditorHeight || 360);
                     const toolbarMode = textarea.dataset.ckeditorToolbar || 'default';
@@ -233,6 +239,10 @@
                         language: 'pt-br',
                         height: height,
                         removePlugins: 'flash,iframe,smiley',
+                        extraPlugins: 'uploadimage',
+                        filebrowserUploadUrl: uploadEndpoint,
+                        filebrowserUploadMethod: 'form',
+                        imageUploadUrl: uploadEndpoint,
                         toolbar: [
                             { name: 'clipboard', items: ['Undo', 'Redo'] },
                             { name: 'styles', items: ['Format'] },
@@ -253,7 +263,7 @@
                                 ],
                             },
                             { name: 'links', items: ['Link', 'Unlink'] },
-                            { name: 'insert', items: ['Table', 'HorizontalRule', 'SpecialChar'] },
+                            { name: 'insert', items: ['Image', 'UploadImage', 'Table', 'HorizontalRule', 'SpecialChar'] },
                             { name: 'tools', items: ['Maximize', 'Source'] },
                         ],
                     };

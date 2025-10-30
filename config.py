@@ -32,3 +32,7 @@ class Config:
     CKEDITOR_PKG_TYPE = "full"
     CKEDITOR_LANGUAGE = "pt-br"
     CKEDITOR_HEIGHT = 400
+    CKEDITOR_FILE_UPLOADER = "upload_ckeditor_image"
+    CKEDITOR_UPLOADS_PATH = str(BASE_DIR / "static" / "uploads")
+    CKEDITOR_ALLOWED_IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
+    CKEDITOR_MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5 MB
