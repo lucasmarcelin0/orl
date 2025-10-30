@@ -41,6 +41,14 @@ SECTION_ITEM_PREVIEW_HTML = """
         <span class=\"section-item-preview__badge\" data-preview-badge>Selo do cartão</span>
         <span class=\"section-item-preview__date\" data-preview-date>Data exibida</span>
     </header>
+    <figure class=\"section-item-preview__media\" data-preview-image-wrapper hidden>
+        <img
+            class=\"section-item-preview__image\"
+            src=\"\"
+            alt=\"Pré-visualização da imagem do cartão\"
+            data-preview-image
+        >
+    </figure>
     <h3 class=\"section-item-preview__title\" data-preview-title>Título do cartão</h3>
     <div class=\"section-item-preview__summary\" data-preview-summary>
         Utilize o campo “Resumo” para adicionar o conteúdo que aparecerá no site.
@@ -340,7 +348,13 @@ class HomepageSectionAdminView(BasicAuthMixin, ModelView):
                     "link_url": {"label": "Endereço do link"},
                     "link_label": {"label": "Texto do link"},
                     "icon_class": {"label": "Ícone (classe CSS)"},
-                    "image_url": {"label": "Imagem (URL)"},
+                    "image_url": {
+                        "label": "Imagem (URL)",
+                        "render_kw": {
+                            "data-card-image-input": "1",
+                            "placeholder": "Endereço da imagem (opcional)",
+                        },
+                    },
                     "badge": {"label": "Selo"},
                     "display_date": {"label": "Data exibida"},
                     "display_order": {"label": "Ordem de exibição"},
@@ -361,6 +375,7 @@ class HomepageSectionAdminView(BasicAuthMixin, ModelView):
                     },
                     "image_url": {
                         "placeholder": "Endereço da imagem (opcional)",
+                        "data-card-image-input": "1",
                     },
                     "badge": {
                         "placeholder": "Texto do selo destaque",
@@ -406,6 +421,7 @@ class SectionItemAdminView(BasicAuthMixin, ModelView):
         },
         "image_url": {
             "placeholder": "URL da imagem ilustrativa (opcional)",
+            "data-card-image-input": "1",
         },
         "badge": {
             "placeholder": "Ex.: Novo, Destaque, Inscrições abertas",
