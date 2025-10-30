@@ -56,7 +56,7 @@ SECTION_ITEM_PREVIEW_HTML = """
     <footer class=\"section-item-preview__footer\">
         <a class=\"section-item-preview__link\" data-preview-link href=\"#\">
             <span data-preview-link-label>Texto do link</span>
-            <i class=\"fa fa-arrow-right\" aria-hidden=\"true\"></i>
+            <i class=\"fa-solid fa-arrow-right\" aria-hidden=\"true\"></i>
         </a>
     </footer>
 </section>
