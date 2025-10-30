@@ -6,6 +6,7 @@ import re
 import unicodedata
 
 from datetime import datetime
+import uuid
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -13,11 +14,12 @@ from flask import current_app, request, Response, url_for
 from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView
 from flask_admin.form import rules
+from flask_admin.form.upload import FileUploadField
 from flask_ckeditor import CKEditorField
 from sqlalchemy.exc import OperationalError
 
 from forms import PageForm
-from models import db, HomepageSection, Page, SectionItem
+from models import db, Document, HomepageSection, Page, SectionItem
 
 
 SECTION_INLINE_FORM_COLUMNS = (
@@ -184,6 +186,10 @@ class ProtectedAdminIndexView(BasicAuthMixin, AdminIndexView):
         active_items = _safe_query(
             lambda: SectionItem.query.filter_by(is_active=True).count(), 0
         )
+        total_documents = _safe_query(lambda: Document.query.count(), 0)
+        active_documents = _safe_query(
+            lambda: Document.query.filter_by(is_active=True).count(), 0
+        )
 
         recent_pages = _safe_query(
             lambda: Page.query.order_by(Page.id.desc()).limit(5).all(), []
@@ -196,6 +202,10 @@ class ProtectedAdminIndexView(BasicAuthMixin, AdminIndexView):
         )
         recent_items = _safe_query(
             lambda: SectionItem.query.order_by(SectionItem.id.desc()).limit(5).all(),
+            [],
+        )
+        recent_documents = _safe_query(
+            lambda: Document.query.order_by(Document.id.desc()).limit(5).all(),
             [],
         )
 
@@ -233,6 +243,11 @@ class ProtectedAdminIndexView(BasicAuthMixin, AdminIndexView):
                 "description": "Inclua novos links, notícias e serviços para a população.",
                 "url": _safe_url("sectionitem.create_view"),
             },
+            {
+                "title": "Publicar documento",
+                "description": "Disponibilize arquivos oficiais para download imediato.",
+                "url": _safe_url("document.create_view"),
+            },
         ]
 
         recent_activity = []
@@ -264,6 +279,15 @@ class ProtectedAdminIndexView(BasicAuthMixin, AdminIndexView):
                     "url": _safe_url("sectionitem.edit_view", id=item.id),
                 }
             )
+        for document in recent_documents:
+            recent_activity.append(
+                {
+                    "label": "Documento",
+                    "name": document.title,
+                    "status": "Publicado" if document.is_active else "Rascunho",
+                    "url": _safe_url("document.edit_view", id=document.id),
+                }
+            )
 
         stats = self._to_namespace(
             {
@@ -278,6 +302,10 @@ class ProtectedAdminIndexView(BasicAuthMixin, AdminIndexView):
                 "items": {
                     "total": total_items,
                     "active": active_items,
+                },
+                "documents": {
+                    "total": total_documents,
+                    "active": active_documents,
                 },
             }
         )
@@ -480,6 +508,78 @@ class SectionItemAdminView(BasicAuthMixin, ModelView):
     }
 
 
+class DocumentAdminView(BasicAuthMixin, ModelView):
+    """Gerencia os arquivos disponibilizados para download na página inicial."""
+
+    column_list = ("title", "display_order", "is_active")
+    column_default_sort = ("display_order", False)
+    column_labels = {
+        "title": "Título",
+        "description": "Descrição",
+        "icon_class": "Ícone (classe CSS)",
+        "file_path": "Arquivo",
+        "display_order": "Ordem de exibição",
+        "is_active": "Ativo",
+    }
+    form_columns = (
+        "title",
+        "description",
+        "icon_class",
+        "file_path",
+        "display_order",
+        "is_active",
+    )
+    form_widget_args = {
+        "title": {
+            "placeholder": "Nome exibido aos cidadãos",
+        },
+        "description": {
+            "placeholder": "Complemento opcional exibido abaixo do link",
+            "rows": 3,
+        },
+        "icon_class": {
+            "placeholder": "Ex.: fas fa-file-download",
+        },
+        "display_order": {
+            "placeholder": "0",
+        },
+    }
+
+    def _documents_upload_path(self) -> Path:
+        config_path = current_app.config.get("DOCUMENTS_UPLOAD_PATH")
+        if not config_path:
+            config_path = Path("static") / "uploads" / "documents"
+        upload_path = Path(config_path)
+        if not upload_path.is_absolute():
+            upload_path = Path(current_app.root_path) / upload_path
+        upload_path.mkdir(parents=True, exist_ok=True)
+        return upload_path
+
+    def _allowed_extensions(self) -> set[str]:
+        configured = current_app.config.get("DOCUMENTS_ALLOWED_EXTENSIONS") or {"pdf"}
+        return {ext.lower() for ext in configured}
+
+    def _generate_filename(self, _model, file_data) -> str:
+        extension = Path(file_data.filename or "").suffix.lower()
+        if extension:
+            extension = extension.lstrip(".")
+        else:
+            extension = "dat"
+        return f"documento-{uuid.uuid4().hex}.{extension}"
+
+    def scaffold_form(self):  # type: ignore[override]
+        form_class = super().scaffold_form()
+        upload_field = FileUploadField(
+            "Arquivo",
+            base_path=str(self._documents_upload_path()),
+            namegen=self._generate_filename,
+            allowed_extensions=self._allowed_extensions(),
+        )
+        upload_field.allow_overwrite = False
+        form_class.file_path = upload_field
+        return form_class
+
+
 def init_admin(app) -> Admin:
     """Inicializa o painel administrativo integrado ao aplicativo Flask."""
 
@@ -517,6 +617,14 @@ def init_admin(app) -> Admin:
             db.session,
             category="Página inicial",
             name="Itens das seções",
+        )
+    )
+    admin.add_view(
+        DocumentAdminView(
+            Document,
+            db.session,
+            category="Página inicial",
+            name="Documentos",
         )
     )
 

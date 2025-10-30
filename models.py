@@ -74,3 +74,31 @@ class SectionItem(db.Model):
 
     def __repr__(self) -> str:  # pragma: no cover - representação auxiliar
         return f"<SectionItem {self.title!r} ({self.section_id})>"
+
+
+class Document(db.Model):
+    """Arquivo disponibilizado para download pelos moradores."""
+
+    id = Column(Integer, primary_key=True)
+    title = Column(String(180), nullable=False)
+    description = Column(Text, nullable=True)
+    icon_class = Column(String(120), nullable=True)
+    file_path = Column(String(255), nullable=False)
+    display_order = Column(Integer, nullable=False, default=0)
+    is_active = Column(Boolean, nullable=False, default=True)
+
+    def __repr__(self) -> str:  # pragma: no cover - representação auxiliar
+        return f"<Document {self.title!r}>"
+
+    @property
+    def filename(self) -> str:
+        """Retorna apenas o nome do arquivo armazenado."""
+
+        return (self.file_path or "").split("/")[-1]
+
+    @property
+    def public_path(self) -> str:
+        """Caminho relativo dentro da pasta estática de documentos."""
+
+        sanitized = (self.file_path or "").lstrip("/\\")
+        return f"uploads/documents/{sanitized}" if sanitized else ""
