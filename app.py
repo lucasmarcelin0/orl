@@ -46,7 +46,8 @@ def create_app() -> Flask:
     ckeditor.init_app(app)
 
     # Comentário: prepara o painel administrativo com autenticação básica.
-    init_admin(app)
+    with app.app_context():
+        init_admin(app)
 
     def ensure_homepage_sections() -> None:
         """Carrega um conteúdo inicial da home quando o banco está vazio."""
