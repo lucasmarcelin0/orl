@@ -343,9 +343,9 @@ def create_app() -> Flask:
 
         try:
             quick_access_links = (
-                QuickLink.query.filter_by(
-                    location=QuickLink.LOCATION_QUICK_ACCESS,
-                    is_active=True,
+                QuickLink.query.filter(
+                    QuickLink.location == QuickLink.LOCATION_QUICK_ACCESS,
+                    QuickLink.is_active.isnot(False),
                 )
                 .order_by(QuickLink.display_order.asc(), QuickLink.id.asc())
                 .all()
@@ -368,7 +368,7 @@ def create_app() -> Flask:
 
         try:
             footer_columns = (
-                FooterColumn.query.filter_by(is_active=True)
+                FooterColumn.query.filter(FooterColumn.is_active.isnot(False))
                 .order_by(FooterColumn.display_order.asc(), FooterColumn.id.asc())
                 .all()
             )
@@ -385,7 +385,7 @@ def create_app() -> Flask:
                     footer_links = (
                         QuickLink.query.filter(
                             QuickLink.location == QuickLink.LOCATION_FOOTER,
-                            QuickLink.is_active.is_(True),
+                            QuickLink.is_active.isnot(False),
                             QuickLink.footer_column_id.in_(column_ids),
                         )
                         .order_by(QuickLink.display_order.asc(), QuickLink.id.asc())
@@ -412,10 +412,10 @@ def create_app() -> Flask:
         else:
             try:
                 legacy_footer_links = (
-                    QuickLink.query.filter_by(
-                        location=QuickLink.LOCATION_FOOTER,
-                        is_active=True,
-                        footer_column_id=None,
+                    QuickLink.query.filter(
+                        QuickLink.location == QuickLink.LOCATION_FOOTER,
+                        QuickLink.is_active.isnot(False),
+                        QuickLink.footer_column_id.is_(None),
                     )
                     .order_by(QuickLink.display_order.asc(), QuickLink.id.asc())
                     .all()
