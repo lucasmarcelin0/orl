@@ -15,6 +15,7 @@ from flask import (
     abort,
     Flask,
     jsonify,
+    redirect,
     render_template,
     request,
     send_from_directory,
@@ -22,13 +23,23 @@ from flask import (
 )
 from flask_migrate import Migrate
 from flask_ckeditor import CKEditor
-from sqlalchemy import inspect, text
+from sqlalchemy import inspect, or_, text
 from sqlalchemy.exc import OperationalError
 from werkzeug.utils import secure_filename
 
 from admin import init_admin
 from config import Config
-from models import db, HomepageSection, Page, SectionItem
+
+from models import (
+    db,
+    EmergencyService,
+    Document,
+    FooterColumn,
+    HomepageSection,
+    Page,
+    QuickLink,
+    SectionItem,
+)
 
 # Comentário: extensões globais reutilizadas pela aplicação.
 migrate = Migrate()
@@ -63,13 +74,30 @@ def create_app() -> Flask:
 
         inspector = inspect(engine)
         try:
-            columns = {column["name"] for column in inspector.get_columns("document")}
+            document_columns = {
+                column["name"] for column in inspector.get_columns("document")
+            }
         except Exception:  # pragma: no cover - fallback defensivo
-            return
+            document_columns = set()
 
-        if "section_item_id" not in columns:
+        if document_columns and "section_item_id" not in document_columns:
             with engine.begin() as connection:
-                connection.execute(text("ALTER TABLE document ADD COLUMN section_item_id INTEGER"))
+                connection.execute(
+                    text("ALTER TABLE document ADD COLUMN section_item_id INTEGER")
+                )
+
+        try:
+            quick_link_columns = {
+                column["name"] for column in inspector.get_columns("quick_link")
+            }
+        except Exception:  # pragma: no cover - tabela inexistente em instalações novas
+            quick_link_columns = set()
+
+        if quick_link_columns and "footer_column_id" not in quick_link_columns:
+            with engine.begin() as connection:
+                connection.execute(
+                    text("ALTER TABLE quick_link ADD COLUMN footer_column_id INTEGER")
+                )
 
     def ensure_homepage_sections() -> None:
         """Carrega um conteúdo inicial da home quando o banco está vazio."""
@@ -130,10 +158,63 @@ def create_app() -> Flask:
 
         db.session.commit()
 
+    def ensure_emergency_services() -> None:
+        """Popula serviços de emergência padrão em instalações novas."""
+
+        defaults = [
+            {
+                "name": "SAMU",
+                "phone": "192",
+                "icon_class": "fas fa-ambulance",
+            },
+            {
+                "name": "Bombeiros",
+                "phone": "193",
+                "icon_class": "fas fa-fire-extinguisher",
+            },
+            {
+                "name": "Polícia Militar",
+                "phone": "190",
+                "icon_class": "fas fa-shield-alt",
+            },
+            {
+                "name": "Pronto Socorro",
+                "phone": "(16) 3820-2000",
+                "icon_class": "fas fa-hospital",
+            },
+        ]
+
+        try:
+            db.create_all()
+        except OperationalError:
+            return
+
+        try:
+            has_services = EmergencyService.query.count() > 0
+        except OperationalError:
+            return
+
+        if has_services:
+            return
+
+        for order, data in enumerate(defaults):
+            db.session.add(
+                EmergencyService(
+                    name=data.get("name", "Serviço"),
+                    phone=data.get("phone"),
+                    icon_class=data.get("icon_class"),
+                    display_order=order,
+                    is_active=True,
+                )
+            )
+
+        db.session.commit()
+
     with app.app_context():
         ensure_database_schema()
         init_admin(app)
         ensure_homepage_sections()
+        ensure_emergency_services()
 
     def _resolve_upload_path() -> Path:
         upload_path = Path(app.config.get("CKEDITOR_UPLOADS_PATH", "static/uploads"))
@@ -260,19 +341,123 @@ def create_app() -> Flask:
             except Exception:  # pragma: no cover - rota indisponível
                 admin_index_url = None
 
-        service_links = [
-            {"label": "Licitações", "url": url_for("licitacoes")},
-            {"label": "Concursos", "url": url_for("concursos")},
-            {"label": "IPTU Online", "url": url_for("iptu_online")},
-            {"label": "Alvarás", "url": url_for("alvaras")},
-        ]
+        try:
+            quick_access_links = (
+                QuickLink.query.filter_by(
+                    location=QuickLink.LOCATION_QUICK_ACCESS,
+                    is_active=True,
+                )
+                .order_by(QuickLink.display_order.asc(), QuickLink.id.asc())
+                .all()
+            )
+            quick_access_configured = (
+                QuickLink.query.filter_by(location=QuickLink.LOCATION_QUICK_ACCESS).count()
+                > 0
+            )
+        except OperationalError:
+            quick_access_links = []
+            quick_access_configured = False
+
+        if not quick_access_links and not quick_access_configured:
+            quick_access_links = [
+                {"label": "Editais e Licitações", "url": url_for("licitacoes")},
+                {"label": "Concursos Públicos", "url": url_for("concursos")},
+                {"label": "IPTU Online", "url": url_for("iptu_online")},
+                {"label": "Alvarás", "url": url_for("alvaras")},
+            ]
+
+        try:
+            footer_columns = (
+                FooterColumn.query.filter_by(is_active=True)
+                .order_by(FooterColumn.display_order.asc(), FooterColumn.id.asc())
+                .all()
+            )
+        except OperationalError:
+            footer_columns = []
+
+        footer_columns_payload = []
+
+        if footer_columns:
+            column_ids = [column.id for column in footer_columns]
+
+            if column_ids:
+                try:
+                    footer_links = (
+                        QuickLink.query.filter(
+                            QuickLink.location == QuickLink.LOCATION_FOOTER,
+                            QuickLink.is_active.is_(True),
+                            QuickLink.footer_column_id.in_(column_ids),
+                        )
+                        .order_by(QuickLink.display_order.asc(), QuickLink.id.asc())
+                        .all()
+                    )
+                except OperationalError:
+                    footer_links = []
+            else:
+                footer_links = []
+
+            links_by_column: dict[int | None, list[QuickLink]] = {
+                column_id: [] for column_id in column_ids
+            }
+            for link in footer_links:
+                links_by_column.setdefault(link.footer_column_id, []).append(link)
+
+            for column in footer_columns:
+                footer_columns_payload.append(
+                    {
+                        "title": column.title,
+                        "links": links_by_column.get(column.id, []),
+                    }
+                )
+        else:
+            try:
+                legacy_footer_links = (
+                    QuickLink.query.filter_by(
+                        location=QuickLink.LOCATION_FOOTER,
+                        is_active=True,
+                        footer_column_id=None,
+                    )
+                    .order_by(QuickLink.display_order.asc(), QuickLink.id.asc())
+                    .all()
+                )
+                legacy_configured = (
+                    QuickLink.query.filter_by(
+                        location=QuickLink.LOCATION_FOOTER
+                    ).count()
+                    > 0
+                )
+            except OperationalError:
+                legacy_footer_links = []
+                legacy_configured = False
+
+            if legacy_footer_links:
+                footer_columns_payload = [
+                    {"title": "Serviços online", "links": legacy_footer_links}
+                ]
+            elif not legacy_configured:
+                footer_columns_payload = [
+                    {
+                        "title": "Serviços online",
+                        "links": [
+                            {"label": "Licitações", "url": url_for("licitacoes")},
+                            {"label": "Concursos", "url": url_for("concursos")},
+                            {"label": "IPTU Online", "url": url_for("iptu_online")},
+                            {"label": "Alvarás", "url": url_for("alvaras")},
+                        ],
+                    }
+                ]
+            else:
+                footer_columns_payload = [
+                    {"title": "Serviços online", "links": []}
+                ]
 
         return {
             "pages": visible_pages,
             "page_columns": _chunk_pages(visible_pages, columns=3),
             "admin_navigation": admin_navigation,
             "admin_index_url": admin_index_url,
-            "service_links": service_links,
+            "footer_columns": footer_columns_payload,
+            "quick_access_links": quick_access_links,
             "current_year": datetime.utcnow().year,
         }
 
@@ -292,18 +477,104 @@ def create_app() -> Flask:
         except OperationalError:
             sections = []
 
-        sections_map = {section.section_type: section for section in sections}
-        custom_sections = [
-            section
-            for section in sections
-            if section.section_type not in {"services", "news", "transparency"}
-        ]
+        try:
+            emergency_services = (
+                EmergencyService.query.filter_by(is_active=True)
+                .order_by(
+                    EmergencyService.display_order.asc(),
+                    EmergencyService.name.asc(),
+                )
+                .all()
+            )
+        except OperationalError:
+            emergency_services = []
 
         return render_template(
             "index.html",
             sections=sections,
-            sections_map=sections_map,
-            custom_sections=custom_sections,
+            emergency_services=emergency_services,
+        )
+
+    @app.route("/buscar")
+    def search() -> str:
+        """Permite localizar páginas, serviços e documentos pelo termo informado."""
+
+        query = (request.args.get("q", "") or "").strip()
+        if not query:
+            return redirect(url_for("index"))
+
+        search_pattern = f"%{query}%"
+
+        try:
+            page_results = (
+                Page.query.filter(Page.visible.is_(True))
+                .filter(
+                    or_(
+                        Page.title.ilike(search_pattern),
+                        Page.content.ilike(search_pattern),
+                    )
+                )
+                .order_by(Page.title.asc())
+                .all()
+            )
+        except OperationalError:
+            page_results = []
+
+        try:
+            section_item_results = (
+                SectionItem.query.join(HomepageSection)
+                .filter(
+                    HomepageSection.is_active.is_(True),
+                    SectionItem.is_active.is_(True),
+                    or_(
+                        SectionItem.title.ilike(search_pattern),
+                        SectionItem.summary.ilike(search_pattern),
+                        SectionItem.badge.ilike(search_pattern),
+                        SectionItem.display_date.ilike(search_pattern),
+                    ),
+                )
+                .order_by(
+                    HomepageSection.display_order.asc(),
+                    SectionItem.display_order.asc(),
+                    SectionItem.id.asc(),
+                )
+                .all()
+            )
+        except OperationalError:
+            section_item_results = []
+
+        try:
+            document_results = (
+                Document.query.join(SectionItem)
+                .join(HomepageSection)
+                .filter(
+                    Document.is_active.is_(True),
+                    SectionItem.is_active.is_(True),
+                    HomepageSection.is_active.is_(True),
+                    or_(
+                        Document.title.ilike(search_pattern),
+                        Document.description.ilike(search_pattern),
+                    ),
+                )
+                .order_by(Document.display_order.asc(), Document.title.asc())
+                .all()
+            )
+        except OperationalError:
+            document_results = []
+
+        total_results = (
+            len(page_results)
+            + len(section_item_results)
+            + len(document_results)
+        )
+
+        return render_template(
+            "search_results.html",
+            query=query,
+            page_results=page_results,
+            section_item_results=section_item_results,
+            document_results=document_results,
+            total_results=total_results,
         )
 
     @app.route("/destaques/<int:item_id>")
@@ -444,6 +715,4 @@ app = create_app()
 
 if __name__ == "__main__":
     # Comentário: execução direta do módulo para ambientes de desenvolvimento.
-    with app.app_context():
-        ensure_database_schema()
     app.run(debug=True)

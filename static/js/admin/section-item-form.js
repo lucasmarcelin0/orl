@@ -362,8 +362,45 @@
 
         bindAllImageInputs();
 
+        function setupDocumentsInlineLayout() {
+            const inlineRoot = document.getElementById('documents');
+            if (!inlineRoot || inlineRoot.dataset.sectionItemDocumentsBound === '1') {
+                return;
+            }
+
+            const fieldset = inlineRoot.closest('fieldset');
+            if (!fieldset) {
+                return;
+            }
+
+            let wrapper = fieldset.querySelector('[data-section-item-documents]');
+            if (!wrapper) {
+                wrapper = document.createElement('div');
+                wrapper.className = 'section-item-documents';
+                wrapper.setAttribute('data-section-item-documents', '1');
+
+                const heading = fieldset.querySelector('h3, legend');
+                if (heading) {
+                    heading.insertAdjacentElement('afterend', wrapper);
+                } else {
+                    fieldset.appendChild(wrapper);
+                }
+            }
+
+            const formGroup = inlineRoot.closest('.form-group');
+            const target = formGroup || inlineRoot;
+
+            wrapper.appendChild(target);
+            target.classList.add('section-item-documents__group');
+            inlineRoot.classList.add('section-item-documents__inline');
+            inlineRoot.dataset.sectionItemDocumentsBound = '1';
+        }
+
+        setupDocumentsInlineLayout();
+
         const observer = new MutationObserver(function () {
             bindAllImageInputs();
+            setupDocumentsInlineLayout();
         });
 
         observer.observe(document.body, { childList: true, subtree: true });

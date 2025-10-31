@@ -15,11 +15,22 @@ from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView, filters as sqla_filters
 from flask_admin.form import rules
 from flask_admin.form.upload import FileUploadField
+from flask_admin.model.form import InlineFormAdmin
 from flask_ckeditor import CKEditorField
 from sqlalchemy.exc import OperationalError
+from wtforms import HiddenField
 
 from forms import PageForm
-from models import db, Document, HomepageSection, Page, SectionItem
+from models import (
+    db,
+    Document,
+    EmergencyService,
+    FooterColumn,
+    HomepageSection,
+    Page,
+    QuickLink,
+    SectionItem,
+)
 
 
 SECTION_INLINE_FORM_COLUMNS = (
@@ -63,6 +74,12 @@ SECTION_ITEM_PREVIEW_HTML = """
     </footer>
 </section>
 """
+
+
+QUICK_LINK_LOCATIONS = (
+    (QuickLink.LOCATION_QUICK_ACCESS, "Acesso rápido"),
+    (QuickLink.LOCATION_FOOTER, "Rodapé"),
+)
 
 
 class BasicAuthMixin:
@@ -448,107 +465,6 @@ def _section_item_filter_options() -> list[tuple[int, str]]:
     return options
 
 
-class SectionItemAdminView(BasicAuthMixin, ModelView):
-    """Administração individual dos cartões que compõem as seções."""
-
-    column_list = ("title", "section", "display_order", "is_active")
-    column_default_sort = ("display_order", False)
-    column_filters = (
-        sqla_filters.FilterEqual(
-            SectionItem.section_id,
-            "Seção",
-            options=_section_filter_options,
-        ),
-        sqla_filters.BooleanEqualFilter(SectionItem.is_active, "Ativo"),
-    )
-    column_formatters = {
-        "section": lambda _v, _c, m, _p: getattr(m.section, "name", "-"),
-    }
-    column_labels = {
-        "title": "Título",
-        "section": "Seção",
-        "display_order": "Ordem de exibição",
-        "is_active": "Ativo",
-    }
-    form_overrides = {"summary": CKEditorField}
-    form_widget_args = {
-        "title": {
-            "placeholder": "Título principal exibido no cartão",
-        },
-        "summary": {
-            "placeholder": "Conteúdo rico do cartão",
-            "data-ckeditor-height": 260,
-        },
-        "link_label": {
-            "placeholder": "Texto do botão, por exemplo: Saiba mais",
-        },
-        "link_url": {
-            "placeholder": "Cole aqui o endereço que o botão abrirá",
-        },
-        "icon_class": {
-            "placeholder": "Classe CSS do ícone (opcional)",
-        },
-        "image_url": {
-            "placeholder": "URL da imagem ilustrativa (opcional)",
-            "data-card-image-input": "1",
-        },
-        "badge": {
-            "placeholder": "Ex.: Novo, Destaque, Inscrições abertas",
-        },
-        "display_date": {
-            "placeholder": "Texto de data exibido abaixo do selo",
-        },
-    }
-    form_create_rules = form_edit_rules = (
-        rules.HTML('<div class="section-item-designer">'),
-        rules.FieldSet(
-            (
-                "section",
-                "is_active",
-                "title",
-                "summary",
-                "link_label",
-                "link_url",
-            ),
-            "Conteúdo do cartão",
-        ),
-        rules.FieldSet(
-            (
-                "icon_class",
-                "image_url",
-                "badge",
-                "display_date",
-                "display_order",
-            ),
-            "Complementos visuais",
-        ),
-        rules.HTML(
-            "<div class=\"section-item-designer__preview\">"
-            "<h4>Pré-visualização em tempo real</h4>"
-            "<p>Veja como o cartão será apresentado para os moradores.</p>"
-            f"{SECTION_ITEM_PREVIEW_HTML}"
-            "</div>"
-        ),
-        rules.HTML("</div>"),
-    )
-    extra_css = ("/static/css/admin/section-item-form.css",)
-    extra_js = ("/static/js/admin/section-item-form.js",)
-    form_columns = ("section",) + SECTION_INLINE_FORM_COLUMNS
-    form_labels = {
-        "section": "Seção",
-        "title": "Título",
-        "summary": "Resumo",
-        "link_url": "Endereço do link",
-        "link_label": "Texto do link",
-        "icon_class": "Ícone (classe CSS)",
-        "image_url": "Imagem (URL)",
-        "badge": "Selo",
-        "display_date": "Data exibida",
-        "display_order": "Ordem de exibição",
-        "is_active": "Ativo",
-    }
-
-
 class DocumentUploadMixin:
     """Funcionalidades compartilhadas para upload e nomenclatura de documentos."""
 
@@ -583,6 +499,220 @@ class DocumentUploadMixin:
         )
         upload_field.allow_overwrite = False
         return upload_field
+
+
+class DocumentInlineForm(DocumentUploadMixin, InlineFormAdmin):
+    """Permite gerenciar documentos diretamente no formulário do item."""
+
+    form_columns = (
+        "id",
+        "title",
+        "description",
+        "icon_class",
+        "file_path",
+        "display_order",
+        "is_active",
+    )
+    form_label = "Documentos"
+    form_widget_args = {
+        "id": {
+            "type": "hidden",
+        },
+        "title": {
+            "placeholder": "Nome exibido aos cidadãos",
+        },
+        "description": {
+            "placeholder": "Complemento opcional exibido abaixo do link",
+            "rows": 3,
+        },
+        "icon_class": {
+            "placeholder": "Ex.: fas fa-file-download",
+        },
+        "display_order": {
+            "placeholder": "0",
+        },
+    }
+    form_args = {
+        "title": {"label": "Título"},
+        "description": {"label": "Descrição"},
+        "icon_class": {"label": "Ícone (classe CSS)"},
+        "file_path": {"label": "Arquivo"},
+        "display_order": {"label": "Ordem de exibição"},
+        "is_active": {"label": "Ativo"},
+    }
+
+    def postprocess_form(self, form_class):  # type: ignore[override]
+        form_class = super().postprocess_form(form_class)
+        form_class.id = HiddenField()
+        form_class.file_path = self._build_document_upload_field()
+        return form_class
+
+
+class SectionItemAdminView(BasicAuthMixin, ModelView):
+    """Administração individual dos cartões que compõem as seções."""
+
+    column_list = ("title", "section", "display_order", "is_active")
+    column_default_sort = ("display_order", False)
+    column_filters = (
+        sqla_filters.FilterEqual(
+            SectionItem.section_id,
+            "Seção",
+            options=_section_filter_options,
+        ),
+        sqla_filters.BooleanEqualFilter(SectionItem.is_active, "Ativo"),
+    )
+    column_formatters = {
+        "section": lambda _v, _c, m, _p: getattr(m.section, "name", "-"),
+    }
+    column_labels = {
+        "title": "Título",
+        "section": "Seção",
+        "display_order": "Ordem de exibição",
+        "is_active": "Ativo",
+    }
+    form_overrides = {"summary": CKEditorField}
+    # Comentário: preservamos o campo ``id`` no formulário para satisfazer as
+    # regras de layout do Flask-Admin, mas o renderizamos como oculto para que
+    # os administradores não o modifiquem manualmente.
+    form_widget_args = {
+        "id": {
+            "type": "hidden",
+        },
+        "title": {
+            "placeholder": "Título principal exibido no cartão",
+        },
+        "summary": {
+            "placeholder": "Conteúdo rico do cartão",
+            "data-ckeditor-height": 260,
+        },
+        "link_label": {
+            "placeholder": "Texto do botão, por exemplo: Saiba mais",
+        },
+        "link_url": {
+            "placeholder": "Cole aqui o endereço que o botão abrirá",
+        },
+        "icon_class": {
+            "placeholder": "Classe CSS do ícone (opcional)",
+        },
+        "image_url": {
+            "placeholder": "URL da imagem ilustrativa (opcional)",
+            "data-card-image-input": "1",
+        },
+        "badge": {
+            "placeholder": "Ex.: Novo, Destaque, Inscrições abertas",
+        },
+        "display_date": {
+            "placeholder": "Texto de data exibido abaixo do selo",
+        },
+    }
+    form_create_rules = form_edit_rules = (
+        rules.Field("id"),
+        rules.HTML(
+            "<div class=\"section-item-designer\">"
+            "<div class=\"section-item-designer__form\">"
+            "<section class=\"section-item-section section-item-section--content\">"
+            "<header class=\"section-item-section__header\">"
+            "<h3 class=\"section-item-section__title\">Conteúdo do cartão</h3>"
+            "<p class=\"section-item-section__description\">"
+            "Preencha as informações principais exibidas aos cidadãos."
+            "</p>"
+            "</header>"
+            "<div class=\"section-item-section__body\">"
+            "<div class=\"section-item-section__field section-item-section__field--wide\">"
+        ),
+        rules.Field("section"),
+        rules.HTML("</div>"),
+        rules.HTML(
+            "<div class=\"section-item-section__field section-item-section__field--inline\">"
+        ),
+        rules.Field("is_active"),
+        rules.HTML("</div>"),
+        rules.HTML("<div class=\"section-item-section__field\">"),
+        rules.Field("title"),
+        rules.HTML("</div>"),
+        rules.HTML(
+            "<div class=\"section-item-section__field section-item-section__field--full\">"
+        ),
+        rules.Field("summary"),
+        rules.HTML("</div>"),
+        rules.HTML("<div class=\"section-item-section__field\">"),
+        rules.Field("link_label"),
+        rules.HTML("</div>"),
+        rules.HTML("<div class=\"section-item-section__field\">"),
+        rules.Field("link_url"),
+        rules.HTML("</div>"),
+        rules.HTML("</div></section>"),
+        rules.HTML(
+            "<section class=\"section-item-section section-item-section--visual\">"
+            "<header class=\"section-item-section__header\">"
+            "<h3 class=\"section-item-section__title\">Complementos visuais</h3>"
+            "<p class=\"section-item-section__description\">"
+            "Itens opcionais que reforçam a identidade do cartão."
+            "</p>"
+            "</header>"
+            "<div class=\"section-item-section__body\">"
+            "<div class=\"section-item-section__field\">"
+        ),
+        rules.Field("icon_class"),
+        rules.HTML("</div>"),
+        rules.HTML(
+            "<div class=\"section-item-section__field section-item-section__field--full\">"
+        ),
+        rules.Field("image_url"),
+        rules.HTML("</div>"),
+        rules.HTML("<div class=\"section-item-section__field\">"),
+        rules.Field("badge"),
+        rules.HTML("</div>"),
+        rules.HTML("<div class=\"section-item-section__field\">"),
+        rules.Field("display_date"),
+        rules.HTML("</div>"),
+        rules.HTML(
+            "<div class=\"section-item-section__field section-item-section__field--small\">"
+        ),
+        rules.Field("display_order"),
+        rules.HTML("</div>"),
+        rules.HTML("</div></section>"),
+        rules.HTML(
+            "<section class=\"section-item-section section-item-section--documents\">"
+            "<header class=\"section-item-section__header\">"
+            "<h3 class=\"section-item-section__title\">Documentos vinculados</h3>"
+            "<p class=\"section-item-section__description\">"
+            "Adicione arquivos de apoio relacionados ao conteúdo."
+            "</p>"
+            "</header>"
+            "<div class=\"section-item-section__body\">"
+            "<div class=\"section-item-section__field section-item-section__field--full\">"
+        ),
+        rules.Field("documents"),
+        rules.HTML("</div></div></section>"),
+        rules.HTML("</div>"),
+        rules.HTML(
+            "<aside class=\"section-item-designer__preview\">"
+            "<h4>Pré-visualização em tempo real</h4>"
+            "<p>Veja como o cartão será apresentado para os moradores.</p>"
+            f"{SECTION_ITEM_PREVIEW_HTML}"
+            "</aside>"
+        ),
+        rules.HTML("</div>"),
+    )
+    extra_css = ("/static/css/admin/section-item-form.css",)
+    extra_js = ("/static/js/admin/section-item-form.js",)
+    form_columns = ("section",) + SECTION_INLINE_FORM_COLUMNS + ("documents",)
+    form_labels = {
+        "section": "Seção",
+        "title": "Título",
+        "summary": "Resumo",
+        "link_url": "Endereço do link",
+        "link_label": "Texto do link",
+        "icon_class": "Ícone (classe CSS)",
+        "image_url": "Imagem (URL)",
+        "badge": "Selo",
+        "display_date": "Data exibida",
+        "display_order": "Ordem de exibição",
+        "is_active": "Ativo",
+        "documents": "Documentos",
+    }
+    inline_models = (DocumentInlineForm(Document),)
 
 
 class DocumentAdminView(DocumentUploadMixin, BasicAuthMixin, ModelView):
@@ -657,6 +787,149 @@ class DocumentAdminView(DocumentUploadMixin, BasicAuthMixin, ModelView):
         return form_class
 
 
+class FooterColumnAdminView(BasicAuthMixin, ModelView):
+    """Administra as colunas configuráveis exibidas no rodapé."""
+
+    column_list = ("title", "display_order", "is_active")
+    column_default_sort = ("display_order", False)
+    column_labels = {
+        "title": "Título da coluna",
+        "display_order": "Ordem de exibição",
+        "is_active": "Ativa",
+    }
+    form_columns = ("title", "display_order", "is_active")
+    column_searchable_list = ("title",)
+    column_filters = (
+        sqla_filters.BooleanEqualFilter(FooterColumn.is_active, "Ativa"),
+    )
+    form_widget_args = {
+        "title": {
+            "placeholder": "Ex.: Serviços online",
+        },
+        "display_order": {
+            "placeholder": "0",
+        },
+    }
+
+
+class QuickLinkAdminView(BasicAuthMixin, ModelView):
+    """Gerencia os atalhos exibidos no acesso rápido e no rodapé."""
+
+    column_list = ("label", "location", "footer_column", "display_order", "is_active")
+    column_default_sort = ("display_order", False)
+    column_labels = {
+        "label": "Texto exibido",
+        "url": "Endereço (URL)",
+        "location": "Local",
+        "footer_column": "Coluna do rodapé",
+        "display_order": "Ordem de exibição",
+        "is_active": "Ativo",
+    }
+    column_choices = {
+        "location": QUICK_LINK_LOCATIONS,
+    }
+    column_filters = (
+        sqla_filters.FilterEqual(QuickLink.location, "Local", options=QUICK_LINK_LOCATIONS),
+        sqla_filters.BooleanEqualFilter(QuickLink.is_active, "Ativo"),
+    )
+    column_formatters = {
+        "footer_column": lambda _v, _c, m, _p: getattr(m.footer_column, "title", "-"),
+    }
+    column_searchable_list = ("label", "url")
+    form_columns = (
+        "label",
+        "url",
+        "location",
+        "footer_column",
+        "display_order",
+        "is_active",
+    )
+    form_choices = {
+        "location": QUICK_LINK_LOCATIONS,
+    }
+    form_widget_args = {
+        "label": {
+            "placeholder": "Ex.: Portal da transparência",
+        },
+        "url": {
+            "placeholder": "Cole aqui o endereço completo",
+        },
+        "display_order": {
+            "placeholder": "0",
+        },
+        "footer_column": {
+            "data-placeholder": "Selecione a coluna em que o link será exibido",
+        },
+    }
+    form_args = {
+        "footer_column": {
+            "label": "Coluna do rodapé",
+            "allow_blank": True,
+            "blank_text": "Selecione uma coluna",
+        }
+    }
+    form_ajax_refs = {
+        "footer_column": {
+            "fields": ("title",),
+            "page_size": 10,
+            "filters": (FooterColumn.is_active.is_(True),),
+        }
+    }
+
+    def on_model_change(self, form, model: QuickLink, is_created: bool) -> None:  # type: ignore[override]
+        if model.location == QuickLink.LOCATION_FOOTER:
+            if model.footer_column is None:
+                raise ValueError("Selecione uma coluna do rodapé para este link.")
+        else:
+            model.footer_column = None
+
+        super().on_model_change(form, model, is_created)
+
+
+class EmergencyServiceAdminView(BasicAuthMixin, ModelView):
+    """Permite gerenciar os serviços exibidos no painel de emergência."""
+
+    column_list = ("name", "phone", "display_order", "is_active")
+    column_default_sort = ("display_order", False)
+    column_labels = {
+        "name": "Nome do serviço",
+        "phone": "Telefone/Contato",
+        "description": "Descrição",
+        "icon_class": "Ícone (classe CSS)",
+        "display_order": "Ordem de exibição",
+        "is_active": "Ativo",
+    }
+    form_columns = (
+        "name",
+        "phone",
+        "description",
+        "icon_class",
+        "display_order",
+        "is_active",
+    )
+    column_filters = (
+        sqla_filters.BooleanEqualFilter(EmergencyService.is_active, "Ativo"),
+    )
+    column_searchable_list = ("name", "phone", "description")
+    form_widget_args = {
+        "name": {
+            "placeholder": "Ex.: SAMU",
+        },
+        "phone": {
+            "placeholder": "Ex.: 192",
+        },
+        "icon_class": {
+            "placeholder": "Ex.: fas fa-ambulance",
+        },
+        "display_order": {
+            "placeholder": "0",
+        },
+        "description": {
+            "rows": 3,
+        },
+    }
+
+
 def init_admin(app) -> Admin:
     """Inicializa o painel administrativo integrado ao aplicativo Flask."""
 
@@ -702,6 +975,30 @@ def init_admin(app) -> Admin:
             db.session,
             category="Página inicial",
             name="Documentos",
+        )
+    )
+    admin.add_view(
+        FooterColumnAdminView(
+            FooterColumn,
+            db.session,
+            category="Página inicial",
+            name="Colunas do rodapé",
+        )
+    )
+    admin.add_view(
+        QuickLinkAdminView(
+            QuickLink,
+            db.session,
+            category="Página inicial",
+            name="Acesso rápido e rodapé",
+        )
+    )
+    admin.add_view(
+        EmergencyServiceAdminView(
+            EmergencyService,
+            db.session,
+            category="Página inicial",
+            name="Serviços de emergência",
         )
     )
 

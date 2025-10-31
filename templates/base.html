@@ -93,18 +93,24 @@
                     </div>
                 {% endif %}
 
-                <div class="footer-column">
-                    <h3>Serviços online</h3>
-                    <ul>
-                        {% for service in service_links %}
-                            <li>
-                                <a href="{{ service.url }}">
-                                    <i class="fas fa-chevron-right"></i> {{ service.label }}
-                                </a>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                </div>
+                {% for column in footer_columns %}
+                    <div class="footer-column">
+                        <h3>{{ column.title }}</h3>
+                        {% if column.links %}
+                            <ul>
+                                {% for link in column.links %}
+                                    <li>
+                                        <a href="{{ link.url }}">
+                                            <i class="fas fa-chevron-right"></i> {{ link.label }}
+                                        </a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        {% else %}
+                            <p style="color: var(--muted);">Nenhum item cadastrado até o momento.</p>
+                        {% endif %}
+                    </div>
+                {% endfor %}
 
                 <div class="footer-column">
                     <h3>Administração</h3>
@@ -141,7 +147,7 @@
                 </div>
             </div>
             <div class="footer-bottom">
-                <p>&copy; 2023 Prefeitura Municipal de Orlândia - Todos os direitos reservados</p>
+                <p>&copy; 2025 Prefeitura Municipal de Orlândia - Todos os direitos reservados</p>
                 <p>Desenvolvido com <i class="fas fa-heart" style="color: #e63946;"></i> para os cidadãos de Orlândia</p>
             </div>
         </div>

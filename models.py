@@ -75,14 +75,86 @@ class Document(db.Model):
     def filename(self) -> str:
         """Retorna apenas o nome do arquivo armazenado."""
 
-        return (self.file_path or "").split("/")[-1]
+        file_path = (self.file_path or "").strip()
+        if not file_path:
+            return ""
+
+        normalized = file_path.replace("\\", "/")
+        return normalized.rsplit("/", 1)[-1]
 
     @property
     def public_path(self) -> str:
         """Caminho relativo dentro da pasta estática de documentos."""
 
-        sanitized = (self.file_path or "").lstrip("/\\")
-        return f"uploads/documents/{sanitized}" if sanitized else ""
+        file_path = (self.file_path or "").strip()
+        if not file_path:
+            return ""
+
+        normalized = file_path.replace("\\", "/").lstrip("/")
+
+        static_prefix = "static/"
+        if normalized.startswith(static_prefix):
+            normalized = normalized[len(static_prefix) :]
+
+        documents_prefix = "uploads/documents/"
+        if normalized.startswith(documents_prefix):
+            return normalized
+
+        return f"{documents_prefix}{normalized}"
+
+
+class EmergencyService(db.Model):
+    """Serviço de emergência exibido em destaque na página inicial."""
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(120), nullable=False)
+    phone = Column(String(60), nullable=True)
+    description = Column(Text, nullable=True)
+    icon_class = Column(String(120), nullable=True)
+    display_order = Column(Integer, nullable=False, default=0)
+    is_active = Column(Boolean, nullable=False, default=True)
+
+    def __repr__(self) -> str:  # pragma: no cover - representação auxiliar
+        return f"<EmergencyService {self.name!r}>"
+
+
+class FooterColumn(db.Model):
+    """Bloco configurável contendo links exibidos no rodapé."""
+
+    id = Column(Integer, primary_key=True)
+    title = Column(String(150), nullable=False)
+    display_order = Column(Integer, nullable=False, default=0)
+    is_active = Column(Boolean, nullable=False, default=True)
+
+    links = relationship(
+        "QuickLink",
+        back_populates="footer_column",
+        order_by="QuickLink.display_order, QuickLink.id",
+        cascade="all, delete-orphan",
+    )
+
+    def __repr__(self) -> str:  # pragma: no cover - representação auxiliar
+        return f"<FooterColumn {self.title!r}>"
+
+
+class QuickLink(db.Model):
+    """Atalho configurável exibido no acesso rápido ou no rodapé."""
+
+    LOCATION_QUICK_ACCESS = "quick_access"
+    LOCATION_FOOTER = "footer"
+
+    id = Column(Integer, primary_key=True)
+    label = Column(String(150), nullable=False)
+    url = Column(String(500), nullable=False)
+    location = Column(String(50), nullable=False, default=LOCATION_QUICK_ACCESS)
+    footer_column_id = Column(Integer, ForeignKey("footer_column.id"), nullable=True)
+    display_order = Column(Integer, nullable=False, default=0)
+    is_active = Column(Boolean, nullable=False, default=True)
+
+    footer_column = relationship("FooterColumn", back_populates="links")
+
+    def __repr__(self) -> str:  # pragma: no cover - representação auxiliar
+        return f"<QuickLink {self.label!r} ({self.location})>"
 
 
 class SectionItem(db.Model):
