@@ -71,80 +71,82 @@
     <footer>
         <div class="container">
             <div class="footer-content">
-                {% if page_columns %}
-                    {% for column in page_columns %}
+                {% if footer_columns %}
+                    {% for column in footer_columns %}
                         <div class="footer-column">
-                            <h3>{{ 'Páginas institucionais' if loop.first else 'Mais páginas' }}</h3>
-                            <ul>
-                                {% for page in column %}
-                                    <li>
-                                        <a href="{{ url_for('show_page', slug=page.slug) }}">
-                                            <i class="fas fa-chevron-right"></i> {{ page.title }}
-                                        </a>
-                                    </li>
-                                {% endfor %}
-                            </ul>
+                            <h3>{{ column.title }}</h3>
+                            {% if column.links %}
+                                <ul>
+                                    {% for link in column.links %}
+                                        <li>
+                                            <a href="{{ link.url }}">
+                                                <i class="fas fa-chevron-right"></i> {{ link.label }}
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            {% else %}
+                                <p style="color: var(--muted);">Nenhum item cadastrado até o momento.</p>
+                            {% endif %}
                         </div>
                     {% endfor %}
                 {% else %}
-                    <div class="footer-column">
-                        <h3>Páginas institucionais</h3>
-                        <p style="color: var(--muted);">Nenhuma página cadastrada até o momento.</p>
-                    </div>
-                {% endif %}
+                    {% if page_columns %}
+                        {% for column in page_columns %}
+                            <div class="footer-column">
+                                <h3>{{ 'Páginas institucionais' if loop.first else 'Mais páginas' }}</h3>
+                                <ul>
+                                    {% for page in column %}
+                                        <li>
+                                            <a href="{{ url_for('show_page', slug=page.slug) }}">
+                                                <i class="fas fa-chevron-right"></i> {{ page.title }}
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="footer-column">
+                            <h3>Páginas institucionais</h3>
+                            <p style="color: var(--muted);">Nenhuma página cadastrada até o momento.</p>
+                        </div>
+                    {% endif %}
 
-                {% for column in footer_columns %}
                     <div class="footer-column">
-                        <h3>{{ column.title }}</h3>
-                        {% if column.links %}
-                            <ul>
-                                {% for link in column.links %}
-                                    <li>
+                        <h3>Administração</h3>
+                        <ul>
+                            {% if admin_index_url %}
+                                <li>
+                                    <a href="{{ admin_index_url }}">
+                                        <i class="fas fa-chevron-right"></i> Painel administrativo
+                                    </a>
+                                </li>
+                            {% endif %}
+                            {% for category, links in admin_navigation.items() %}
+                                <li style="margin-top: 8px; font-weight: 600; color: var(--muted);">{{ category }}</li>
+                                {% for link in links %}
+                                    <li style="margin-left: 8px;">
                                         <a href="{{ link.url }}">
-                                            <i class="fas fa-chevron-right"></i> {{ link.label }}
+                                            <i class="fas fa-chevron-right"></i> {{ link.name }}
                                         </a>
                                     </li>
                                 {% endfor %}
-                            </ul>
-                        {% else %}
-                            <p style="color: var(--muted);">Nenhum item cadastrado até o momento.</p>
-                        {% endif %}
-                    </div>
-                {% endfor %}
-
-                <div class="footer-column">
-                    <h3>Administração</h3>
-                    <ul>
-                        {% if admin_index_url %}
-                            <li>
-                                <a href="{{ admin_index_url }}">
-                                    <i class="fas fa-chevron-right"></i> Painel administrativo
-                                </a>
-                            </li>
-                        {% endif %}
-                        {% for category, links in admin_navigation.items() %}
-                            <li style="margin-top: 8px; font-weight: 600; color: var(--muted);">{{ category }}</li>
-                            {% for link in links %}
-                                <li style="margin-left: 8px;">
-                                    <a href="{{ link.url }}">
-                                        <i class="fas fa-chevron-right"></i> {{ link.name }}
-                                    </a>
-                                </li>
                             {% endfor %}
-                        {% endfor %}
-                    </ul>
-                </div>
+                        </ul>
+                    </div>
 
-                <div class="footer-column">
-                    <h3>Contato</h3>
-                    <ul>
-                        <li><a href="tel:+551638201000"><i class="fas fa-chevron-right"></i> (16) 3820-1000</a></li>
-                        <li><a href="mailto:contato@orlandia.sp.gov.br"><i class="fas fa-chevron-right"></i> contato@orlandia.sp.gov.br</a></li>
-                        <li><a href="https://maps.app.goo.gl/7k1wzHmc4hz1G4B39" target="_blank" rel="noopener"><i class="fas fa-chevron-right"></i> Localização</a></li>
-                        <li><a href="{{ url_for('show_page', slug='ouvidoria') }}"><i class="fas fa-chevron-right"></i> Ouvidoria</a></li>
-                        <li><a href="{{ url_for('show_page', slug='fale-conosco') }}"><i class="fas fa-chevron-right"></i> Fale Conosco</a></li>
-                    </ul>
-                </div>
+                    <div class="footer-column">
+                        <h3>Contato</h3>
+                        <ul>
+                            <li><a href="tel:+551638201000"><i class="fas fa-chevron-right"></i> (16) 3820-1000</a></li>
+                            <li><a href="mailto:contato@orlandia.sp.gov.br"><i class="fas fa-chevron-right"></i> contato@orlandia.sp.gov.br</a></li>
+                            <li><a href="https://maps.app.goo.gl/7k1wzHmc4hz1G4B39" target="_blank" rel="noopener"><i class="fas fa-chevron-right"></i> Localização</a></li>
+                            <li><a href="{{ url_for('show_page', slug='ouvidoria') }}"><i class="fas fa-chevron-right"></i> Ouvidoria</a></li>
+                            <li><a href="{{ url_for('show_page', slug='fale-conosco') }}"><i class="fas fa-chevron-right"></i> Fale Conosco</a></li>
+                        </ul>
+                    </div>
+                {% endif %}
             </div>
             <div class="footer-bottom">
                 <p>&copy; 2025 Prefeitura Municipal de Orlândia - Todos os direitos reservados</p>
