@@ -1,0 +1,56 @@
+{% extends 'admin/base.html' %}
+
+{% block title %}Meu perfil - Administração{% endblock %}
+
+{% block body %}
+<div class="card" style="max-width: 640px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px;">
+    <div>
+        <h2 style="margin: 0;">Meu perfil</h2>
+        <p style="margin: 8px 0 0; color: var(--muted);">
+            Atualize suas informações pessoais e defina uma nova senha para manter a conta protegida.
+        </p>
+    </div>
+
+    <form method="post" style="display: flex; flex-direction: column; gap: 16px;">
+        {{ form.hidden_tag() }}
+
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label for="name" style="font-weight: 600;">Nome completo</label>
+            {{ form.name(id='name', placeholder='Informe seu nome') }}
+            {% for error in form.name.errors %}
+                <span style="color: var(--danger); font-size: 0.9rem;">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label for="email" style="font-weight: 600;">E-mail</label>
+            {{ form.email(id='email', placeholder='Opcional: melhore a recuperação de acesso') }}
+            {% for error in form.email.errors %}
+                <span style="color: var(--danger); font-size: 0.9rem;">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <hr style="border: none; border-top: 1px solid #d3d8e6; margin: 16px 0;">
+
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label for="password" style="font-weight: 600;">Nova senha</label>
+            {{ form.password(id='password', placeholder='Deixe em branco para manter a atual') }}
+            {% for error in form.password.errors %}
+                <span style="color: var(--danger); font-size: 0.9rem;">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+            <label for="confirm_password" style="font-weight: 600;">Confirmar nova senha</label>
+            {{ form.confirm_password(id='confirm_password', placeholder='Repita a nova senha') }}
+            {% for error in form.confirm_password.errors %}
+                <span style="color: var(--danger); font-size: 0.9rem;">{{ error }}</span>
+            {% endfor %}
+        </div>
+
+        <button type="submit" style="align-self: flex-start; padding: 12px 20px; background: var(--primary); color: white; border: none; border-radius: var(--radius); font-size: 1rem; font-weight: 600; cursor: pointer;">
+            Salvar alterações
+        </button>
+    </form>
+</div>
+{% endblock %}

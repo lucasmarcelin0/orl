@@ -10,15 +10,19 @@ import uuid
 from pathlib import Path
 from types import SimpleNamespace
 
-from flask import current_app, request, Response, url_for
+from flask import current_app, redirect, request, url_for
 from flask_admin import Admin, AdminIndexView, expose
 from flask_admin.contrib.sqla import ModelView, filters as sqla_filters
 from flask_admin.form import rules
 from flask_admin.form.upload import FileUploadField
+from flask_admin.menu import MenuLink
 from flask_admin.model.form import InlineFormAdmin
+from flask_login import current_user
 from flask_ckeditor import CKEditorField
 from sqlalchemy.exc import OperationalError
-from wtforms import HiddenField
+from wtforms import HiddenField, PasswordField
+from wtforms.fields import EmailField
+from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional
 
 from forms import PageForm
 from models import (
@@ -30,6 +34,7 @@ from models import (
     Page,
     QuickLink,
     SectionItem,
+    User,
 )
 
 
@@ -82,33 +87,46 @@ QUICK_LINK_LOCATIONS = (
 )
 
 
-class BasicAuthMixin:
-    """Mixin que aplica autenticação HTTP básica às views do Flask-Admin."""
+class AuthenticatedAdminMixin:
+    """Mixin que exige que o usuário esteja autenticado para acessar a view."""
 
-    # Comentário: método utilitário que verifica usuário e senha informados.
-    def _authenticate(self) -> bool:
-        auth = request.authorization
-        if not auth:
-            return False
-
-        expected_user = current_app.config["ADMIN_USERNAME"]
-        expected_password = current_app.config["ADMIN_PASSWORD"]
-        return auth.username == expected_user and auth.password == expected_password
-
-    # Comentário: utilizado pelo Flask-Admin para liberar o acesso à view.
     def is_accessible(self) -> bool:  # type: ignore[override]
-        return self._authenticate()
+        return bool(current_user.is_authenticated and current_user.is_active)
 
-    # Comentário: resposta enviada quando a autenticação falha.
     def inaccessible_callback(self, name: str, **kwargs):  # type: ignore[override]
-        return Response(
-            "Acesso restrito. Informe as credenciais administrativas.",
-            401,
-            {"WWW-Authenticate": 'Basic realm="Administração"'},
+        login_url = url_for("auth.login", next=request.url)
+        return redirect(login_url)
+
+
+class AdminOnlyMixin(AuthenticatedAdminMixin):
+    """Restringe o acesso apenas aos administradores."""
+
+    def is_accessible(self) -> bool:  # type: ignore[override]
+        return bool(
+            current_user.is_authenticated
+            and current_user.is_active
+            and getattr(current_user, "is_admin", False)
         )
 
+    def inaccessible_callback(self, name: str, **kwargs):  # type: ignore[override]
+        if not current_user.is_authenticated:
+            return super().inaccessible_callback(name, **kwargs)
+        return redirect(url_for("admin.index"))
 
-class PageAdminView(BasicAuthMixin, ModelView):
+
+class SecuredModelView(AuthenticatedAdminMixin, ModelView):
+    """View base que garante segurança e registra autoria das alterações."""
+
+    def on_model_change(self, form, model, is_created):  # type: ignore[override]
+        if current_user.is_authenticated:
+            if hasattr(model, "updated_by"):
+                model.updated_by = current_user
+            if is_created and hasattr(model, "created_by"):
+                model.created_by = current_user
+        return super().on_model_change(form, model, is_created)
+
+
+class PageAdminView(SecuredModelView):
     """Interface administrativa para gerenciar páginas dinâmicas."""
 
     # Comentário: formulário personalizado com suporte ao CKEditor.
@@ -167,7 +185,7 @@ class PageAdminView(BasicAuthMixin, ModelView):
         return super().on_model_change(form, model, is_created)
 
 
-class ProtectedAdminIndexView(BasicAuthMixin, AdminIndexView):
+class ProtectedAdminIndexView(AuthenticatedAdminMixin, AdminIndexView):
     """Tela inicial do painel administrativo com autenticação básica."""
 
     name = "Início"
@@ -338,7 +356,7 @@ class ProtectedAdminIndexView(BasicAuthMixin, AdminIndexView):
         return self.render("admin/index.html", **context)
 
 
-class HomepageSectionAdminView(BasicAuthMixin, ModelView):
+class HomepageSectionAdminView(SecuredModelView):
     """Permite gerenciar as seções exibidas na página inicial."""
 
     column_list = ("name", "section_type", "display_order", "is_active")
@@ -548,7 +566,7 @@ class DocumentInlineForm(DocumentUploadMixin, InlineFormAdmin):
         return form_class
 
 
-class SectionItemAdminView(BasicAuthMixin, ModelView):
+class SectionItemAdminView(SecuredModelView):
     """Administração individual dos cartões que compõem as seções."""
 
     column_list = ("title", "section", "display_order", "is_active")
@@ -715,7 +733,7 @@ class SectionItemAdminView(BasicAuthMixin, ModelView):
     inline_models = (DocumentInlineForm(Document),)
 
 
-class DocumentAdminView(DocumentUploadMixin, BasicAuthMixin, ModelView):
+class DocumentAdminView(DocumentUploadMixin, SecuredModelView):
     """Gerencia os arquivos disponibilizados para download na página inicial."""
 
     column_list = ("title", "section_item", "display_order", "is_active")
@@ -787,7 +805,7 @@ class DocumentAdminView(DocumentUploadMixin, BasicAuthMixin, ModelView):
         return form_class
 
 
-class FooterColumnAdminView(BasicAuthMixin, ModelView):
+class FooterColumnAdminView(SecuredModelView):
     """Administra as colunas configuráveis exibidas no rodapé."""
 
     column_list = ("title", "display_order", "is_active")
@@ -812,7 +830,7 @@ class FooterColumnAdminView(BasicAuthMixin, ModelView):
     }
 
 
-class QuickLinkAdminView(BasicAuthMixin, ModelView):
+class QuickLinkAdminView(SecuredModelView):
     """Gerencia os atalhos exibidos no acesso rápido e no rodapé."""
 
     column_list = ("label", "location", "footer_column", "display_order", "is_active")
@@ -886,7 +904,7 @@ class QuickLinkAdminView(BasicAuthMixin, ModelView):
         super().on_model_change(form, model, is_created)
 
 
-class EmergencyServiceAdminView(BasicAuthMixin, ModelView):
+class EmergencyServiceAdminView(SecuredModelView):
     """Permite gerenciar os serviços exibidos no painel de emergência."""
 
     column_list = ("name", "phone", "display_order", "is_active")
@@ -928,6 +946,89 @@ class EmergencyServiceAdminView(BasicAuthMixin, ModelView):
             "rows": 3,
         },
     }
+
+
+class UserAdminView(AdminOnlyMixin, ModelView):
+    """Gerencia os usuários responsáveis pelo conteúdo do site."""
+
+    column_list = ("name", "username", "email", "is_admin", "is_active", "last_login_at")
+    column_default_sort = ("name", False)
+    column_labels = {
+        "name": "Nome",
+        "username": "Usuário",
+        "email": "E-mail",
+        "is_admin": "Administrador",
+        "is_active": "Ativo",
+        "last_login_at": "Último acesso",
+    }
+    column_searchable_list = ("name", "username", "email")
+    column_filters = (
+        sqla_filters.BooleanEqualFilter(User.is_admin, "Administrador"),
+        sqla_filters.BooleanEqualFilter(User.is_active, "Ativo"),
+    )
+    column_formatters = {
+        "last_login_at": lambda _v, _c, m, _p: m.last_login_at.strftime("%d/%m/%Y %H:%M")
+        if m.last_login_at
+        else "-",
+    }
+
+    form_columns = (
+        "name",
+        "username",
+        "email",
+        "is_admin",
+        "is_active",
+        "password",
+        "confirm_password",
+    )
+    form_overrides = {"email": EmailField}
+    form_args = {
+        "name": {
+            "label": "Nome completo",
+            "validators": [DataRequired(), Length(max=150)],
+        },
+        "username": {
+            "label": "Usuário",
+            "validators": [DataRequired(), Length(min=3, max=80)],
+        },
+        "email": {
+            "label": "E-mail",
+            "validators": [Optional(), Email(), Length(max=255)],
+        },
+        "is_admin": {"label": "Conceder acesso total"},
+        "is_active": {"label": "Usuário ativo"},
+    }
+    form_extra_fields = {
+        "password": PasswordField(
+            "Senha",
+            validators=[Optional(), Length(min=6, max=128)],
+            description="Informe uma senha temporária para o colaborador.",
+        ),
+        "confirm_password": PasswordField(
+            "Confirmar senha",
+            validators=[Optional(), EqualTo("password", message="As senhas não conferem.")],
+        ),
+    }
+    can_view_details = True
+
+    def is_visible(self):  # type: ignore[override]
+        return bool(
+            current_user.is_authenticated
+            and getattr(current_user, "is_admin", False)
+        )
+
+    def on_model_change(self, form, model: User, is_created: bool) -> None:  # type: ignore[override]
+        password = form.password.data or ""
+        if is_created and not password:
+            raise ValueError("Defina uma senha inicial para o usuário.")
+        if password:
+            model.set_password(password)
+
+        model.name = (model.name or "").strip()
+        model.username = (model.username or "").strip().lower()
+        model.email = ((model.email or "").strip().lower()) or None
+
+        return super().on_model_change(form, model, is_created)
 
 
 def init_admin(app) -> Admin:
@@ -1001,5 +1102,16 @@ def init_admin(app) -> Admin:
             name="Serviços de emergência",
         )
     )
+    admin.add_view(
+        UserAdminView(
+            User,
+            db.session,
+            category="Equipe",
+            name="Usuários do sistema",
+        )
+    )
+
+    admin.add_link(MenuLink(name="Meu perfil", endpoint="admin_profile"))
+    admin.add_link(MenuLink(name="Sair", endpoint="auth.logout"))
 
     return admin
