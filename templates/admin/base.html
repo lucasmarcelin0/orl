@@ -13,8 +13,9 @@
     </title>
 
     {% block head_css %}
-        <link href="{{ admin_static.url(filename='bootstrap/bootstrap4/swatch/{swatch}/bootstrap.min.css'.format(swatch=theme.swatch), v='4.2.1') }}" rel="stylesheet" {{ admin_csp_nonce_attribute }}>
-        {% if theme.swatch == 'default' %}
+        {% set theme_swatch = theme.swatch if theme is defined and theme is not none and theme.swatch is defined else 'default' %}
+        <link href="{{ admin_static.url(filename='bootstrap/bootstrap4/swatch/{swatch}/bootstrap.min.css'.format(swatch=theme_swatch), v='4.2.1') }}" rel="stylesheet" {{ admin_csp_nonce_attribute }}>
+        {% if theme_swatch == 'default' %}
             <link href="{{ admin_static.url(filename='bootstrap/bootstrap4/css/bootstrap.min.css', v='4.2.1') }}" rel="stylesheet" {{ admin_csp_nonce_attribute }}>
         {% endif %}
         <link href="{{ admin_static.url(filename='admin/css/bootstrap4/admin.css', v='1.1.1') }}" rel="stylesheet" {{ admin_csp_nonce_attribute }}>
@@ -70,7 +71,7 @@
                 display: none !important;
             }
 
-            .header-content {
+            .cabecalho-admin__conteudo {
                 max-width: 1200px;
                 margin: 0 auto;
                 padding: 18px 24px;
@@ -80,17 +81,60 @@
                 gap: 16px;
             }
 
-            .header-content h1 {
+            .cabecalho-admin__titulo {
                 margin: 0;
                 font-size: 1.4rem;
                 color: var(--primary);
             }
 
-            .admin-nav {
+            .cabecalho-admin__identificacao {
+                display: flex;
+                flex-direction: column;
+                gap: 4px;
+            }
+
+            .cabecalho-admin__usuario {
+                font-weight: 600;
+                color: var(--muted);
+                font-size: 0.95rem;
+            }
+
+            .cabecalho-admin__acoes {
+                display: flex;
+                align-items: center;
+                flex-wrap: wrap;
+                gap: 16px;
+            }
+
+            .navegacao-admin {
                 display: flex;
                 gap: 16px;
                 flex-wrap: wrap;
                 align-items: center;
+            }
+
+            .lista-navegacao--secundaria {
+                gap: 4px;
+            }
+
+            .cabecalho-admin__atalho-site {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                font-weight: 600;
+                color: var(--primary);
+                padding: 8px 14px;
+                border-radius: 999px;
+                border: 1px solid rgba(26, 79, 140, 0.28);
+                background: rgba(26, 79, 140, 0.08);
+                transition: background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+            }
+
+            .cabecalho-admin__atalho-site:hover,
+            .cabecalho-admin__atalho-site:focus {
+                background: rgba(26, 79, 140, 0.16);
+                text-decoration: none;
+                box-shadow: 0 4px 12px rgba(18, 52, 93, 0.16);
             }
 
             main {
@@ -131,7 +175,7 @@
                 font-size: 0.85rem;
             }
 
-            .admin-menu {
+            .lista-navegacao {
                 display: flex;
                 flex-wrap: wrap;
                 gap: 8px;
@@ -140,7 +184,7 @@
                 margin: 0;
             }
 
-            .admin-menu > li > a {
+            .lista-navegacao > li > a {
                 font-weight: 600;
                 padding: 8px 12px;
                 border-radius: 8px;
@@ -151,17 +195,54 @@
                 color: var(--primary);
             }
 
-            .admin-menu > li > a:hover,
-            .admin-menu > li > a.active,
-            .admin-menu > li > a:focus {
+            .lista-navegacao > li > a:hover,
+            .lista-navegacao > li > a.active,
+            .lista-navegacao > li > a:focus {
                 background: rgba(26, 79, 140, 0.1);
                 text-decoration: none;
             }
 
+            .lista-navegacao__item--destaque {
+                margin-left: 4px;
+            }
+
+            .lista-navegacao__botao {
+                background: var(--primary);
+                color: white !important;
+                padding: 8px 14px;
+                border-radius: 999px;
+                display: inline-flex;
+                align-items: center;
+                gap: 6px;
+                font-weight: 600;
+                box-shadow: 0 6px 16px rgba(26, 79, 140, 0.18);
+                transition: background 0.2s ease, box-shadow 0.2s ease;
+            }
+
+            .lista-navegacao__botao:hover,
+            .lista-navegacao__botao:focus {
+                background: var(--primary-dark);
+                text-decoration: none;
+                color: white;
+                box-shadow: 0 8px 20px rgba(18, 52, 93, 0.22);
+            }
+
             @media (max-width: 720px) {
-                .header-content {
+                .cabecalho-admin__conteudo {
                     flex-direction: column;
                     align-items: flex-start;
+                }
+                .cabecalho-admin__acoes {
+                    flex-direction: column;
+                    align-items: flex-start;
+                    width: 100%;
+                }
+                .navegacao-admin {
+                    width: 100%;
+                }
+                .cabecalho-admin__atalho-site {
+                    width: 100%;
+                    justify-content: center;
                 }
             }
         </style>
@@ -172,18 +253,36 @@
 </head>
 <body>
 {% block page_body %}
-    <header>
-        <div class="header-content">
-            <h1>{{ admin_view.admin.name }}</h1>
-            <nav class="admin-nav">
-                <ul class="admin-menu">
-                    {{ layout.menu() }}
-                </ul>
-                <ul class="admin-menu">
-                    {{ layout.menu_links() }}
-                </ul>
-                <a href="{{ url_for('index') }}" target="_blank">Ver site</a>
-            </nav>
+    <header class="cabecalho-admin">
+        <div class="cabecalho-admin__conteudo">
+            <div class="cabecalho-admin__identificacao">
+                <h1 class="cabecalho-admin__titulo">{{ admin_view.admin.name }}</h1>
+                {% if current_user.is_authenticated %}
+                    <span class="cabecalho-admin__usuario">Olá, {{ current_user.name }}</span>
+                {% endif %}
+            </div>
+            <div class="cabecalho-admin__acoes">
+                <nav class="navegacao-admin" aria-label="Navegação principal do painel">
+                    <ul class="lista-navegacao">
+                        {{ layout.menu() }}
+                        {% if current_user.is_authenticated and current_user.is_admin %}
+                            <li class="lista-navegacao__item--destaque">
+                                <a class="lista-navegacao__botao" href="{{ url_for('user.create_view') }}">
+                                    <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+                                    Criar conta de colaborador
+                                </a>
+                            </li>
+                        {% endif %}
+                    </ul>
+                    <ul class="lista-navegacao lista-navegacao--secundaria" aria-label="Opções da conta">
+                        {{ layout.menu_links() }}
+                    </ul>
+                </nav>
+                <a class="cabecalho-admin__atalho-site" href="{{ url_for('index') }}" target="_blank" rel="noopener">
+                    <i class="fa-solid fa-globe" aria-hidden="true"></i>
+                    Ver site
+                </a>
+            </div>
         </div>
     </header>
 

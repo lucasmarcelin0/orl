@@ -2,15 +2,81 @@
 
 from __future__ import annotations
 
+from datetime import datetime
+
+from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, Text
-from sqlalchemy.orm import relationship
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy.orm import declared_attr, relationship
 
 # Comentário: instância global do SQLAlchemy para ser compartilhada entre módulos.
 db = SQLAlchemy()
 
 
-class Page(db.Model):
+class AuditMixin:
+    """Campos utilitários para registrar autoria e datas de alterações."""
+
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False,
+    )
+    created_by_id = Column(Integer, ForeignKey("user.id"), nullable=True)
+    updated_by_id = Column(Integer, ForeignKey("user.id"), nullable=True)
+
+    @declared_attr
+    def created_by(cls):  # type: ignore[override]
+        return relationship(
+            "User",
+            foreign_keys=[cls.created_by_id],
+            backref="created_%s" % cls.__tablename__,
+        )
+
+    @declared_attr
+    def updated_by(cls):  # type: ignore[override]
+        return relationship(
+            "User",
+            foreign_keys=[cls.updated_by_id],
+            backref="updated_%s" % cls.__tablename__,
+        )
+
+
+class User(UserMixin, db.Model):
+    """Usuários autorizados a acessar o painel administrativo."""
+
+    id = Column(Integer, primary_key=True)
+    name = Column(String(150), nullable=False)
+    username = Column(String(80), unique=True, nullable=False)
+    email = Column(String(255), unique=True, nullable=True)
+    password_hash = Column(String(255), nullable=False)
+    is_admin = Column(Boolean, default=False, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
+    last_login_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(
+        DateTime,
+        default=datetime.utcnow,
+        onupdate=datetime.utcnow,
+        nullable=False,
+    )
+
+    def set_password(self, password: str) -> None:
+        from werkzeug.security import generate_password_hash
+
+        self.password_hash = generate_password_hash(password)
+
+    def check_password(self, password: str) -> bool:
+        from werkzeug.security import check_password_hash
+
+        return check_password_hash(self.password_hash, password)
+
+    def __repr__(self) -> str:  # pragma: no cover - representação auxiliar
+        return f"<User {self.username!r}>"
+
+
+class Page(AuditMixin, db.Model):
     """Representa uma página institucional com conteúdo dinâmico."""
 
     # Comentário: chave primária incremental usada pelo SQLAlchemy.
@@ -32,7 +98,7 @@ class Page(db.Model):
         return f"<Page {self.slug!r}>"
 
 
-class HomepageSection(db.Model):
+class HomepageSection(AuditMixin, db.Model):
     """Define um agrupamento de cartões exibidos na página inicial."""
 
     id = Column(Integer, primary_key=True)
@@ -54,7 +120,7 @@ class HomepageSection(db.Model):
         return f"<HomepageSection {self.slug!r}>"
 
 
-class Document(db.Model):
+class Document(AuditMixin, db.Model):
     """Arquivo disponibilizado para download pelos moradores."""
 
     id = Column(Integer, primary_key=True)
@@ -103,7 +169,7 @@ class Document(db.Model):
         return f"{documents_prefix}{normalized}"
 
 
-class EmergencyService(db.Model):
+class EmergencyService(AuditMixin, db.Model):
     """Serviço de emergência exibido em destaque na página inicial."""
 
     id = Column(Integer, primary_key=True)
@@ -118,7 +184,7 @@ class EmergencyService(db.Model):
         return f"<EmergencyService {self.name!r}>"
 
 
-class FooterColumn(db.Model):
+class FooterColumn(AuditMixin, db.Model):
     """Bloco configurável contendo links exibidos no rodapé."""
 
     id = Column(Integer, primary_key=True)
@@ -137,7 +203,7 @@ class FooterColumn(db.Model):
         return f"<FooterColumn {self.title!r}>"
 
 
-class QuickLink(db.Model):
+class QuickLink(AuditMixin, db.Model):
     """Atalho configurável exibido no acesso rápido ou no rodapé."""
 
     LOCATION_QUICK_ACCESS = "quick_access"
@@ -157,7 +223,7 @@ class QuickLink(db.Model):
         return f"<QuickLink {self.label!r} ({self.location})>"
 
 
-class SectionItem(db.Model):
+class SectionItem(AuditMixin, db.Model):
     """Representa um cartão individual dentro de uma seção da home."""
 
     id = Column(Integer, primary_key=True)

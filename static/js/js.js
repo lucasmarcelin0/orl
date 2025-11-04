@@ -34,15 +34,34 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Adicionar classe de scroll ao header
-    window.addEventListener('scroll', function() {
-        const header = document.querySelector('header');
-        if (window.scrollY > 100) {
-            header.classList.add('scrolled');
-        } else {
-            header.classList.remove('scrolled');
-        }
-    });
+    // Adicionar classe de scroll ao header com histerese para evitar flickering
+    const header = document.querySelector('header');
+
+    if (header) {
+        const headerTop = header.querySelector('.header-top');
+        const headerTopHeight = headerTop ? headerTop.offsetHeight : 0;
+        const hideThreshold = Math.max(120, headerTopHeight * 2);
+        const showThreshold = Math.max(40, headerTopHeight * 0.5);
+        let isHeaderScrolled = false;
+
+        const updateHeaderScrolledState = () => {
+            const currentScroll = window.scrollY || window.pageYOffset;
+
+            if (!isHeaderScrolled && currentScroll > hideThreshold) {
+                header.classList.add('scrolled');
+                isHeaderScrolled = true;
+                return;
+            }
+
+            if (isHeaderScrolled && currentScroll < showThreshold) {
+                header.classList.remove('scrolled');
+                isHeaderScrolled = false;
+            }
+        };
+
+        updateHeaderScrolledState();
+        window.addEventListener('scroll', updateHeaderScrolledState, { passive: true });
+    }
 
     // Normaliza o texto das notícias novas para manter o padrão visual.
     const SUMMARY_LIMIT = 220;

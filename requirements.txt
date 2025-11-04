@@ -23,9 +23,11 @@ django-crispy-forms==2.4
 Flask==3.1.2
 Flask-Admin==2.0.0
 Flask-CKEditor==1.0.0
+Flask-Login==0.6.3
 Flask-Migrate==4.1.0
 Flask-SQLAlchemy==3.1.1
 Flask-WTF==1.2.2
+gunicorn==23.0.0
 greenlet==3.2.4
 idna==3.10
 itsdangerous==2.2.0
