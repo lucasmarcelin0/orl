@@ -13,7 +13,12 @@ import uuid
 import click
 from flask import (
     abort,
+    flash,
+    g,
     Flask,
+    Blueprint,
+    current_app,
+    has_request_context,
     jsonify,
     redirect,
     render_template,
@@ -23,12 +28,20 @@ from flask import (
 )
 from flask_migrate import Migrate
 from flask_ckeditor import CKEditor
-from sqlalchemy import inspect, or_, text
-from sqlalchemy.exc import OperationalError
+from flask_login import (
+    LoginManager,
+    current_user,
+    login_required,
+    login_user,
+    logout_user,
+)
+from sqlalchemy import event, func, inspect, or_, text
+from sqlalchemy.exc import IntegrityError, OperationalError
 from werkzeug.utils import secure_filename
 
 from admin import init_admin
 from config import Config
+from forms import LoginForm, UserProfileForm
 
 from models import (
     db,
@@ -39,11 +52,14 @@ from models import (
     Page,
     QuickLink,
     SectionItem,
+    User,
 )
+from models import AuditMixin
 
 # Comentário: extensões globais reutilizadas pela aplicação.
 migrate = Migrate()
 ckeditor = CKEditor()
+login_manager = LoginManager()
 
 
 def create_app() -> Flask:
@@ -56,6 +72,44 @@ def create_app() -> Flask:
     db.init_app(app)
     migrate.init_app(app, db)
     ckeditor.init_app(app)
+    login_manager.init_app(app)
+    login_manager.login_view = "auth.login"
+    login_manager.login_message = "Realize o login para acessar o painel."
+    login_manager.login_message_category = "error"
+
+    @login_manager.user_loader
+    def load_user(user_id: str) -> User | None:
+        try:
+            return User.query.get(int(user_id))
+        except (TypeError, ValueError):
+            return None
+
+    @app.before_request
+    def _bind_audit_user() -> None:
+        g.current_audit_user = current_user if current_user.is_authenticated else None
+
+    def _audit_before_flush(session, flush_context, instances) -> None:
+        if not has_request_context():
+            return
+
+        user = getattr(g, "current_audit_user", None)
+        if user is None or not getattr(user, "is_authenticated", False):
+            return
+
+        for instance in session.new:
+            if isinstance(instance, AuditMixin):
+                if hasattr(instance, "created_by") and getattr(instance, "created_by", None) is None:
+                    instance.created_by = user
+                if hasattr(instance, "updated_by"):
+                    instance.updated_by = user
+
+        for instance in session.dirty:
+            if isinstance(instance, AuditMixin) and hasattr(instance, "updated_by"):
+                instance.updated_by = user
+
+    if not getattr(db.session, "_audit_listener_configured", False):
+        event.listen(db.session, "before_flush", _audit_before_flush)
+        db.session._audit_listener_configured = True
 
     def ensure_database_schema() -> None:
         """Garante a existência das colunas esperadas em instalações antigas."""
@@ -98,6 +152,47 @@ def create_app() -> Flask:
                 connection.execute(
                     text("ALTER TABLE quick_link ADD COLUMN footer_column_id INTEGER")
                 )
+
+        audit_tables = (
+            "page",
+            "homepage_section",
+            "section_item",
+            "document",
+            "footer_column",
+            "quick_link",
+            "emergency_service",
+        )
+        audit_columns = {
+            "created_at": "DATETIME",
+            "updated_at": "DATETIME",
+            "created_by_id": "INTEGER",
+            "updated_by_id": "INTEGER",
+        }
+
+        for table in audit_tables:
+            try:
+                existing_columns = {
+                    column["name"] for column in inspector.get_columns(table)
+                }
+            except Exception:
+                continue
+
+            missing_columns = [
+                column_name
+                for column_name in audit_columns
+                if column_name not in existing_columns
+            ]
+            if not missing_columns:
+                continue
+
+            with engine.begin() as connection:
+                for column_name in missing_columns:
+                    column_type = audit_columns[column_name]
+                    connection.execute(
+                        text(
+                            f"ALTER TABLE {table} ADD COLUMN {column_name} {column_type}"
+                        )
+                    )
 
     def ensure_homepage_sections() -> None:
         """Carrega um conteúdo inicial da home quando o banco está vazio."""
@@ -210,11 +305,117 @@ def create_app() -> Flask:
 
         db.session.commit()
 
+    def ensure_default_admin_user() -> None:
+        """Cria automaticamente o usuário administrador inicial."""
+
+        try:
+            db.create_all()
+        except OperationalError:
+            return
+
+        username = (app.config.get("ADMIN_USERNAME") or "").strip()
+        password = app.config.get("ADMIN_PASSWORD")
+        if not username or not password:
+            return
+
+        try:
+            existing_user = User.query.filter(
+                func.lower(User.username) == username.lower()
+            ).first()
+        except OperationalError:
+            return
+
+        if existing_user is not None:
+            return
+
+        admin_user = User(
+            name="Administrador",
+            username=username.lower(),
+            email=None,
+            is_admin=True,
+            is_active=True,
+        )
+        admin_user.set_password(password)
+        db.session.add(admin_user)
+        db.session.commit()
+
     with app.app_context():
         ensure_database_schema()
+        ensure_default_admin_user()
         init_admin(app)
         ensure_homepage_sections()
         ensure_emergency_services()
+
+    auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
+
+    @auth_bp.route("/login", methods=["GET", "POST"])
+    def login():
+        if current_user.is_authenticated:
+            next_url = request.args.get("next") or url_for("admin.index")
+            return redirect(next_url)
+
+        form = LoginForm()
+        if form.validate_on_submit():
+            username = (form.username.data or "").strip()
+            user = None
+            if username:
+                user = User.query.filter(
+                    func.lower(User.username) == username.lower()
+                ).first()
+
+            if user and user.is_active and user.check_password(form.password.data):
+                login_user(user)
+                user.last_login_at = datetime.utcnow()
+                db.session.commit()
+
+                next_url = request.args.get("next")
+                if not next_url or not next_url.startswith("/"):
+                    next_url = url_for("admin.index")
+                return redirect(next_url)
+
+            flash("Credenciais inválidas ou usuário inativo.", "error")
+
+        return render_template("auth/login.html", form=form)
+
+    @auth_bp.route("/logout")
+    @login_required
+    def logout():
+        logout_user()
+        flash("Sessão encerrada com sucesso.", "success")
+        return redirect(url_for("auth.login"))
+
+    app.register_blueprint(auth_bp)
+
+    @app.route("/admin/perfil", methods=["GET", "POST"])
+    @login_required
+    def admin_profile():
+        form = UserProfileForm(obj=current_user)
+        if request.method == "GET":
+            form.password.data = ""
+            form.confirm_password.data = ""
+
+        if form.validate_on_submit():
+            current_user.name = form.name.data
+            current_user.email = (form.email.data or "").strip() or None
+
+            if form.password.data:
+                current_user.set_password(form.password.data)
+
+            try:
+                db.session.commit()
+            except IntegrityError:
+                db.session.rollback()
+                flash(
+                    "Já existe um usuário registrado com este e-mail. Escolha outro endereço.",
+                    "error",
+                )
+            else:
+                flash("Perfil atualizado com sucesso!", "success")
+                return redirect(url_for("admin_profile"))
+
+        admin_ext = current_app.extensions.get("admin", [])
+        admin_view = admin_ext[0].index_view if admin_ext else None
+        return render_template("admin/profile.html", form=form, admin_view=admin_view)
 
     def _resolve_upload_path() -> Path:
         upload_path = Path(app.config.get("CKEDITOR_UPLOADS_PATH", "static/uploads"))
