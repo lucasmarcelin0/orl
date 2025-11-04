@@ -76,6 +76,17 @@ header {
     gap: 5px;
 }
 
+.contact-info .contact-label {
+    display: none;
+}
+
+@media (min-width: 992px) {
+    .contact-info .contact-label {
+        display: inline;
+        margin-left: 4px;
+    }
+}
+
 .header-main {
     padding: 15px 0;
 }
