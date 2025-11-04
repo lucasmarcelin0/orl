@@ -26,6 +26,7 @@ from flask import (
     send_from_directory,
     url_for,
 )
+from flask_admin import helpers as admin_helpers
 from flask_migrate import Migrate
 from flask_ckeditor import CKEditor
 from flask_login import (
@@ -76,6 +77,12 @@ def create_app() -> Flask:
     login_manager.login_view = "auth.login"
     login_manager.login_message = "Realize o login para acessar o painel."
     login_manager.login_message_category = "error"
+
+    @app.context_processor
+    def inject_admin_helpers() -> dict[str, object]:
+        """Disponibiliza utilidades do Flask-Admin para os templates personalizados."""
+
+        return {"get_url": admin_helpers.get_url, "admin_helpers": admin_helpers}
 
     @login_manager.user_loader
     def load_user(user_id: str) -> User | None:
