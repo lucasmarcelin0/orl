@@ -13,8 +13,9 @@
     </title>
 
     {% block head_css %}
-        <link href="{{ admin_static.url(filename='bootstrap/bootstrap4/swatch/{swatch}/bootstrap.min.css'.format(swatch=theme.swatch), v='4.2.1') }}" rel="stylesheet" {{ admin_csp_nonce_attribute }}>
-        {% if theme.swatch == 'default' %}
+        {% set theme_swatch = theme.swatch if theme is defined and theme is not none and theme.swatch is defined else 'default' %}
+        <link href="{{ admin_static.url(filename='bootstrap/bootstrap4/swatch/{swatch}/bootstrap.min.css'.format(swatch=theme_swatch), v='4.2.1') }}" rel="stylesheet" {{ admin_csp_nonce_attribute }}>
+        {% if theme_swatch == 'default' %}
             <link href="{{ admin_static.url(filename='bootstrap/bootstrap4/css/bootstrap.min.css', v='4.2.1') }}" rel="stylesheet" {{ admin_csp_nonce_attribute }}>
         {% endif %}
         <link href="{{ admin_static.url(filename='admin/css/bootstrap4/admin.css', v='1.1.1') }}" rel="stylesheet" {{ admin_csp_nonce_attribute }}>
