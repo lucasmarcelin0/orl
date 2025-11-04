@@ -102,6 +102,12 @@ class Config:
         if isinstance(_database_url_raw, str)
         else _database_url_raw
     )
+    _normalize_database_url = os.getenv("DATABASE_URL_NORMALIZE", "1").lower() not in {
+        "0",
+        "false",
+        "no",
+        "off",
+    }
 
     def _normalized_database_url(database_url: str) -> str:
         """Normaliza a URL de banco para lidar com credenciais não ASCII."""
@@ -173,8 +179,13 @@ class Config:
         return urlunsplit(normalized)
 
 
-    if _database_url:
-        _database_url = _normalized_database_url(_database_url)
+    if _database_url and _normalize_database_url:
+        try:
+            _database_url = _normalized_database_url(_database_url)
+        except Exception:
+            # Comentário: se ocorrer qualquer erro durante a normalização,
+            # retomamos a URL original para não impedir a aplicação de iniciar.
+            _database_url = _database_url_raw
 
     SQLALCHEMY_DATABASE_URI = (
         _database_url or f"sqlite:///{BASE_DIR / 'project.db'}"
