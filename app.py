@@ -82,7 +82,11 @@ def create_app() -> Flask:
     def inject_admin_helpers() -> dict[str, object]:
         """Disponibiliza utilidades do Flask-Admin para os templates personalizados."""
 
-        return {"get_url": admin_helpers.get_url, "admin_helpers": admin_helpers}
+        return {
+            "get_url": admin_helpers.get_url,
+            "admin_helpers": admin_helpers,
+            "h": admin_helpers,
+        }
 
     @login_manager.user_loader
     def load_user(user_id: str) -> User | None:
