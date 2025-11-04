@@ -35,14 +35,17 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Adicionar classe de scroll ao header
-    window.addEventListener('scroll', function() {
-        const header = document.querySelector('header');
-        if (window.scrollY > 100) {
-            header.classList.add('scrolled');
-        } else {
-            header.classList.remove('scrolled');
+    const header = document.querySelector('header');
+    const toggleHeaderScrolledState = () => {
+        if (!header) {
+            return;
         }
-    });
+
+        header.classList.toggle('scrolled', window.scrollY > 60);
+    };
+
+    toggleHeaderScrolledState();
+    window.addEventListener('scroll', toggleHeaderScrolledState);
 
     // Normaliza o texto das notícias novas para manter o padrão visual.
     const SUMMARY_LIMIT = 220;
