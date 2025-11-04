@@ -13,9 +13,14 @@ class Config:
     BASE_DIR = Path(__file__).resolve().parent
 
     # Comentário: caminho para o banco SQLite armazenado na pasta do projeto.
+    _database_url = os.getenv("DATABASE_URL")
+    if _database_url and _database_url.startswith("postgres://"):
+        _database_url = _database_url.replace(
+            "postgres://", "postgresql+psycopg2://", 1
+        )
+
     SQLALCHEMY_DATABASE_URI = (
-        os.getenv("DATABASE_URL")
-        or f"sqlite:///{BASE_DIR / 'project.db'}"
+        _database_url or f"sqlite:///{BASE_DIR / 'project.db'}"
     )
 
     # Comentário: chave secreta utilizada para sessões e formulários.
@@ -23,6 +28,7 @@ class Config:
 
     # Comentário: configuração silenciosa do SQLAlchemy para evitar warnings desnecessários.
     SQLALCHEMY_TRACK_MODIFICATIONS = False
+    SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True}
 
     # Comentário: credenciais de acesso ao painel administrativo.
     ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
