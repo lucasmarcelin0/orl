@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from urllib.parse import quote, unquote, urlsplit, urlunsplit
 
 
 class Config:
@@ -14,10 +15,51 @@ class Config:
 
     # Comentário: caminho para o banco SQLite armazenado na pasta do projeto.
     _database_url = os.getenv("DATABASE_URL")
-    if _database_url and _database_url.startswith("postgres://"):
-        _database_url = _database_url.replace(
-            "postgres://", "postgresql+psycopg2://", 1
+
+    def _normalized_database_url(database_url: str) -> str:
+        """Normaliza a URL de banco para lidar com credenciais não ASCII."""
+
+        if database_url.startswith("postgres://"):
+            database_url = database_url.replace(
+                "postgres://", "postgresql+psycopg2://", 1
+            )
+
+        parsed = urlsplit(database_url)
+        if "@" not in parsed.netloc:
+            return database_url
+
+        userinfo, hostinfo = parsed.netloc.rsplit("@", 1)
+        if not userinfo:
+            return database_url
+
+        if ":" in userinfo:
+            raw_username, raw_password = userinfo.split(":", 1)
+        else:
+            raw_username, raw_password = userinfo, None
+
+        username = unquote(raw_username)
+        password = unquote(raw_password) if raw_password is not None else None
+
+        encoded_username = quote(username, safe="")
+        encoded_password = (
+            quote(password, safe="") if password is not None else None
         )
+
+        if encoded_username == raw_username and (
+            raw_password is None or encoded_password == raw_password
+        ):
+            return database_url
+
+        new_userinfo = encoded_username
+        if encoded_password is not None:
+            new_userinfo = f"{new_userinfo}:{encoded_password}"
+
+        new_netloc = f"{new_userinfo}@{hostinfo}"
+        normalized = parsed._replace(netloc=new_netloc)
+        return urlunsplit(normalized)
+
+    if _database_url:
+        _database_url = _normalized_database_url(_database_url)
 
     SQLALCHEMY_DATABASE_URI = (
         _database_url or f"sqlite:///{BASE_DIR / 'project.db'}"
