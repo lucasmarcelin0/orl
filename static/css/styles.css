@@ -101,6 +101,27 @@ header {
     }
 }
 
+@media (max-width: 991px) {
+    .header-top .container {
+        justify-content: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .header-top .contact-info,
+    .header-top .social-links {
+        justify-content: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .header-top .contact-info a,
+    .header-top .social-links a {
+        gap: 0;
+        font-size: 1.1rem;
+    }
+}
+
 .header-main {
     padding: 15px 0;
 }
