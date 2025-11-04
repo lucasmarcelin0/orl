@@ -76,6 +76,31 @@ header {
     gap: 5px;
 }
 
+.social-links {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.social-links a {
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+}
+
+.contact-info .contact-label {
+    display: none;
+}
+
+@media (min-width: 992px) {
+    .contact-info .contact-label {
+        display: inline;
+        margin-left: 4px;
+    }
+}
+
 .header-main {
     padding: 15px 0;
 }
@@ -1432,28 +1457,29 @@ footer {
     }
 
     .header-top .container {
-        align-items: flex-start;
-        text-align: left;
+        flex-direction: row;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        text-align: center;
     }
 
-    .contact-info {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 8px;
-        font-size: 0.8rem;
-    }
-
-    .contact-info a {
-        width: 100%;
-        justify-content: flex-start;
-        padding: 6px 10px;
-        background-color: rgba(255, 255, 255, 0.1);
-        border-radius: 6px;
-    }
-
+    .contact-info,
     .social-links {
-        justify-content: flex-start;
-        gap: 16px;
+        display: contents;
+    }
+
+    .contact-info a,
+    .social-links a {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        font-size: 1rem;
     }
 
     .header-main {
