@@ -190,6 +190,11 @@ class ProtectedAdminIndexView(AuthenticatedAdminMixin, AdminIndexView):
 
     name = "Início"
 
+    def __init__(self, *args, **kwargs):
+        """Define um nome em português para a entrada de menu principal."""
+        kwargs.setdefault("name", self.name)
+        super().__init__(*args, **kwargs)
+
     def _to_namespace(self, data):
         """Converte estruturas de dicionário em objetos com acesso por atributo."""
 
