@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 from urllib.parse import (
     parse_qsl,
@@ -69,6 +70,25 @@ def _encode_fragment(fragment: str) -> str:
     return quote(unquote(fragment), safe="")
 
 
+def _repair_surrogates(value: str) -> str:
+    """Reinterpreta variáveis com caracteres substitutos oriundos do Windows."""
+
+    # Comentário: em ambientes Windows, variáveis com caracteres fora de ASCII
+    # podem chegar como "surrogateescape" (\udc80-\udcff). Reconstruímos os
+    # bytes originais e decodificamos usando codificações compatíveis.
+    if not any("\udc80" <= char <= "\udcff" for char in value):
+        return value
+
+    raw_bytes = value.encode("utf-8", "surrogateescape")
+    for encoding in ("utf-8", sys.getfilesystemencoding() or "utf-8", "latin-1"):
+        try:
+            return raw_bytes.decode(encoding)
+        except UnicodeDecodeError:
+            continue
+
+    return raw_bytes.decode("utf-8", "ignore")
+
+
 class Config:
     """Configuração padrão com valores voltados ao ambiente local."""
 
@@ -76,7 +96,12 @@ class Config:
     BASE_DIR = Path(__file__).resolve().parent
 
     # Comentário: caminho para o banco SQLite armazenado na pasta do projeto.
-    _database_url = os.getenv("DATABASE_URL")
+    _database_url_raw = os.getenv("DATABASE_URL")
+    _database_url = (
+        _repair_surrogates(_database_url_raw)
+        if isinstance(_database_url_raw, str)
+        else _database_url_raw
+    )
 
     def _normalized_database_url(database_url: str) -> str:
         """Normaliza a URL de banco para lidar com credenciais não ASCII."""
