@@ -66,6 +66,7 @@ header {
 .contact-info {
     display: flex;
     gap: 20px;
+    flex-wrap: nowrap;
 }
 
 .contact-info a {
@@ -112,13 +113,21 @@ header {
     .header-top .social-links {
         justify-content: center;
         gap: 20px;
-        flex-wrap: wrap;
+        flex-wrap: nowrap;
     }
 
     .header-top .contact-info a,
     .header-top .social-links a {
         gap: 0;
         font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .header-top .contact-info,
+    .header-top .social-links {
+        flex-wrap: wrap;
+        row-gap: 10px;
     }
 }
 
