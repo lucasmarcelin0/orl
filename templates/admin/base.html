@@ -114,11 +114,39 @@
                 gap: 1.5rem;
             }
 
+            .cabecalho-admin__menu-toggle {
+                display: none;
+                align-items: center;
+                justify-content: center;
+                width: 44px;
+                height: 44px;
+                border-radius: var(--radius-sm);
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                background: rgba(255, 255, 255, 0.1);
+                color: white;
+                cursor: pointer;
+                transition: var(--transition);
+            }
+
+            .cabecalho-admin__menu-toggle:focus {
+                outline: none;
+                box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.3);
+            }
+
+            .cabecalho-admin__menu-toggle:hover {
+                background: rgba(255, 255, 255, 0.2);
+                transform: translateY(-1px);
+            }
+
             /* Navigation Styles */
             .navegacao-admin {
                 display: flex;
                 align-items: center;
                 gap: 1rem;
+            }
+
+            .navegacao-admin.is-open {
+                display: flex;
             }
 
             .lista-navegacao {
@@ -128,6 +156,14 @@
                 list-style: none;
                 padding: 0;
                 margin: 0;
+            }
+
+            .lista-navegacao + .lista-navegacao {
+                margin-left: 1rem;
+            }
+
+            .lista-navegacao .dropdown {
+                position: relative;
             }
 
             .lista-navegacao > li > a {
@@ -382,6 +418,20 @@
                 color: var(--primary);
             }
 
+            .dropdown-menu {
+                display: none;
+                position: absolute;
+                min-width: 220px;
+                top: 100%;
+                left: 0;
+                margin-top: 0.5rem;
+            }
+
+            .dropdown:hover > .dropdown-menu,
+            .dropdown-menu.is-open {
+                display: block;
+            }
+
             /* Responsive Design */
             @media (max-width: 1024px) {
                 .cabecalho-admin__conteudo {
@@ -406,7 +456,105 @@
 
             @media (max-width: 768px) {
                 .cabecalho-admin__conteudo {
-                    padding: 1rem;
+                    padding: 0.5rem 0.75rem;
+                    gap: 0.75rem;
+                }
+
+                .cabecalho-admin__identificacao {
+                    gap: 0.5rem;
+                }
+
+                .cabecalho-admin__logo {
+                    width: 32px;
+                    height: 32px;
+                    font-size: 1rem;
+                }
+
+                .cabecalho-admin__titulo {
+                    font-size: 1.05rem;
+                }
+
+                .cabecalho-admin__subtitulo {
+                    font-size: 0.75rem;
+                }
+
+                .cabecalho-admin__usuario {
+                    font-size: 0.8rem;
+                }
+
+                .cabecalho-admin__acoes {
+                    align-items: center;
+                    gap: 0.75rem;
+                    flex-direction: row;
+                    flex-wrap: wrap;
+                    width: 100%;
+                }
+
+                .cabecalho-admin__menu-toggle {
+                    display: flex;
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 50%;
+                }
+                
+                .cabecalho-admin__atalho-site {
+                    order: 2;
+                    width: auto;
+                    padding: 0.5rem 1rem;
+                    margin-left: auto;
+                }
+
+                .navegacao-admin {
+                    order: 3;
+                    display: none;
+                    flex-direction: column;
+                    gap: 0.75rem;
+                    background: rgba(255, 255, 255, 0.12);
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                    border-radius: var(--radius);
+                    padding: 0.75rem;
+                    width: 100%;
+                    margin-top: 0.5rem;
+                }
+
+                .navegacao-admin.is-open {
+                    display: flex;
+                }
+
+                .lista-navegacao {
+                    flex-direction: column;
+                    align-items: stretch;
+                    gap: 0.25rem;
+                }
+
+                .lista-navegacao + .lista-navegacao {
+                    margin-left: 0;
+                    border-top: 1px solid rgba(255, 255, 255, 0.2);
+                    padding-top: 0.75rem;
+                    margin-top: 0.75rem;
+                }
+
+                .lista-navegacao > li > a {
+                    width: 100%;
+                }
+
+                .dropdown-menu {
+                    position: static;
+                    display: none;
+                    background: rgba(0, 0, 0, 0.15);
+                    border-radius: var(--radius-sm);
+                    padding: 0.5rem 0;
+                    margin-top: 0.5rem;
+                    box-shadow: none;
+                }
+
+                .dropdown-menu.is-open {
+                    display: block;
+                }
+
+                .dropdown-item {
+                    color: rgba(255, 255, 255, 0.95);
+                    padding-left: 2.5rem;
                 }
 
                 main {
@@ -417,19 +565,19 @@
                     grid-template-columns: 1fr;
                 }
 
-                .cabecalho-admin__acoes {
-                    flex-direction: column;
-                    gap: 1rem;
-                }
-
-                .lista-navegacao {
-                    justify-content: center;
-                }
             }
 
             @media (max-width: 480px) {
                 .cabecalho-admin__titulo {
-                    font-size: 1.2rem;
+                    font-size: 1rem;
+                }
+
+                .cabecalho-admin__subtitulo {
+                    font-size: 0.7rem;
+                }
+
+                .cabecalho-admin__usuario {
+                    display: none;
                 }
 
                 .lista-navegacao > li > a {
@@ -531,6 +679,9 @@
             {% endif %}
             
             <div class="cabecalho-admin__acoes">
+                <button class="cabecalho-admin__menu-toggle" type="button" aria-label="Alternar navegação" aria-expanded="false">
+                    <i class="fas fa-bars" aria-hidden="true"></i>
+                </button>
                 <nav class="navegacao-admin" aria-label="Navegação principal do painel">
                     <ul class="lista-navegacao">
                         <!-- Menu principal simplificado -->
@@ -772,20 +923,80 @@
                     }, 100);
                 });
 
+                // Mobile navigation toggle
+                const menuToggle = document.querySelector('.cabecalho-admin__menu-toggle');
+                const navigation = document.querySelector('.navegacao-admin');
+
+                const closeMobileDropdowns = () => {
+                    document.querySelectorAll('.dropdown-menu.is-open').forEach(openMenu => {
+                        openMenu.classList.remove('is-open');
+                        const parentDropdown = openMenu.closest('.dropdown');
+                        const parentToggle = parentDropdown ? parentDropdown.querySelector('.dropdown-toggle') : null;
+                        if (parentToggle) {
+                            parentToggle.setAttribute('aria-expanded', 'false');
+                        }
+                    });
+                };
+
+                if (menuToggle && navigation) {
+                    menuToggle.addEventListener('click', () => {
+                        const isExpanded = menuToggle.getAttribute('aria-expanded') === 'true';
+                        menuToggle.setAttribute('aria-expanded', (!isExpanded).toString());
+                        navigation.classList.toggle('is-open');
+
+                        if (isExpanded) {
+                            closeMobileDropdowns();
+                        }
+                    });
+
+                    window.addEventListener('resize', () => {
+                        if (window.innerWidth > 768) {
+                            navigation.classList.remove('is-open');
+                            menuToggle.setAttribute('aria-expanded', 'false');
+                            closeMobileDropdowns();
+                        }
+                    });
+                }
+
                 // Enhanced dropdown interactions
                 const dropdowns = document.querySelectorAll('.dropdown');
                 dropdowns.forEach(dropdown => {
+                    const toggle = dropdown.querySelector('.dropdown-toggle');
+                    const menu = dropdown.querySelector('.dropdown-menu');
+                    if (!toggle || !menu) {
+                        return;
+                    }
+
+                    toggle.setAttribute('aria-haspopup', 'true');
+                    toggle.setAttribute('aria-expanded', 'false');
+
                     dropdown.addEventListener('mouseenter', function() {
-                        const menu = this.querySelector('.dropdown-menu');
-                        if (menu) {
-                            menu.style.display = 'block';
+                        if (window.innerWidth > 768) {
+                            menu.classList.add('is-open');
+                            toggle.setAttribute('aria-expanded', 'true');
                         }
                     });
-                    
+
                     dropdown.addEventListener('mouseleave', function() {
-                        const menu = this.querySelector('.dropdown-menu');
-                        if (menu) {
-                            menu.style.display = 'none';
+                        if (window.innerWidth > 768) {
+                            menu.classList.remove('is-open');
+                            toggle.setAttribute('aria-expanded', 'false');
+                        }
+                    });
+
+                    toggle.addEventListener('click', event => {
+                        if (window.innerWidth <= 768) {
+                            event.preventDefault();
+                            const isOpen = menu.classList.contains('is-open');
+
+                            closeMobileDropdowns();
+
+                            if (!isOpen) {
+                                menu.classList.add('is-open');
+                                toggle.setAttribute('aria-expanded', 'true');
+                            } else {
+                                toggle.setAttribute('aria-expanded', 'false');
+                            }
                         }
                     });
                 });
