@@ -350,6 +350,27 @@ def create_app() -> Flask:
         db.session.add(admin_user)
         db.session.commit()
 
+    @app.cli.command("ensure-default-data")
+    @click.option(
+        "--skip-admin",
+        is_flag=True,
+        default=False,
+        help=(
+            "Não criar ou atualizar o usuário administrador padrão. "
+            "Use quando as credenciais não estiverem configuradas."
+        ),
+    )
+    def ensure_default_data(skip_admin: bool) -> None:
+        """Garante a existência de schema e dados iniciais essenciais."""
+
+        ensure_database_schema()
+        ensure_homepage_sections()
+        ensure_emergency_services()
+        if not skip_admin:
+            ensure_default_admin_user()
+
+        click.echo("Dados padrão verificados com sucesso.")
+
     with app.app_context():
         ensure_database_schema()
         ensure_default_admin_user()
