@@ -107,7 +107,10 @@
                         {% endif %}
                         <h3>{{ item.title }}</h3>
                         {% if item.summary %}
-                        <p>{{ item.summary }}</p>
+                        {% set summary_text = (item.summary or '') | striptags %}
+                        {% if summary_text %}
+                        <p>{{ summary_text | safe }}</p>
+                        {% endif %}
                         {% endif %}
                         {% set has_custom_link = item.link_url and item.link_url != '#' %}
                         {% if has_custom_link or item.id %}
@@ -147,7 +150,7 @@
                             <h3>{{ item.title }}</h3>
                             {% set summary_text = (item.summary or '') | striptags %}
                             {% if summary_text %}
-                            <p class="news-summary" data-full-summary="{{ summary_text | e }}">{{ summary_text }}</p>
+                            <p class="news-summary" data-full-summary="{{ summary_text | e }}">{{ summary_text | safe }}</p>
                             {% endif %}
                             {% set has_custom_link = item.link_url and item.link_url != '#' %}
                             {% if has_custom_link or item.id %}
@@ -191,7 +194,10 @@
                         {% endif %}
                         <h3>{{ item.title }}</h3>
                         {% if item.summary %}
-                        <p>{{ item.summary }}</p>
+                        {% set summary_text = (item.summary or '') | striptags %}
+                        {% if summary_text %}
+                        <p>{{ summary_text | safe }}</p>
+                        {% endif %}
                         {% endif %}
                         {% set has_custom_link = item.link_url and item.link_url != '#' %}
                         {% set fallback_link = transparency_links.get(item.title) %}
@@ -231,7 +237,10 @@
                         {% endif %}
                         <h3>{{ item.title }}</h3>
                         {% if item.summary %}
-                        <p>{{ item.summary }}</p>
+                        {% set summary_text = (item.summary or '') | striptags %}
+                        {% if summary_text %}
+                        <p>{{ summary_text | safe }}</p>
+                        {% endif %}
                         {% endif %}
                         {% set has_custom_link = item.link_url and item.link_url != '#' %}
                         {% if has_custom_link or item.id %}

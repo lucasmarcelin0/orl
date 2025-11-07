@@ -34,7 +34,7 @@
                 {% for page in page_results %}
                 <li class="search-results__item">
                     <h4><a href="{{ url_for('show_page', slug=page.slug) }}">{{ page.title }}</a></h4>
-                    <p>{{ page.content | striptags | truncate(220, False, '…') }}</p>
+                    <p>{{ (page.content | striptags) | truncate(220, False, '…') | safe }}</p>
                 </li>
                 {% endfor %}
             </ul>
@@ -65,7 +65,7 @@
                         {% endif %}
                     </p>
                     {% if summary_text %}
-                    <p>{{ summary_text | truncate(220, False, '…') }}</p>
+                    <p>{{ summary_text | truncate(220, False, '…') | safe }}</p>
                     {% endif %}
                 </li>
                 {% endfor %}
@@ -97,7 +97,7 @@
                         {% endif %}
                     </p>
                     {% if document.description %}
-                    <p>{{ document.description | striptags | truncate(220, False, '…') }}</p>
+                    <p>{{ (document.description | striptags) | truncate(220, False, '…') | safe }}</p>
                     {% endif %}
                 </li>
                 {% endfor %}
