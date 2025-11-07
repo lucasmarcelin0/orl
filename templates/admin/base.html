@@ -754,6 +754,140 @@
                 margin-top: 2rem;
             }
 
+            /* Filtros avançados */
+            #filter_form {
+                background: #f8fafd;
+                border: 1px solid var(--border);
+                border-radius: var(--radius);
+                padding: 1.25rem 1.5rem;
+                margin-bottom: 1.5rem;
+                box-shadow: 0 10px 30px rgba(16, 42, 84, 0.08);
+            }
+
+            #filter_form .filters {
+                width: 100%;
+            }
+
+            #filter_form .filters tr {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.75rem;
+                align-items: center;
+                margin-bottom: 0.75rem;
+            }
+
+            #filter_form .filters tr:last-child {
+                margin-bottom: 0;
+            }
+
+            #filter_form .filters td {
+                border: 0;
+                padding: 0;
+            }
+
+            #filter_form .filters .remove-filter {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.35rem;
+                background: rgba(26, 79, 140, 0.1);
+                color: var(--primary);
+                border-radius: 999px;
+                padding: 0.45rem 0.9rem;
+                font-weight: 600;
+                transition: var(--transition);
+            }
+
+            #filter_form .filters .remove-filter:hover,
+            #filter_form .filters .remove-filter:focus {
+                background: var(--primary);
+                color: #ffffff;
+                text-decoration: none;
+            }
+
+            #filter_form .filters .remove-filter .close-icon {
+                font-size: 1rem;
+                line-height: 1;
+            }
+
+            #filter_form .filters select,
+            #filter_form .filters input.filter-val {
+                min-width: 220px;
+                border-radius: var(--radius-sm);
+                border: 1px solid var(--border);
+                background: #ffffff;
+                padding: 0.55rem 0.75rem;
+                font-size: 0.95rem;
+                transition: var(--transition);
+            }
+
+            #filter_form .filters input.filter-val:focus,
+            #filter_form .filters select:focus {
+                border-color: var(--primary);
+                box-shadow: 0 0 0 3px rgba(26, 79, 140, 0.12);
+                outline: none;
+            }
+
+            #filter_form .btn {
+                border-radius: var(--radius-sm);
+                font-weight: 600;
+                padding: 0.6rem 1.25rem;
+            }
+
+            #filter_form .btn.btn-primary {
+                background: var(--primary);
+                border: none;
+                box-shadow: 0 12px 20px rgba(26, 79, 140, 0.18);
+            }
+
+            #filter_form .btn.btn-secondary {
+                border: 1px solid rgba(26, 79, 140, 0.2);
+                color: var(--primary);
+                background: #ffffff;
+            }
+
+            #filter_form .btn.btn-secondary:hover,
+            #filter_form .btn.btn-secondary:focus {
+                background: var(--primary-light);
+                border-color: var(--primary);
+                color: var(--primary);
+            }
+
+            #filter_form .select2-container--default .select2-selection--single {
+                height: auto;
+                border: 1px solid var(--border);
+                border-radius: var(--radius-sm);
+                padding: 0.35rem 0.75rem;
+                display: flex;
+                align-items: center;
+            }
+
+            #filter_form .select2-selection__rendered {
+                font-size: 0.95rem;
+                color: var(--text);
+            }
+
+            #filter_form .select2-selection__arrow {
+                height: 100%;
+                right: 0.5rem;
+            }
+
+            #filter_form .select2-container--default.select2-container--open .select2-selection--single {
+                border-color: var(--primary);
+                box-shadow: 0 0 0 3px rgba(26, 79, 140, 0.12);
+            }
+
+            #filter_form .select2-dropdown {
+                border: 1px solid var(--border);
+                box-shadow: 0 16px 40px rgba(15, 32, 63, 0.12);
+                border-radius: var(--radius);
+                overflow: hidden;
+            }
+
+            #filter_form .select2-results__option--highlighted {
+                background: var(--primary-light) !important;
+                color: var(--primary) !important;
+            }
+
             .table {
                 border-radius: var(--radius);
                 overflow: hidden;
@@ -1070,7 +1204,10 @@
         <!-- Usar CDN para jQuery e Bootstrap -->
         <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.bundle.min.js"></script>
-        
+        <script src="{{ url_for('admin.static', filename='vendor/moment.min.js') }}"></script>
+        <script src="{{ url_for('admin.static', filename='vendor/select2/select2.min.js') }}"></script>
+        <script src="{{ url_for('admin.static', filename='admin/js/helpers.js') }}"></script>
+
         {% if ckeditor %}
             {{ ckeditor.load() }}
             <script src="{{ url_for('static', filename='js/admin/ckeditor-enhancements.js') }}"></script>
@@ -1078,6 +1215,86 @@
         
         <!-- Custom JavaScript for enhanced interactions -->
         <script>
+            const enhanceFilterForm = () => {
+                const filterForm = document.getElementById('filter_form');
+                if (!filterForm || !window.jQuery || filterForm.dataset.filtersEnhanced === '1') {
+                    return;
+                }
+
+                const $ = window.jQuery;
+                const filterTable = filterForm.querySelector('.filters');
+                if (!filterTable) {
+                    return;
+                }
+
+                const setupRow = row => {
+                    const valueField = row.querySelector('.filter-val');
+                    if (!valueField) {
+                        return;
+                    }
+
+                    if (valueField.tagName === 'SELECT') {
+                        const removeButton = row.querySelector('.remove-filter');
+                        const labelText = removeButton ? removeButton.textContent.trim() : '';
+                        const isSectionFilter = /seção/i.test(labelText);
+                        const placeholder = isSectionFilter
+                            ? 'Selecione a seção desejada'
+                            : 'Selecione uma opção';
+
+                        valueField.setAttribute('data-allow-blank', '1');
+                        valueField.setAttribute('data-placeholder', placeholder);
+
+                        const $select = $(valueField);
+                        if ($select.data('select2')) {
+                            $select.select2('destroy');
+                        }
+
+                        $select.select2({
+                            width: 'resolve',
+                            placeholder,
+                            allowClear: true,
+                        });
+
+                        setTimeout(() => {
+                            if ($select.data('select2') && !$select.val()) {
+                                $select.select2('open');
+                            }
+                        }, 80);
+                    } else {
+                        if (!valueField.getAttribute('placeholder')) {
+                            valueField.setAttribute('placeholder', 'Digite o valor desejado');
+                        }
+                        valueField.focus();
+                    }
+                };
+
+                const existingRows = filterTable.querySelectorAll('tr');
+                existingRows.forEach(row => setupRow(row));
+
+                const observer = new MutationObserver(mutations => {
+                    mutations.forEach(mutation => {
+                        mutation.addedNodes.forEach(node => {
+                            if (node.nodeType === Node.ELEMENT_NODE) {
+                                setupRow(node);
+                            }
+                        });
+                    });
+                });
+
+                observer.observe(filterTable, { childList: true });
+                filterForm.dataset.filtersEnhanced = '1';
+            };
+
+            if (window.jQuery) {
+                window.jQuery(document).on('adminFormReady', enhanceFilterForm);
+            } else {
+                document.addEventListener('DOMContentLoaded', () => {
+                    if (window.jQuery) {
+                        window.jQuery(document).on('adminFormReady', enhanceFilterForm);
+                    }
+                });
+            }
+
             document.addEventListener('DOMContentLoaded', function() {
                 // Add smooth animations to cards
                 const cards = document.querySelectorAll('.dashboard-card, .quick-action');
@@ -1222,6 +1439,7 @@
                         link.classList.add('active');
                     }
                 });
+                enhanceFilterForm();
             });
         </script>
     {% endblock %}
