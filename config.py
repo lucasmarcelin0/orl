@@ -218,7 +218,16 @@ class Config:
     CKEDITOR_FILE_UPLOADER = "upload_ckeditor_image"
     CKEDITOR_UPLOADS_PATH = str(BASE_DIR / "static" / "uploads")
     CKEDITOR_ALLOWED_IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
-    CKEDITOR_MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5 MB
+    _ckeditor_max_image_size_default = 20 * 1024 * 1024  # 20 MB
+    try:
+        CKEDITOR_MAX_IMAGE_SIZE = int(
+            os.getenv(
+                "CKEDITOR_MAX_IMAGE_SIZE",
+                str(_ckeditor_max_image_size_default),
+            )
+        )
+    except ValueError:
+        CKEDITOR_MAX_IMAGE_SIZE = _ckeditor_max_image_size_default
 
     # Comentário: diretório e tipos aceitos para os documentos publicados no site.
     DOCUMENTS_UPLOAD_PATH = str(BASE_DIR / "static" / "uploads" / "documents")
