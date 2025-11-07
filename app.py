@@ -38,6 +38,7 @@ from flask_login import (
 )
 from flask_babel import Babel
 from sqlalchemy import event, func, inspect, or_, text
+from sqlalchemy.orm import load_only
 from sqlalchemy.exc import IntegrityError, OperationalError
 from werkzeug.utils import secure_filename
 
@@ -581,7 +582,16 @@ def create_app() -> Flask:
         """Disponibiliza as páginas e links auxiliares em todos os templates."""
 
         try:
-            visible_pages = Page.query.filter_by(visible=True).order_by(Page.title).all()
+            visible_pages = (
+                Page.query.options(
+                    # Carrega apenas os campos usados na navegação para evitar
+                    # transferir o conteúdo HTML pesado de cada página.
+                    load_only(Page.id, Page.slug, Page.title, Page.visible)
+                )
+                .filter_by(visible=True)
+                .order_by(Page.title)
+                .all()
+            )
         except OperationalError:
             # Comentário: primeira execução pode ocorrer antes da criação das tabelas.
             visible_pages = []
