@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
+from flask import has_request_context, url_for
 from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
@@ -156,7 +157,12 @@ class Document(AuditMixin, db.Model):
         if not file_path:
             return ""
 
-        normalized = file_path.replace("\\", "/").lstrip("/")
+        normalized = file_path.replace("\\", "/").strip()
+
+        if normalized.startswith(("http://", "https://", "//")):
+            return ""
+
+        normalized = normalized.lstrip("/")
 
         static_prefix = "static/"
         if normalized.startswith(static_prefix):
@@ -167,6 +173,34 @@ class Document(AuditMixin, db.Model):
             return normalized
 
         return f"{documents_prefix}{normalized}"
+
+    @property
+    def public_url(self) -> str:
+        """URL final utilizada nos templates públicos."""
+
+        file_path = (self.file_path or "").strip()
+        if not file_path:
+            return ""
+
+        normalized = file_path.replace("\\", "/").strip()
+
+        if normalized.startswith(("http://", "https://", "//")):
+            return normalized
+
+        normalized = normalized.lstrip("/")
+
+        static_prefix = "static/"
+        if normalized.startswith(static_prefix):
+            normalized = normalized[len(static_prefix) :]
+
+        documents_prefix = "uploads/documents/"
+        if not normalized.startswith(documents_prefix):
+            normalized = f"{documents_prefix}{normalized}"
+
+        if has_request_context():
+            return url_for("static", filename=normalized)
+
+        return f"/static/{normalized}"
 
 
 class EmergencyService(AuditMixin, db.Model):
