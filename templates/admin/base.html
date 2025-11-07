@@ -726,6 +726,7 @@
     {% block head_tail %}{% endblock %}
 </head>
 <body>
+{% set render_ctx = h.resolve_ctx() %}
 {% block page_body %}
     <header class="cabecalho-admin">
         <div class="cabecalho-admin__conteudo">
