@@ -62,6 +62,9 @@ from models import (
 from models import AuditMixin
 
 # Comentário: extensões globais reutilizadas pela aplicação.
+STARTUP_EXTENSION_KEY = "orl_startup_state"
+
+
 migrate = Migrate()
 ckeditor = CKEditor()
 login_manager = LoginManager()
@@ -390,12 +393,23 @@ def create_app() -> Flask:
 
         click.echo("Dados padrão verificados com sucesso.")
 
-    with app.app_context():
+    def _run_startup_tasks_once() -> None:
+        """Executa rotinas de inicialização apenas uma vez por instância da app."""
+
+        state = app.extensions.setdefault(STARTUP_EXTENSION_KEY, {})
+        if state.get("executed"):
+            return
+
         ensure_database_schema()
         ensure_default_admin_user()
         init_admin(app)
         ensure_homepage_sections()
         ensure_emergency_services()
+
+        state["executed"] = True
+
+    with app.app_context():
+        _run_startup_tasks_once()
 
     auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
 
