@@ -2,6 +2,7 @@ alembic==1.17.1
 bleach==6.3.0
 blinker==1.9.0
 click==8.3.0
+cloudinary==1.41.0
 colorama==0.4.6
 Flask==3.1.2
 Flask-Admin==2.0.0

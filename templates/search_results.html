@@ -78,7 +78,7 @@
             <h3>Documentos</h3>
             <ul class="search-results__list">
                 {% for document in document_results %}
-                {% set document_url = document.public_path and url_for('static', filename=document.public_path) %}
+                {% set document_url = document.public_url %}
                 <li class="search-results__item">
                     <h4>
                         {% if document_url %}

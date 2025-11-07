@@ -25,6 +25,7 @@ from wtforms.fields import EmailField
 from wtforms.validators import DataRequired, Email, EqualTo, Length, Optional
 
 from forms import PageForm
+import storage
 from models import (
     db,
     Document,
@@ -488,6 +489,38 @@ def _section_item_filter_options() -> list[tuple[int, str]]:
     return options
 
 
+class CloudinaryUploadField(FileUploadField):
+    """Campo de upload que salva arquivos diretamente no Cloudinary."""
+
+    def __init__(self, *args, folder: str, resource_type: str, **kwargs):
+        super().__init__(*args, base_path="", **kwargs)
+        self._cloudinary_folder = folder
+        self._cloudinary_resource_type = resource_type
+        self._allow_overwrite = True
+
+    def _save_file(self, data, filename):  # type: ignore[override]
+        try:
+            return storage.upload_to_cloudinary(
+                data,
+                filename=filename,
+                folder=self._cloudinary_folder,
+                resource_type=self._cloudinary_resource_type,
+            )
+        except storage.StorageError as exc:
+            current_app.logger.exception(
+                "Falha ao enviar arquivo ao Cloudinary."
+            )
+            raise ValueError(
+                "Não foi possível enviar o arquivo ao armazenamento externo. Tente novamente."
+            ) from exc
+
+    def _delete_file(self, filename):  # type: ignore[override]
+        storage.delete_cloudinary_asset(
+            filename,
+            resource_type=self._cloudinary_resource_type,
+        )
+
+
 class DocumentUploadMixin:
     """Funcionalidades compartilhadas para upload e nomenclatura de documentos."""
 
@@ -514,13 +547,23 @@ class DocumentUploadMixin:
         return f"documento-{uuid.uuid4().hex}.{extension}"
 
     def _build_document_upload_field(self) -> FileUploadField:
-        upload_field = FileUploadField(
-            "Arquivo",
-            base_path=str(self._documents_upload_path()),
-            namegen=self._generate_filename,
-            allowed_extensions=self._allowed_extensions(),
-        )
-        upload_field.allow_overwrite = False
+        if storage.is_cloudinary_enabled():
+            upload_field = CloudinaryUploadField(
+                "Arquivo",
+                namegen=self._generate_filename,
+                allowed_extensions=self._allowed_extensions(),
+                folder=current_app.config.get("CLOUDINARY_DOCUMENTS_FOLDER"),
+                resource_type="raw",
+            )
+        else:
+            upload_field = FileUploadField(
+                "Arquivo",
+                base_path=str(self._documents_upload_path()),
+                namegen=self._generate_filename,
+                allowed_extensions=self._allowed_extensions(),
+            )
+            upload_field._allow_overwrite = False
+            upload_field.allow_overwrite = False
         return upload_field
 
 
@@ -808,6 +851,11 @@ class DocumentAdminView(DocumentUploadMixin, SecuredModelView):
         form_class = super().scaffold_form()
         form_class.file_path = self._build_document_upload_field()
         return form_class
+
+    def on_model_delete(self, model):  # type: ignore[override]
+        if storage.is_cloudinary_enabled() and getattr(model, "file_path", None):
+            storage.delete_cloudinary_asset(model.file_path, resource_type="raw")
+        return super().on_model_delete(model)
 
 
 class FooterColumnAdminView(SecuredModelView):

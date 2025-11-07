@@ -40,6 +40,8 @@ from sqlalchemy import event, func, inspect, or_, text
 from sqlalchemy.exc import IntegrityError, OperationalError
 from werkzeug.utils import secure_filename
 
+import storage
+
 from admin import init_admin
 from config import Config
 from forms import LoginForm, UserProfileForm
@@ -68,6 +70,8 @@ def create_app() -> Flask:
 
     app = Flask(__name__)
     app.config.from_object(Config)
+
+    storage.init_cloudinary(app)
 
     # Comentário: inicialização das extensões com as configurações carregadas.
     db.init_app(app)
@@ -517,11 +521,36 @@ def create_app() -> Flask:
 
         extension = secure_name.rsplit(".", 1)[1].lower()
         unique_name = f"ckeditor-{uuid.uuid4().hex}.{extension}"
-        upload_path = _resolve_upload_path()
-        destination = upload_path / unique_name
-        upload.save(destination)
 
-        file_url = url_for("ckeditor_uploaded_file", filename=unique_name)
+        if storage.is_cloudinary_enabled():
+            try:
+                file_url = storage.upload_to_cloudinary(
+                    upload,
+                    filename=unique_name,
+                    folder=current_app.config.get("CLOUDINARY_CKEDITOR_FOLDER"),
+                    resource_type="image",
+                )
+            except storage.StorageError:
+                current_app.logger.exception(
+                    "Falha ao enviar imagem do CKEditor ao Cloudinary."
+                )
+                return (
+                    jsonify(
+                        {
+                            "uploaded": 0,
+                            "error": {
+                                "message": "Não foi possível enviar a imagem ao armazenamento externo. Tente novamente.",
+                            },
+                        }
+                    ),
+                    502,
+                )
+        else:
+            upload_path = _resolve_upload_path()
+            destination = upload_path / unique_name
+            upload.save(destination)
+
+            file_url = url_for("ckeditor_uploaded_file", filename=unique_name)
         return jsonify({"uploaded": 1, "fileName": unique_name, "url": file_url})
 
     def _chunk_pages(pages: Iterable[Page], columns: int = 3) -> list[list[Page]]:

@@ -29,8 +29,9 @@
         <ul class="section-item-documents__list">
             {% for document in item_documents %}
             <li>
-                {% if document.public_path %}
-                <a href="{{ url_for('static', filename=document.public_path) }}" target="_blank" rel="noopener">
+                {% set document_url = document.public_url %}
+                {% if document_url %}
+                <a href="{{ document_url }}" target="_blank" rel="noopener">
                     <i class="{{ document.icon_class or 'fas fa-file-alt' }}" aria-hidden="true"></i>
                     <span>{{ document.title }}</span>
                 </a>

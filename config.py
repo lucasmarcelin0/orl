@@ -198,6 +198,15 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {"pool_pre_ping": True}
 
+    # Comentário: parâmetros opcionais para o serviço externo de armazenamento.
+    CLOUDINARY_URL = os.getenv("CLOUDINARY_URL")
+    CLOUDINARY_CKEDITOR_FOLDER = os.getenv(
+        "CLOUDINARY_CKEDITOR_FOLDER", "orl/ckeditor"
+    )
+    CLOUDINARY_DOCUMENTS_FOLDER = os.getenv(
+        "CLOUDINARY_DOCUMENTS_FOLDER", "orl/documents"
+    )
+
     # Comentário: credenciais de acesso ao painel administrativo.
     ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
     ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "senha-segura")
