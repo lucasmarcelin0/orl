@@ -14,6 +14,7 @@
         <!-- Usar CDN diretamente -->
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/v4-shims.min.css">
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
         
         <style>
@@ -729,7 +730,7 @@
         <div class="cabecalho-admin__conteudo">
             <div class="cabecalho-admin__identificacao">
                 <div class="cabecalho-admin__logo">
-                    <i class="fas fa-landmark"></i>
+                    <i class="fa-solid fa-landmark"></i>
                 </div>
                 <div>
                     <h1 class="cabecalho-admin__titulo">Prefeitura de Orlândia</h1>
@@ -743,26 +744,26 @@
             
             <div class="cabecalho-admin__acoes">
                 <button class="cabecalho-admin__menu-toggle" type="button" aria-label="Alternar navegação" aria-expanded="false">
-                    <i class="fas fa-bars" aria-hidden="true"></i>
+                    <i class="fa-solid fa-bars" aria-hidden="true"></i>
                 </button>
                 <nav class="navegacao-admin" aria-label="Navegação principal do painel">
                     <ul class="lista-navegacao">
                         <!-- Menu principal simplificado -->
                         <li>
                             <a class="nav-link" href="/admin/">
-                                <i class="fas fa-home"></i>
+                                <i class="fa-solid fa-house"></i>
                                 Home
                             </a>
                         </li>
                         
                         <li class="dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown">
-                                <i class="fas fa-file-alt"></i>
+                                <i class="fa-solid fa-file-lines"></i>
                                 Conteúdo
                             </a>
                             <div class="dropdown-menu">
                                 <a class="dropdown-item" href="/admin/page/">
-                                    <i class="fas fa-file-invoice"></i>
+                                    <i class="fa-solid fa-file-invoice"></i>
                                     Páginas institucionais
                                 </a>
                             </div>
@@ -770,32 +771,32 @@
                         
                         <li class="dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown">
-                                <i class="fas fa-th-large"></i>
+                                <i class="fa-solid fa-table-cells-large"></i>
                                 Página inicial
                             </a>
                             <div class="dropdown-menu">
                                 <a class="dropdown-item" href="/admin/homepagesection/">
-                                    <i class="fas fa-layer-group"></i>
+                                    <i class="fa-solid fa-layer-group"></i>
                                     Seções da página
                                 </a>
                                 <a class="dropdown-item" href="/admin/sectionitem/">
-                                    <i class="fas fa-cube"></i>
+                                    <i class="fa-solid fa-cube"></i>
                                     Itens das seções
                                 </a>
                                 <a class="dropdown-item" href="/admin/document/">
-                                    <i class="fas fa-file-pdf"></i>
+                                    <i class="fa-solid fa-file-pdf"></i>
                                     Documentos
                                 </a>
                                 <a class="dropdown-item" href="/admin/footercolumn/">
-                                    <i class="fas fa-columns"></i>
+                                    <i class="fa-solid fa-table-columns"></i>
                                     Colunas do rodapé
                                 </a>
                                 <a class="dropdown-item" href="/admin/quicklink/">
-                                    <i class="fas fa-link"></i>
+                                    <i class="fa-solid fa-link"></i>
                                     Acesso rápido
                                 </a>
                                 <a class="dropdown-item" href="/admin/emergencyservice/">
-                                    <i class="fas fa-phone-alt"></i>
+                                    <i class="fa-solid fa-phone-flip"></i>
                                     Serviços de emergência
                                 </a>
                             </div>
@@ -803,12 +804,12 @@
                         
                         <li class="dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-toggle="dropdown">
-                                <i class="fas fa-users"></i>
+                                <i class="fa-solid fa-users"></i>
                                 Equipe
                             </a>
                             <div class="dropdown-menu">
                                 <a class="dropdown-item" href="/admin/user/">
-                                    <i class="fas fa-user-cog"></i>
+                                    <i class="fa-solid fa-user-gear"></i>
                                     Usuários do sistema
                                 </a>
                             </div>
@@ -829,13 +830,13 @@
                         {% if current_user.is_authenticated %}
                             <li>
                                 <a class="nav-link" href="/admin/perfil">
-                                    <i class="fas fa-user"></i>
+                                    <i class="fa-solid fa-user"></i>
                                     Meu Perfil
                                 </a>
                             </li>
                             <li>
                                 <a class="nav-link" href="/auth/logout">
-                                    <i class="fas fa-sign-out-alt"></i>
+                                    <i class="fa-solid fa-right-from-bracket"></i>
                                     Sair
                                 </a>
                             </li>
@@ -844,7 +845,7 @@
                 </nav>
                 
                 <a class="cabecalho-admin__atalho-site" href="{{ url_for('index') }}" target="_blank" rel="noopener">
-                    <i class="fa-solid fa-external-link-alt" aria-hidden="true"></i>
+                    <i class="fa-solid fa-up-right-from-square" aria-hidden="true"></i>
                     Ver Site
                 </a>
             </div>
@@ -858,7 +859,7 @@
                     {% if messages %}
                         {% for category, message in messages %}
                             <div class="message {{ category }}">
-                                <i class="fas fa-{% if category == 'success' %}check-circle{% elif category == 'error' %}exclamation-circle{% else %}info-circle{% endif %}"></i>
+                                <i class="fa-solid {% if category == 'success' %}fa-circle-check{% elif category == 'error' %}fa-circle-exclamation{% else %}fa-circle-info{% endif %}"></i>
                                 {{ message }}
                             </div>
                         {% endfor %}
@@ -873,7 +874,7 @@
             <div class="dashboard-card">
                 <div class="dashboard-card__header">
                     <div class="dashboard-card__icon dashboard-card__icon--primary">
-                        <i class="fas fa-file-alt"></i>
+                        <i class="fa-solid fa-file-lines"></i>
                     </div>
                     <div>
                         <h3 class="dashboard-card__title">Conteúdo Publicado</h3>
@@ -887,7 +888,7 @@
             <div class="dashboard-card">
                 <div class="dashboard-card__header">
                     <div class="dashboard-card__icon dashboard-card__icon--success">
-                        <i class="fas fa-layer-group"></i>
+                        <i class="fa-solid fa-layer-group"></i>
                     </div>
                     <div>
                         <h3 class="dashboard-card__title">Seções Ativas</h3>
@@ -901,7 +902,7 @@
             <div class="dashboard-card">
                 <div class="dashboard-card__header">
                     <div class="dashboard-card__icon dashboard-card__icon--warning">
-                        <i class="fas fa-calendar-check"></i>
+                        <i class="fa-solid fa-calendar-check"></i>
                     </div>
                     <div>
                         <h3 class="dashboard-card__title">Última Atualização</h3>
@@ -917,7 +918,7 @@
         <div class="quick-actions">
             <a href="/admin/page/" class="quick-action">
                 <div class="quick-action__icon">
-                    <i class="fas fa-file-invoice"></i>
+                    <i class="fa-solid fa-file-invoice"></i>
                 </div>
                 <h4 class="quick-action__title">Páginas</h4>
                 <p class="quick-action__description">Gerenciar páginas institucionais</p>
@@ -925,7 +926,7 @@
 
             <a href="/admin/homepagesection/" class="quick-action">
                 <div class="quick-action__icon">
-                    <i class="fas fa-th-large"></i>
+                    <i class="fa-solid fa-table-cells-large"></i>
                 </div>
                 <h4 class="quick-action__title">Seções</h4>
                 <p class="quick-action__description">Configurar seções da home</p>
@@ -933,7 +934,7 @@
 
             <a href="/admin/document/" class="quick-action">
                 <div class="quick-action__icon">
-                    <i class="fas fa-file-pdf"></i>
+                    <i class="fa-solid fa-file-pdf"></i>
                 </div>
                 <h4 class="quick-action__title">Documentos</h4>
                 <p class="quick-action__description">Publicar novos documentos</p>
@@ -941,7 +942,7 @@
 
             <a href="/admin/user/" class="quick-action">
                 <div class="quick-action__icon">
-                    <i class="fas fa-users"></i>
+                    <i class="fa-solid fa-users"></i>
                 </div>
                 <h4 class="quick-action__title">Usuários</h4>
                 <p class="quick-action__description">Gerenciar colaboradores</p>
