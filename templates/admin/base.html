@@ -425,7 +425,7 @@
                 min-width: 220px;
                 top: 100%;
                 left: 0;
-                margin-top: 0.5rem;
+                margin-top: 0;
             }
 
             .dropdown:hover > .dropdown-menu,
@@ -1035,17 +1035,56 @@
                     toggle.setAttribute('aria-haspopup', 'true');
                     toggle.setAttribute('aria-expanded', 'false');
 
+                    let hoverTimeout = null;
+
+                    const cancelScheduledClose = () => {
+                        if (hoverTimeout) {
+                            clearTimeout(hoverTimeout);
+                            hoverTimeout = null;
+                        }
+                    };
+
+                    const openMenu = () => {
+                        menu.classList.add('is-open');
+                        toggle.setAttribute('aria-expanded', 'true');
+                    };
+
+                    const closeMenu = () => {
+                        menu.classList.remove('is-open');
+                        toggle.setAttribute('aria-expanded', 'false');
+                    };
+
+                    const scheduleClose = () => {
+                        cancelScheduledClose();
+                        hoverTimeout = setTimeout(() => {
+                            if (window.innerWidth > 768) {
+                                closeMenu();
+                            }
+                        }, 120);
+                    };
+
                     dropdown.addEventListener('mouseenter', function() {
                         if (window.innerWidth > 768) {
-                            menu.classList.add('is-open');
-                            toggle.setAttribute('aria-expanded', 'true');
+                            cancelScheduledClose();
+                            openMenu();
                         }
                     });
 
                     dropdown.addEventListener('mouseleave', function() {
                         if (window.innerWidth > 768) {
-                            menu.classList.remove('is-open');
-                            toggle.setAttribute('aria-expanded', 'false');
+                            scheduleClose();
+                        }
+                    });
+
+                    menu.addEventListener('mouseenter', () => {
+                        if (window.innerWidth > 768) {
+                            cancelScheduledClose();
+                        }
+                    });
+
+                    menu.addEventListener('mouseleave', () => {
+                        if (window.innerWidth > 768) {
+                            scheduleClose();
                         }
                     });
 
@@ -1057,10 +1096,9 @@
                             closeMobileDropdowns();
 
                             if (!isOpen) {
-                                menu.classList.add('is-open');
-                                toggle.setAttribute('aria-expanded', 'true');
+                                openMenu();
                             } else {
-                                toggle.setAttribute('aria-expanded', 'false');
+                                closeMenu();
                             }
                         }
                     });
