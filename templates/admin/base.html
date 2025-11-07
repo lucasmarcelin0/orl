@@ -410,12 +410,17 @@
                 text-decoration: none;
             }
 
+            .action-icon,
+            .action-icon__button {
+                color: var(--primary) !important;
+            }
+
             .action-icon:hover,
             .action-icon:focus,
             .action-icon__button:hover,
             .action-icon__button:focus {
                 background: var(--primary);
-                color: #ffffff;
+                color: #ffffff !important;
                 border-color: var(--primary);
                 text-decoration: none;
             }
@@ -776,6 +781,18 @@
                 padding: 0.75rem 1.5rem;
                 font-weight: 600;
                 transition: var(--transition);
+                color: #ffffff;
+            }
+
+            .btn .fa,
+            .btn .fas,
+            .btn .fa-solid,
+            .btn .fa-regular,
+            .btn .fa-light,
+            .btn .fa-thin,
+            .btn .fa-duotone,
+            .btn .fa-brands {
+                color: inherit;
             }
 
             .btn-primary:hover {
