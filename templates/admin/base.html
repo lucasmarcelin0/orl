@@ -1073,6 +1073,7 @@
         
         {% if ckeditor %}
             {{ ckeditor.load() }}
+            <script src="{{ url_for('static', filename='js/admin/ckeditor-enhancements.js') }}"></script>
         {% endif %}
         
         <!-- Custom JavaScript for enhanced interactions -->
