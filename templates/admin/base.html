@@ -388,6 +388,58 @@
                 font-size: 0.85rem;
             }
 
+            .list-buttons-column {
+                display: flex;
+                gap: 0.4rem;
+                align-items: center;
+            }
+
+            .action-icon,
+            .action-icon__button {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 36px;
+                height: 36px;
+                border-radius: var(--radius-sm);
+                border: 1px solid var(--border);
+                background: var(--card-bg);
+                color: var(--primary);
+                transition: var(--transition);
+                padding: 0;
+                text-decoration: none;
+            }
+
+            .action-icon:hover,
+            .action-icon:focus,
+            .action-icon__button:hover,
+            .action-icon__button:focus {
+                background: var(--primary);
+                color: #ffffff;
+                border-color: var(--primary);
+                text-decoration: none;
+            }
+
+            .action-icon__button {
+                cursor: pointer;
+            }
+
+            .action-icon__button:focus-visible {
+                outline: 2px solid var(--primary-light);
+                outline-offset: 2px;
+            }
+
+            .action-icon__svg {
+                width: 18px;
+                height: 18px;
+                fill: currentColor;
+            }
+
+            .action-icon-form {
+                display: inline-flex;
+                margin: 0;
+            }
+
             /* Messages */
             .messages {
                 display: flex;
