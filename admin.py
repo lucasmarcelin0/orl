@@ -592,7 +592,7 @@ class DocumentInlineForm(DocumentUploadMixin, InlineFormAdmin):
             "rows": 3,
         },
         "icon_class": {
-            "placeholder": "Ex.: fas fa-file-download",
+            "placeholder": "Ex.: fa-solid fa-file-arrow-down",
         },
         "display_order": {
             "placeholder": "0",
@@ -825,7 +825,7 @@ class DocumentAdminView(DocumentUploadMixin, SecuredModelView):
             "rows": 3,
         },
         "icon_class": {
-            "placeholder": "Ex.: fas fa-file-download",
+            "placeholder": "Ex.: fa-solid fa-file-arrow-down",
         },
         "section_item": {
             "data-placeholder": "Selecione um item para vincular o documento",
@@ -990,7 +990,7 @@ class EmergencyServiceAdminView(SecuredModelView):
             "placeholder": "Ex.: 192",
         },
         "icon_class": {
-            "placeholder": "Ex.: fas fa-ambulance",
+            "placeholder": "Ex.: fa-solid fa-truck-medical",
         },
         "display_order": {
             "placeholder": "0",
