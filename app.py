@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 from typing import Iterable
 import uuid
+from types import SimpleNamespace
 
 import click
 from flask import (
@@ -104,10 +105,26 @@ def create_app() -> Flask:
     def inject_admin_helpers() -> dict[str, object]:
         """Disponibiliza utilidades do Flask-Admin para os templates personalizados."""
 
+        admin_blueprint = current_app.blueprints.get("admin")
+        admin_static = None
+        if admin_blueprint is not None:
+            admin_static = getattr(admin_blueprint, "static", None)
+
+        blueprint_name = admin_blueprint.name if admin_blueprint is not None else None
+
+        if admin_static is None:
+
+            def _admin_static_url(filename: str, **kwargs) -> str:
+                endpoint = f"{blueprint_name}.static" if blueprint_name else "static"
+                return url_for(endpoint, filename=filename, **kwargs)
+
+            admin_static = SimpleNamespace(url=_admin_static_url)
+
         return {
             "get_url": admin_helpers.get_url,
             "admin_helpers": admin_helpers,
             "h": admin_helpers,
+            "admin_static": admin_static,
         }
 
     @login_manager.user_loader
