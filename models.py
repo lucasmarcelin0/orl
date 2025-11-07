@@ -73,8 +73,13 @@ class User(UserMixin, db.Model):
 
         return check_password_hash(self.password_hash, password)
 
+    def __str__(self) -> str:
+        """Retorna uma identificação amigável do usuário."""
+
+        return self.username or "Usuário sem identificação"
+
     def __repr__(self) -> str:  # pragma: no cover - representação auxiliar
-        return f"<User {self.username!r}>"
+        return f"Usuário(username={self.username!r})"
 
 
 class Page(AuditMixin, db.Model):
@@ -95,8 +100,13 @@ class Page(AuditMixin, db.Model):
     # Comentário: flag que indica se a página deve aparecer no menu principal.
     visible = Column(Boolean, default=True, nullable=False)
 
+    def __str__(self) -> str:
+        """Retorna o título exibido ao público."""
+
+        return self.title or self.slug or "Página sem título"
+
     def __repr__(self) -> str:  # pragma: no cover - representação auxiliar
-        return f"<Page {self.slug!r}>"
+        return f"Página(título={self.title!r}, slug={self.slug!r})"
 
 
 class HomepageSection(AuditMixin, db.Model):
@@ -117,8 +127,13 @@ class HomepageSection(AuditMixin, db.Model):
         cascade="all, delete-orphan",
     )
 
+    def __str__(self) -> str:
+        """Retorna a forma amigável exibida nos formulários administrativos."""
+
+        return self.name or self.slug or "Seção sem nome"
+
     def __repr__(self) -> str:  # pragma: no cover - representação auxiliar
-        return f"<HomepageSection {self.slug!r}>"
+        return f"SeçãoDaHome(nome={self.name!r}, slug={self.slug!r})"
 
 
 class Document(AuditMixin, db.Model):
@@ -135,8 +150,13 @@ class Document(AuditMixin, db.Model):
 
     section_item = relationship("SectionItem", back_populates="documents")
 
+    def __str__(self) -> str:
+        """Nome amigável apresentado nas interfaces administrativas."""
+
+        return self.title or "Documento sem título"
+
     def __repr__(self) -> str:  # pragma: no cover - representação auxiliar
-        return f"<Document {self.title!r}>"
+        return f"Documento(título={self.title!r})"
 
     @property
     def filename(self) -> str:
@@ -214,8 +234,13 @@ class EmergencyService(AuditMixin, db.Model):
     display_order = Column(Integer, nullable=False, default=0)
     is_active = Column(Boolean, nullable=False, default=True)
 
+    def __str__(self) -> str:
+        """Representação amigável utilizada em campos de seleção."""
+
+        return self.name or "Serviço sem nome"
+
     def __repr__(self) -> str:  # pragma: no cover - representação auxiliar
-        return f"<EmergencyService {self.name!r}>"
+        return f"ServicoEmergencia(nome={self.name!r})"
 
 
 class FooterColumn(AuditMixin, db.Model):
@@ -233,8 +258,13 @@ class FooterColumn(AuditMixin, db.Model):
         cascade="all, delete-orphan",
     )
 
+    def __str__(self) -> str:
+        """Retorna o título exibido no painel administrativo."""
+
+        return self.title or "Coluna sem título"
+
     def __repr__(self) -> str:  # pragma: no cover - representação auxiliar
-        return f"<FooterColumn {self.title!r}>"
+        return f"ColunaRodape(título={self.title!r})"
 
 
 class QuickLink(AuditMixin, db.Model):
@@ -253,8 +283,22 @@ class QuickLink(AuditMixin, db.Model):
 
     footer_column = relationship("FooterColumn", back_populates="links")
 
+    def __str__(self) -> str:
+        """Texto amigável exibido em campos do painel administrativo."""
+
+        return self.label or "Atalho sem rótulo"
+
     def __repr__(self) -> str:  # pragma: no cover - representação auxiliar
-        return f"<QuickLink {self.label!r} ({self.location})>"
+        location_label = {
+            self.LOCATION_QUICK_ACCESS: "acesso rápido",
+            self.LOCATION_FOOTER: "rodapé",
+        }.get(self.location, self.location)
+        return (
+            "Atalho(label={label!r}, localização={location!r})".format(
+                label=self.label,
+                location=location_label,
+            )
+        )
 
 
 class SectionItem(AuditMixin, db.Model):
@@ -281,5 +325,15 @@ class SectionItem(AuditMixin, db.Model):
         cascade="all, delete-orphan",
     )
 
+    def __str__(self) -> str:
+        """Identificação amigável exibida em seletores do painel."""
+
+        return self.title or "Item de seção sem título"
+
     def __repr__(self) -> str:  # pragma: no cover - representação auxiliar
-        return f"<SectionItem {self.title!r} ({self.section_id})>"
+        return (
+            "CartaoSecao(título={title!r}, seção_id={section_id!r})".format(
+                title=self.title,
+                section_id=self.section_id,
+            )
+        )
