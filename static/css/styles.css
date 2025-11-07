@@ -605,7 +605,11 @@ header.scrolled .social-links {
 
 .card-item p {
     color: var(--gray-color);
-    line-height: 1.6;
+    line-height: 1.7;
+    text-align: justify;
+    text-justify: inter-word;
+    hyphens: auto;
+    word-break: break-word;
 }
 
 .card-item a {
@@ -653,7 +657,11 @@ header.scrolled .social-links {
 
 .info-card p {
     color: var(--gray-color);
-    line-height: 1.6;
+    line-height: 1.7;
+    text-align: justify;
+    text-justify: inter-word;
+    hyphens: auto;
+    word-break: break-word;
 }
 
 .callout {
@@ -843,6 +851,11 @@ header.scrolled .social-links {
     overflow: hidden;
     text-overflow: ellipsis;
     min-height: 4.8em;
+    text-align: justify;
+    text-justify: inter-word;
+    line-height: 1.7;
+    hyphens: auto;
+    word-break: break-word;
 }
 
 .service-card a {
