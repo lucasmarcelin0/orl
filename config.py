@@ -95,6 +95,10 @@ class Config:
     # Comentário: o diretório base é calculado para facilitar o uso em qualquer SO.
     BASE_DIR = Path(__file__).resolve().parent
 
+    # Comentário: localização padrão utilizada por Babel e Flask-Admin.
+    BABEL_DEFAULT_LOCALE = "pt_BR"
+    BABEL_DEFAULT_TIMEZONE = "America/Sao_Paulo"
+
     # Comentário: caminho para o banco SQLite armazenado na pasta do projeto.
     _database_url_raw = os.getenv("DATABASE_URL")
     _database_url = (

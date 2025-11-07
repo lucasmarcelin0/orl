@@ -36,6 +36,7 @@ from flask_login import (
     login_user,
     logout_user,
 )
+from flask_babel import Babel
 from sqlalchemy import event, func, inspect, or_, text
 from sqlalchemy.exc import IntegrityError, OperationalError
 from werkzeug.utils import secure_filename
@@ -63,6 +64,7 @@ from models import AuditMixin
 migrate = Migrate()
 ckeditor = CKEditor()
 login_manager = LoginManager()
+babel = Babel()
 
 
 def create_app() -> Flask:
@@ -81,6 +83,18 @@ def create_app() -> Flask:
     login_manager.login_view = "auth.login"
     login_manager.login_message = "Realize o login para acessar o painel."
     login_manager.login_message_category = "error"
+
+    def _select_locale() -> str:
+        return app.config.get("BABEL_DEFAULT_LOCALE", "pt_BR")
+
+    def _select_timezone() -> str:
+        return app.config.get("BABEL_DEFAULT_TIMEZONE", "America/Sao_Paulo")
+
+    babel.init_app(
+        app,
+        locale_selector=_select_locale,
+        timezone_selector=_select_timezone,
+    )
 
     @app.context_processor
     def inject_admin_helpers() -> dict[str, object]:

@@ -9,6 +9,7 @@ Flask-Admin==2.0.0
 Flask-CKEditor==1.0.0
 Flask-Login==0.6.3
 Flask-Mail==0.10.0
+Flask-Babel==4.0.0
 asgiref==3.8.1
 certifi==2025.1.31
 cffi==1.17.1
