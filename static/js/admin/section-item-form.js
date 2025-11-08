@@ -42,6 +42,118 @@
         }
     }
 
+    function focusField(field) {
+        if (!field) {
+            return;
+        }
+
+        if (field.tagName === 'INPUT' || field.tagName === 'SELECT' || field.tagName === 'TEXTAREA') {
+            field.focus({ preventScroll: false });
+            if (typeof field.select === 'function') {
+                field.select();
+            }
+            return;
+        }
+
+        field.focus({ preventScroll: false });
+    }
+
+    function focusSummaryField(fields) {
+        if (!fields.summary) {
+            return;
+        }
+
+        const textarea = fields.summary;
+        const editor = window.CKEDITOR && textarea.id ? window.CKEDITOR.instances[textarea.id] : null;
+
+        if (editor) {
+            editor.focus();
+            return;
+        }
+
+        focusField(textarea);
+    }
+
+    function bindPreviewInteractions(root, fields) {
+        function getImageUploadButton() {
+            const designerRoot = root.closest('.section-item-designer');
+            if (designerRoot) {
+                const button = designerRoot.querySelector('[data-card-image-upload-button]');
+                if (button) {
+                    return button;
+                }
+            }
+            return document.querySelector('[data-card-image-upload-button]');
+        }
+
+        function handleAction(action) {
+            if (!action) {
+                return;
+            }
+
+            switch (action) {
+                case 'title':
+                    focusField(fields.title);
+                    break;
+                case 'summary':
+                    focusSummaryField(fields);
+                    break;
+                case 'badge':
+                    focusField(fields.badge);
+                    break;
+                case 'date':
+                    focusField(fields.displayDate);
+                    break;
+                case 'link':
+                    focusField(fields.linkLabel);
+                    break;
+                case 'image': {
+                    const button = getImageUploadButton();
+                    if (button) {
+                        button.click();
+                        break;
+                    }
+                    focusField(fields.imageUrl);
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+
+        function getActionTarget(element) {
+            if (!element) {
+                return null;
+            }
+
+            return element.closest('[data-preview-trigger]');
+        }
+
+        root.addEventListener('click', function (event) {
+            const target = getActionTarget(event.target);
+            if (!target) {
+                return;
+            }
+
+            event.preventDefault();
+            handleAction(target.dataset.previewTrigger);
+        });
+
+        root.addEventListener('keydown', function (event) {
+            if (event.key !== 'Enter' && event.key !== ' ' && event.key !== 'Spacebar' && event.key !== 'Space') {
+                return;
+            }
+
+            const target = getActionTarget(event.target);
+            if (!target) {
+                return;
+            }
+
+            event.preventDefault();
+            handleAction(target.dataset.previewTrigger);
+        });
+    }
+
     function updatePreviewFactory(root, fields) {
         const titleEl = root.querySelector('[data-preview-title]');
         const summaryEl = root.querySelector('[data-preview-summary]');
@@ -51,12 +163,15 @@
         const linkLabelEl = root.querySelector('[data-preview-link-label]');
         const imageWrapper = root.querySelector('[data-preview-image-wrapper]');
         const imageEl = root.querySelector('[data-preview-image]');
+        const imagePlaceholder = root.querySelector('[data-preview-image-empty]');
 
         const defaults = {
             title: 'Título do cartão',
             summary:
                 '<p>Utilize o campo “Resumo” para adicionar o conteúdo que aparecerá no site.</p>',
-            link: 'Texto do link',
+            link: 'Adicionar link',
+            badge: 'Adicionar selo',
+            date: 'Definir data',
         };
 
         return function updatePreview() {
@@ -69,6 +184,7 @@
 
             if (titleEl) {
                 titleEl.textContent = title || defaults.title;
+                titleEl.dataset.placeholder = title ? 'false' : 'true';
             }
 
             if (summaryEl) {
@@ -80,34 +196,45 @@
                 const decodedSummary = decodeHtml(rawSummaryValue);
                 const content = sanitizeHtml(decodedSummary).trim();
                 summaryEl.innerHTML = content || defaults.summary;
+                summaryEl.dataset.placeholder = content ? 'false' : 'true';
             }
 
             if (imageWrapper && imageEl) {
                 if (imageUrl) {
                     imageEl.src = imageUrl;
                     imageEl.alt = title || defaults.title;
-                    imageWrapper.removeAttribute('hidden');
+                    imageEl.removeAttribute('hidden');
+                    imageWrapper.classList.add('has-image');
+                    if (imagePlaceholder) {
+                        imagePlaceholder.setAttribute('hidden', '');
+                    }
                 } else {
                     imageEl.removeAttribute('src');
-                    imageWrapper.setAttribute('hidden', '');
+                    imageEl.setAttribute('hidden', '');
+                    imageWrapper.classList.remove('has-image');
+                    if (imagePlaceholder) {
+                        imagePlaceholder.removeAttribute('hidden');
+                    }
                 }
             }
 
             if (badgeEl) {
                 if (badge) {
                     badgeEl.textContent = badge;
-                    badgeEl.removeAttribute('hidden');
+                    badgeEl.dataset.placeholder = 'false';
                 } else {
-                    badgeEl.setAttribute('hidden', '');
+                    badgeEl.textContent = defaults.badge;
+                    badgeEl.dataset.placeholder = 'true';
                 }
             }
 
             if (dateEl) {
                 if (date) {
                     dateEl.textContent = date;
-                    dateEl.removeAttribute('hidden');
+                    dateEl.dataset.placeholder = 'false';
                 } else {
-                    dateEl.setAttribute('hidden', '');
+                    dateEl.textContent = defaults.date;
+                    dateEl.dataset.placeholder = 'true';
                 }
             }
 
@@ -115,11 +242,11 @@
                 if (linkLabel) {
                     linkLabelEl.textContent = linkLabel;
                     linkEl.setAttribute('href', normalizeUrl(linkUrl));
-                    linkEl.removeAttribute('hidden');
+                    linkEl.dataset.placeholder = 'false';
                 } else {
                     linkLabelEl.textContent = defaults.link;
                     linkEl.setAttribute('href', '#');
-                    linkEl.setAttribute('hidden', '');
+                    linkEl.dataset.placeholder = 'true';
                 }
             }
         };
@@ -238,6 +365,49 @@
             return;
         }
 
+        let actions = wrapper.querySelector('.section-item-image-upload__actions');
+        if (!actions) {
+            actions = document.createElement('div');
+            actions.className = 'section-item-image-upload__actions';
+
+            const hint = wrapper.querySelector('.section-item-image-upload__hint');
+            if (hint) {
+                wrapper.insertBefore(actions, hint);
+            } else if (feedback) {
+                wrapper.insertBefore(actions, feedback);
+            } else {
+                wrapper.appendChild(actions);
+            }
+        }
+
+        let button = actions.querySelector('[data-card-image-upload-button]');
+        if (!button) {
+            button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'btn btn-primary btn-sm';
+            button.textContent = 'Escolher arquivo';
+            button.setAttribute('data-card-image-upload-button', '1');
+            actions.appendChild(button);
+        }
+
+        let orText = actions.querySelector('.section-item-image-upload__actions-text');
+        if (!orText) {
+            orText = document.createElement('span');
+            orText.className = 'section-item-image-upload__actions-text';
+            orText.textContent = 'ou informe um link externo abaixo';
+            actions.appendChild(orText);
+        }
+
+        let fileInput = wrapper.querySelector('[data-card-image-file-input]');
+        if (!fileInput) {
+            fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'image/*';
+            fileInput.setAttribute('data-card-image-file-input', '1');
+            fileInput.setAttribute('hidden', '');
+            wrapper.appendChild(fileInput);
+        }
+
         function showFeedback(status, message) {
             if (!feedback) {
                 return;
@@ -304,6 +474,21 @@
                 .finally(function () {
                     wrapper.classList.remove('is-uploading');
                 });
+        }
+
+        if (button && fileInput) {
+            button.addEventListener('click', function (event) {
+                event.preventDefault();
+                fileInput.click();
+            });
+
+            fileInput.addEventListener('change', function () {
+                const file = fileInput.files && fileInput.files[0];
+                if (file) {
+                    uploadFile(file);
+                }
+                fileInput.value = '';
+            });
         }
 
         field.addEventListener('paste', function (event) {
@@ -383,6 +568,8 @@
         }
 
         bindAllImageInputs();
+
+        bindPreviewInteractions(root, fields);
 
         function setupDocumentsInlineLayout() {
             const inlineRoot = document.getElementById('documents');

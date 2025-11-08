@@ -57,23 +57,68 @@ SECTION_INLINE_FORM_COLUMNS = (
 SECTION_ITEM_PREVIEW_HTML = """
 <section class=\"section-item-preview\" data-section-item-preview>
     <header class=\"section-item-preview__header\">
-        <span class=\"section-item-preview__badge\" data-preview-badge>Selo do cartão</span>
-        <span class=\"section-item-preview__date\" data-preview-date>Data exibida</span>
+        <span
+            class=\"section-item-preview__badge\"
+            data-preview-badge
+            data-preview-trigger=\"badge\"
+            role=\"button\"
+            tabindex=\"0\"
+        >
+            Selo do cartão
+        </span>
+        <span
+            class=\"section-item-preview__date\"
+            data-preview-date
+            data-preview-trigger=\"date\"
+            role=\"button\"
+            tabindex=\"0\"
+        >
+            Data exibida
+        </span>
     </header>
-    <figure class=\"section-item-preview__media\" data-preview-image-wrapper hidden>
+    <div class=\"section-item-preview__media\" data-preview-image-wrapper>
         <img
             class=\"section-item-preview__image\"
             src=\"\"
             alt=\"Pré-visualização da imagem do cartão\"
             data-preview-image
+            hidden
         >
-    </figure>
-    <h3 class=\"section-item-preview__title\" data-preview-title>Título do cartão</h3>
-    <div class=\"section-item-preview__summary\" data-preview-summary>
-        Utilize o campo “Resumo” para adicionar o conteúdo que aparecerá no site.
+        <button
+            type=\"button\"
+            class=\"section-item-preview__add-image\"
+            data-preview-image-empty
+            data-preview-trigger=\"image\"
+        >
+            <i class=\"fa-solid fa-image\" aria-hidden=\"true\"></i>
+            <span>Adicionar imagem</span>
+        </button>
+    </div>
+    <h3
+        class=\"section-item-preview__title\"
+        data-preview-title
+        data-preview-trigger=\"title\"
+        role=\"button\"
+        tabindex=\"0\"
+    >
+        Título do cartão
+    </h3>
+    <div
+        class=\"section-item-preview__summary\"
+        data-preview-summary
+        data-preview-trigger=\"summary\"
+        role=\"button\"
+        tabindex=\"0\"
+    >
+        <p>Utilize o campo “Resumo” para adicionar o conteúdo que aparecerá no site.</p>
     </div>
     <footer class=\"section-item-preview__footer\">
-        <a class=\"section-item-preview__link\" data-preview-link href=\"#\">
+        <a
+            class=\"section-item-preview__link\"
+            data-preview-link
+            data-preview-trigger=\"link\"
+            href=\"#\"
+        >
             <span data-preview-link-label>Texto do link</span>
             <i class=\"fa-solid fa-arrow-right\" aria-hidden=\"true\"></i>
         </a>
