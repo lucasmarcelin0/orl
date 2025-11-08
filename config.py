@@ -210,6 +210,9 @@ class Config:
     CLOUDINARY_DOCUMENTS_FOLDER = os.getenv(
         "CLOUDINARY_DOCUMENTS_FOLDER", "orl/documents"
     )
+    CLOUDINARY_SECTION_ITEM_FOLDER = os.getenv(
+        "CLOUDINARY_SECTION_ITEM_FOLDER", "orl/section-items"
+    )
 
     # Comentário: credenciais de acesso ao painel administrativo.
     ADMIN_USERNAME = os.getenv("ADMIN_USERNAME", "admin")
@@ -232,6 +235,21 @@ class Config:
         )
     except ValueError:
         CKEDITOR_MAX_IMAGE_SIZE = _ckeditor_max_image_size_default
+
+    SECTION_ITEM_IMAGE_UPLOADS_PATH = str(
+        BASE_DIR / "static" / "uploads" / "section-items"
+    )
+    SECTION_ITEM_ALLOWED_IMAGE_EXTENSIONS = {"png", "jpg", "jpeg", "gif", "webp"}
+    _section_item_max_image_size_default = 5 * 1024 * 1024  # 5 MB
+    try:
+        SECTION_ITEM_MAX_IMAGE_SIZE = int(
+            os.getenv(
+                "SECTION_ITEM_MAX_IMAGE_SIZE",
+                str(_section_item_max_image_size_default),
+            )
+        )
+    except ValueError:
+        SECTION_ITEM_MAX_IMAGE_SIZE = _section_item_max_image_size_default
 
     # Comentário: diretório e tipos aceitos para os documentos publicados no site.
     DOCUMENTS_UPLOAD_PATH = str(BASE_DIR / "static" / "uploads" / "documents")

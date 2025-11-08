@@ -1217,7 +1217,13 @@
             {{ ckeditor.load() }}
             <script src="{{ url_for('static', filename='js/admin/ckeditor-enhancements.js') }}"></script>
         {% endif %}
-        
+
+        {% if section_item_image_upload_endpoint %}
+            <script>
+                window.__orlImageUploadEndpoint = {{ section_item_image_upload_endpoint|tojson }};
+            </script>
+        {% endif %}
+
         <!-- Custom JavaScript for enhanced interactions -->
         <script>
             const enhanceFilterForm = () => {
