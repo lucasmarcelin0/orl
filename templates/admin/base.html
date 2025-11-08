@@ -16,6 +16,12 @@
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/v4-shims.min.css">
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+        {% if admin_view and admin_view.extra_css %}
+            {% for css_url in admin_view.extra_css %}
+                <link rel="stylesheet" href="{{ css_url }}">
+            {% endfor %}
+        {% endif %}
         
         <style>
             :root {
@@ -1216,6 +1222,12 @@
         {% if ckeditor %}
             {{ ckeditor.load() }}
             <script src="{{ url_for('static', filename='js/admin/ckeditor-enhancements.js') }}"></script>
+        {% endif %}
+
+        {% if admin_view and admin_view.extra_js %}
+            {% for script_url in admin_view.extra_js %}
+                <script src="{{ script_url }}"></script>
+            {% endfor %}
         {% endif %}
 
         {% if section_item_image_upload_endpoint %}
