@@ -9,6 +9,7 @@ import os
 from pathlib import Path
 from typing import Iterable
 import uuid
+import threading
 from types import SimpleNamespace
 
 import click
@@ -425,11 +426,33 @@ def create_app() -> Flask:
         if state.get("executed"):
             return
 
-        ensure_database_schema()
-        ensure_default_admin_user()
+        def _execute_startup_tasks() -> None:
+            ensure_database_schema()
+            ensure_default_admin_user()
+            ensure_homepage_sections()
+            ensure_emergency_services()
+
         init_admin(app)
-        ensure_homepage_sections()
-        ensure_emergency_services()
+
+        if app.config.get("STARTUP_TASKS_ASYNC"):
+            def _run_in_background() -> None:
+                with app.app_context():
+                    try:
+                        _execute_startup_tasks()
+                    except Exception:  # pragma: no cover - log defensivo
+                        app.logger.exception(
+                            "Falha ao executar tarefas de inicialização em segundo plano."
+                        )
+
+            thread = threading.Thread(
+                target=_run_in_background,
+                name="orl-startup-tasks",
+                daemon=True,
+            )
+            thread.start()
+            state["thread"] = thread
+        else:
+            _execute_startup_tasks()
 
         state["executed"] = True
 

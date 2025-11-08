@@ -266,3 +266,23 @@ class Config:
         "odp",
         "zip",
     }
+
+    _startup_tasks_async_env = os.getenv("STARTUP_TASKS_ASYNC")
+    if _startup_tasks_async_env is None or _startup_tasks_async_env.lower() == "auto":
+        STARTUP_TASKS_ASYNC = os.getenv("FLASK_DEBUG", "").lower() in {
+            "1",
+            "true",
+            "yes",
+            "on",
+        }
+        if not STARTUP_TASKS_ASYNC:
+            STARTUP_TASKS_ASYNC = (
+                os.getenv("FLASK_ENV", "").lower() == "development"
+            )
+    else:
+        STARTUP_TASKS_ASYNC = _startup_tasks_async_env.lower() not in {
+            "0",
+            "false",
+            "no",
+            "off",
+        }
