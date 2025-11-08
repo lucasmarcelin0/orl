@@ -671,6 +671,31 @@ class SectionItemAdminView(SecuredModelView):
             "placeholder": "Texto de data exibido abaixo do selo",
         },
     }
+
+    def _bind_image_upload_endpoint(self, form):
+        image_field = getattr(form, "image_url", None)
+        if not image_field:
+            return form
+
+        try:
+            endpoint = url_for("upload_section_item_image")
+        except Exception:  # pragma: no cover - rota indisponível
+            endpoint = None
+
+        render_kw = dict(getattr(image_field, "render_kw", {}) or {})
+        render_kw.setdefault("data-card-image-input", "1")
+        if endpoint:
+            render_kw["data-card-image-endpoint"] = endpoint
+        image_field.render_kw = render_kw
+        return form
+
+    def create_form(self, obj=None):  # type: ignore[override]
+        form = super().create_form(obj)
+        return self._bind_image_upload_endpoint(form)
+
+    def edit_form(self, obj=None):  # type: ignore[override]
+        form = super().edit_form(obj)
+        return self._bind_image_upload_endpoint(form)
     form_create_rules = form_edit_rules = (
         rules.Field("id"),
         rules.HTML(

@@ -120,11 +120,19 @@ def create_app() -> Flask:
 
             admin_static = SimpleNamespace(url=_admin_static_url)
 
+        section_item_upload_endpoint = None
+        if current_user.is_authenticated and current_user.is_active:
+            try:
+                section_item_upload_endpoint = url_for("upload_section_item_image")
+            except Exception:  # pragma: no cover - rota indisponível
+                section_item_upload_endpoint = None
+
         return {
             "get_url": admin_helpers.get_url,
             "admin_helpers": admin_helpers,
             "h": admin_helpers,
             "admin_static": admin_static,
+            "section_item_image_upload_endpoint": section_item_upload_endpoint,
         }
 
     @login_manager.user_loader
@@ -499,23 +507,27 @@ def create_app() -> Flask:
         admin_view = admin_ext[0].index_view if admin_ext else None
         return render_template("admin/profile.html", form=form, admin_view=admin_view)
 
-    def _resolve_upload_path() -> Path:
-        upload_path = Path(app.config.get("CKEDITOR_UPLOADS_PATH", "static/uploads"))
+    def _resolve_upload_path(config_key: str, default_path: str | Path) -> Path:
+        upload_path_value = app.config.get(config_key, default_path)
+        upload_path = Path(upload_path_value)
         if not upload_path.is_absolute():
             upload_path = Path(app.root_path) / upload_path
         upload_path.mkdir(parents=True, exist_ok=True)
         return upload_path
 
-    def _allowed_file(filename: str) -> bool:
-        allowed_extensions = app.config.get("CKEDITOR_ALLOWED_IMAGE_EXTENSIONS", set())
+    def _allowed_file(filename: str, allowed_extensions) -> bool:
         if not filename or "." not in filename:
             return False
+
+        allowed = {ext.lower() for ext in (allowed_extensions or set())}
         extension = filename.rsplit(".", 1)[1].lower()
-        return extension in {ext.lower() for ext in allowed_extensions}
+        return extension in allowed
 
     @app.route("/admin/ckeditor/uploads/<path:filename>")
     def ckeditor_uploaded_file(filename: str):
-        upload_path = _resolve_upload_path()
+        upload_path = _resolve_upload_path(
+            "CKEDITOR_UPLOADS_PATH", Path("static") / "uploads"
+        )
         return send_from_directory(str(upload_path), filename)
 
     @app.route("/admin/ckeditor/upload", methods=["POST"])
@@ -527,7 +539,10 @@ def create_app() -> Flask:
                 400,
             )
 
-        if not _allowed_file(upload.filename):
+        if not _allowed_file(
+            upload.filename,
+            app.config.get("CKEDITOR_ALLOWED_IMAGE_EXTENSIONS", set()),
+        ):
             return (
                 jsonify(
                     {
@@ -546,12 +561,18 @@ def create_app() -> Flask:
             file_size = upload.stream.tell()
             upload.stream.seek(0)
             if file_size > max_size:
+                limit_mb = max_size / (1024 * 1024)
+                limit_text = (
+                    f"{int(limit_mb)} MB"
+                    if float(limit_mb).is_integer()
+                    else f"{limit_mb:.1f} MB"
+                )
                 return (
                     jsonify(
                         {
                             "uploaded": 0,
                             "error": {
-                                "message": "Imagem excede o tamanho máximo permitido de 5 MB.",
+                                "message": f"Imagem excede o tamanho máximo permitido de {limit_text}.",
                             },
                         }
                     ),
@@ -592,11 +613,119 @@ def create_app() -> Flask:
                     502,
                 )
         else:
-            upload_path = _resolve_upload_path()
+            upload_path = _resolve_upload_path(
+                "CKEDITOR_UPLOADS_PATH", Path("static") / "uploads"
+            )
             destination = upload_path / unique_name
             upload.save(destination)
 
             file_url = url_for("ckeditor_uploaded_file", filename=unique_name)
+        return jsonify({"uploaded": 1, "fileName": unique_name, "url": file_url})
+
+    @app.route("/admin/section-item/uploads/<path:filename>")
+    def section_item_uploaded_image(filename: str):
+        upload_path = _resolve_upload_path(
+            "SECTION_ITEM_IMAGE_UPLOADS_PATH",
+            Path("static") / "uploads" / "section-items",
+        )
+        return send_from_directory(str(upload_path), filename)
+
+    @app.route("/admin/section-item/upload-image", methods=["POST"])
+    @login_required
+    def upload_section_item_image():
+        upload = request.files.get("upload")
+        if upload is None or upload.filename == "":
+            return (
+                jsonify(
+                    {"uploaded": 0, "error": {"message": "Nenhum arquivo foi enviado."}}
+                ),
+                400,
+            )
+
+        allowed_extensions = app.config.get(
+            "SECTION_ITEM_ALLOWED_IMAGE_EXTENSIONS",
+            app.config.get("CKEDITOR_ALLOWED_IMAGE_EXTENSIONS", set()),
+        )
+        if not _allowed_file(upload.filename, allowed_extensions):
+            return (
+                jsonify(
+                    {
+                        "uploaded": 0,
+                        "error": {
+                            "message": "Formato de arquivo não suportado. Utilize imagens PNG, JPG, JPEG, GIF ou WEBP.",
+                        },
+                    }
+                ),
+                400,
+            )
+
+        max_size = app.config.get("SECTION_ITEM_MAX_IMAGE_SIZE")
+        if max_size:
+            upload.stream.seek(0, os.SEEK_END)
+            file_size = upload.stream.tell()
+            upload.stream.seek(0)
+            if file_size > max_size:
+                limit_mb = max_size / (1024 * 1024)
+                limit_text = (
+                    f"{int(limit_mb)} MB"
+                    if float(limit_mb).is_integer()
+                    else f"{limit_mb:.1f} MB"
+                )
+                return (
+                    jsonify(
+                        {
+                            "uploaded": 0,
+                            "error": {
+                                "message": f"Imagem excede o tamanho máximo permitido de {limit_text}.",
+                            },
+                        }
+                    ),
+                    413,
+                )
+
+        secure_name = secure_filename(upload.filename)
+        if not secure_name:
+            return (
+                jsonify({"uploaded": 0, "error": {"message": "Nome de arquivo inválido."}}),
+                400,
+            )
+
+        extension = secure_name.rsplit(".", 1)[1].lower()
+        unique_name = f"section-item-{uuid.uuid4().hex}.{extension}"
+
+        if storage.is_cloudinary_enabled():
+            try:
+                file_url = storage.upload_to_cloudinary(
+                    upload,
+                    filename=unique_name,
+                    folder=current_app.config.get("CLOUDINARY_SECTION_ITEM_FOLDER"),
+                    resource_type="image",
+                )
+            except storage.StorageError:
+                current_app.logger.exception(
+                    "Falha ao enviar imagem do cartão ao Cloudinary."
+                )
+                return (
+                    jsonify(
+                        {
+                            "uploaded": 0,
+                            "error": {
+                                "message": "Não foi possível enviar a imagem ao armazenamento externo. Tente novamente.",
+                            },
+                        }
+                    ),
+                    502,
+                )
+        else:
+            upload_path = _resolve_upload_path(
+                "SECTION_ITEM_IMAGE_UPLOADS_PATH",
+                Path("static") / "uploads" / "section-items",
+            )
+            destination = upload_path / unique_name
+            upload.save(destination)
+
+            file_url = url_for("section_item_uploaded_image", filename=unique_name)
+
         return jsonify({"uploaded": 1, "fileName": unique_name, "url": file_url})
 
     def _chunk_pages(pages: Iterable[Page], columns: int = 3) -> list[list[Page]]:

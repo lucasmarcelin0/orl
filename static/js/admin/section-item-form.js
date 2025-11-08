@@ -11,10 +11,21 @@
         return document.querySelector(selector);
     }
 
+    function decodeHtml(html) {
+        if (!html) {
+            return '';
+        }
+
+        const textarea = document.createElement('textarea');
+        textarea.innerHTML = html;
+        return textarea.value;
+    }
+
     function sanitizeHtml(html) {
         if (!html) {
             return '';
         }
+
         return html.replace(/<script[^>]*>.*?<\/script>/gi, '');
     }
 
@@ -65,8 +76,9 @@
                     ? window.CKEDITOR.instances[fields.summary.id]
                     : null;
 
-                const summaryValue = editor ? editor.getData() : fields.summary?.value || '';
-                const content = sanitizeHtml(summaryValue).trim();
+                const rawSummaryValue = editor ? editor.getData() : fields.summary?.value || '';
+                const decodedSummary = decodeHtml(rawSummaryValue);
+                const content = sanitizeHtml(decodedSummary).trim();
                 summaryEl.innerHTML = content || defaults.summary;
             }
 
@@ -136,7 +148,10 @@
         instance.on('instanceReady', handler);
     }
 
-    function getUploadEndpoint() {
+    function getUploadEndpoint(field) {
+        if (field && field.dataset && field.dataset.cardImageEndpoint) {
+            return field.dataset.cardImageEndpoint;
+        }
         return window.__orlImageUploadEndpoint || null;
     }
 
@@ -204,17 +219,24 @@
             return;
         }
 
-        const endpoint = getUploadEndpoint();
-        if (!endpoint) {
-            return;
-        }
-
         const elements = ensureImageUploadWrapper(field);
         if (!elements) {
+            field.dataset.cardImageUploadBound = '1';
             return;
         }
 
         const { wrapper, feedback } = elements;
+
+        const endpoint = getUploadEndpoint(field);
+        if (!endpoint) {
+            if (feedback) {
+                feedback.textContent =
+                    'Envio direto de imagens indisponível. Informe um endereço completo da imagem ou contate o suporte para habilitar o recurso.';
+                feedback.setAttribute('data-status', 'error');
+            }
+            field.dataset.cardImageUploadBound = '1';
+            return;
+        }
 
         function showFeedback(status, message) {
             if (!feedback) {
