@@ -696,6 +696,18 @@ class SectionItemAdminView(SecuredModelView):
     def edit_form(self, obj=None):  # type: ignore[override]
         form = super().edit_form(obj)
         return self._bind_image_upload_endpoint(form)
+    
+    def on_model_change(self, form, model: SectionItem, is_created: bool) -> None:  # type: ignore[override]
+        """Garante que o identificador vazio não seja enviado ao banco."""
+
+        raw_id = getattr(model, "id", None)
+        if isinstance(raw_id, str):
+            raw_id = raw_id.strip()
+            model.id = int(raw_id) if raw_id else None
+        elif raw_id is None:
+            model.id = None
+
+        return super().on_model_change(form, model, is_created)
     form_create_rules = form_edit_rules = (
         rules.Field("id"),
         rules.HTML(
