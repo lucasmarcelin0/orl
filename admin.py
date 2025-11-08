@@ -780,6 +780,14 @@ class SectionItemAdminView(SecuredModelView):
     }
     inline_models = (DocumentInlineForm(Document),)
 
+    def scaffold_form(self):  # type: ignore[override]
+        """Oculta o campo ``id`` para evitar validações indevidas na criação."""
+
+        form_class = super().scaffold_form()
+        form_class.id = HiddenField()
+        form_class.id.validators = []
+        return form_class
+
 
 class DocumentAdminView(DocumentUploadMixin, SecuredModelView):
     """Gerencia os arquivos disponibilizados para download na página inicial."""
