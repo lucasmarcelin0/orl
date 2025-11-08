@@ -11,10 +11,21 @@
         return document.querySelector(selector);
     }
 
+    function decodeHtml(html) {
+        if (!html) {
+            return '';
+        }
+
+        const textarea = document.createElement('textarea');
+        textarea.innerHTML = html;
+        return textarea.value;
+    }
+
     function sanitizeHtml(html) {
         if (!html) {
             return '';
         }
+
         return html.replace(/<script[^>]*>.*?<\/script>/gi, '');
     }
 
@@ -65,8 +76,9 @@
                     ? window.CKEDITOR.instances[fields.summary.id]
                     : null;
 
-                const summaryValue = editor ? editor.getData() : fields.summary?.value || '';
-                const content = sanitizeHtml(summaryValue).trim();
+                const rawSummaryValue = editor ? editor.getData() : fields.summary?.value || '';
+                const decodedSummary = decodeHtml(rawSummaryValue);
+                const content = sanitizeHtml(decodedSummary).trim();
                 summaryEl.innerHTML = content || defaults.summary;
             }
 
