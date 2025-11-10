@@ -39,7 +39,6 @@ from flask_login import (
     logout_user,
 )
 from flask_babel import Babel
-from flask_socketio import SocketIO
 from sqlalchemy import event, func, inspect, or_, text
 from sqlalchemy.orm import load_only
 from sqlalchemy.exc import IntegrityError, OperationalError
@@ -63,7 +62,6 @@ from models import (
     User,
 )
 from models import AuditMixin
-from jogo import jogo_bp, init_socketio
 
 # Comentário: extensões globais reutilizadas pela aplicação.
 STARTUP_EXTENSION_KEY = "orl_startup_state"
@@ -73,7 +71,6 @@ migrate = Migrate()
 ckeditor = CKEditor()
 login_manager = LoginManager()
 babel = Babel()
-socketio = SocketIO()
 
 
 def create_app() -> Flask:
@@ -92,11 +89,6 @@ def create_app() -> Flask:
     login_manager.login_view = "auth.login"
     login_manager.login_message = "Realize o login para acessar o painel."
     login_manager.login_message_category = "error"
-
-    socketio.init_app(app)
-    if not getattr(socketio, "_orl_game_initialized", False):
-        init_socketio(socketio)
-        setattr(socketio, "_orl_game_initialized", True)
 
     def _select_locale() -> str:
         return app.config.get("BABEL_DEFAULT_LOCALE", "pt_BR")
@@ -506,7 +498,6 @@ def create_app() -> Flask:
         return redirect(url_for("auth.login"))
 
     app.register_blueprint(auth_bp)
-    app.register_blueprint(jogo_bp)
 
     @app.route("/admin/perfil", methods=["GET", "POST"])
     @login_required
@@ -1193,4 +1184,4 @@ app = create_app()
 
 if __name__ == "__main__":
     # Comentário: execução direta do módulo para ambientes de desenvolvimento.
-    socketio.run(app, debug=True)
+    app.run(debug=True)
