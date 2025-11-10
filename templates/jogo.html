@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Jogo dos Pauzinhos</title>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js" defer></script>
+  <script src="https://cdn.tailwindcss.com" defer></script>
+</head>
+<body class="bg-gradient-to-br from-slate-900 to-slate-700 text-white min-h-screen flex flex-col items-center justify-center py-12">
+  <div class="max-w-2xl text-center">
+    <h1 class="text-4xl font-bold mb-4 drop-shadow">🌿 Jogo dos Pauzinhos</h1>
+    <p class="mb-8 text-slate-300">Quem riscar o último perde!</p>
+  </div>
+  <div id="board" class="space-y-4"></div>
+  <p id="turn" class="mt-8 text-xl font-semibold"></p>
+  <p id="gameOver" class="mt-6 text-red-400 font-bold hidden">Fim de jogo!</p>
+  <button onclick="window.location.reload()" class="mt-8 bg-slate-600 px-5 py-2 rounded-full hover:bg-slate-500 transition">🔁 Nova Partida</button>
+  <script>
+    const socket = io();
+    const room = "{{ room_id }}";
+    const boardEl = document.getElementById('board');
+    const turnEl = document.getElementById('turn');
+    const gameOverEl = document.getElementById('gameOver');
+    let state = null;
+
+    socket.emit('join_room', { room });
+
+    socket.on('state_update', (s) => {
+      state = s;
+      renderBoard();
+      updateTurn();
+    });
+
+    socket.on('game_over', () => {
+      gameOverEl.classList.remove('hidden');
+      turnEl.textContent = '';
+    });
+
+    function renderBoard() {
+      boardEl.innerHTML = '';
+      state.rows.forEach((row, r) => {
+        const rowEl = document.createElement('div');
+        rowEl.className = 'flex justify-center space-x-3';
+        row.forEach((v, i) => {
+          const stick = document.createElement('button');
+          stick.type = 'button';
+          stick.textContent = v ? '|' : '×';
+          stick.className = 'text-5xl font-mono cursor-pointer select-none transition transform hover:scale-125 focus:outline-none ' + (v ? 'text-yellow-400 hover:text-yellow-200' : 'text-slate-600 cursor-not-allowed');
+          if (v && state.turn === 0) {
+            stick.onclick = () => makeMove(r, [i]);
+          } else {
+            stick.disabled = true;
+          }
+          rowEl.appendChild(stick);
+        });
+        boardEl.appendChild(rowEl);
+      });
+    }
+
+    function updateTurn() {
+      const yourTurn = state.turn === 0;
+      turnEl.textContent = yourTurn ? '🟢 Seu turno' : '⚪ Esperando o outro jogador...';
+    }
+
+    function makeMove(row, indexes) {
+      socket.emit('move', { room, row, indexes });
+    }
+  </script>
+</body>
+</html>
