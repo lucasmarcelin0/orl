@@ -1,4 +1,12 @@
 (function () {
+    const PREVIEW_DEFAULTS = {
+        title: 'Título do cartão',
+        summary: '<p>Utilize o campo “Resumo” para adicionar o conteúdo que aparecerá no site.</p>',
+        link: 'Adicionar link',
+        badge: 'Adicionar selo',
+        date: 'Definir data',
+    };
+
     function ready(callback) {
         if (document.readyState !== 'loading') {
             callback();
@@ -126,6 +134,10 @@
                 return null;
             }
 
+            if (element.closest('[data-preview-editable]')) {
+                return null;
+            }
+
             return element.closest('[data-preview-trigger]');
         }
 
@@ -154,6 +166,24 @@
         });
     }
 
+    function setEditableText(element, value, placeholder) {
+        if (!element) {
+            return;
+        }
+
+        const hasValue = !!value;
+        const displayValue = hasValue ? value : placeholder;
+        const isActive = document.activeElement === element;
+
+        if (!isActive) {
+            if (element.textContent !== displayValue) {
+                element.textContent = displayValue;
+            }
+        }
+
+        element.dataset.placeholder = hasValue ? 'false' : 'true';
+    }
+
     function updatePreviewFactory(root, fields) {
         const titleEl = root.querySelector('[data-preview-title]');
         const summaryEl = root.querySelector('[data-preview-summary]');
@@ -165,15 +195,6 @@
         const imageEl = root.querySelector('[data-preview-image]');
         const imagePlaceholder = root.querySelector('[data-preview-image-empty]');
 
-        const defaults = {
-            title: 'Título do cartão',
-            summary:
-                '<p>Utilize o campo “Resumo” para adicionar o conteúdo que aparecerá no site.</p>',
-            link: 'Adicionar link',
-            badge: 'Adicionar selo',
-            date: 'Definir data',
-        };
-
         return function updatePreview() {
             const title = fields.title && fields.title.value.trim();
             const badge = fields.badge && fields.badge.value.trim();
@@ -182,10 +203,7 @@
             const linkUrl = fields.linkUrl && fields.linkUrl.value.trim();
             const imageUrl = fields.imageUrl && fields.imageUrl.value.trim();
 
-            if (titleEl) {
-                titleEl.textContent = title || defaults.title;
-                titleEl.dataset.placeholder = title ? 'false' : 'true';
-            }
+            setEditableText(titleEl, title, PREVIEW_DEFAULTS.title);
 
             if (summaryEl) {
                 const editor = window.CKEDITOR && fields.summary && fields.summary.id
@@ -195,14 +213,14 @@
                 const rawSummaryValue = editor ? editor.getData() : fields.summary?.value || '';
                 const decodedSummary = decodeHtml(rawSummaryValue);
                 const content = sanitizeHtml(decodedSummary).trim();
-                summaryEl.innerHTML = content || defaults.summary;
+                summaryEl.innerHTML = content || PREVIEW_DEFAULTS.summary;
                 summaryEl.dataset.placeholder = content ? 'false' : 'true';
             }
 
             if (imageWrapper && imageEl) {
                 if (imageUrl) {
                     imageEl.src = imageUrl;
-                    imageEl.alt = title || defaults.title;
+                    imageEl.alt = title || PREVIEW_DEFAULTS.title;
                     imageEl.removeAttribute('hidden');
                     imageWrapper.classList.add('has-image');
                     if (imagePlaceholder) {
@@ -218,38 +236,119 @@
                 }
             }
 
-            if (badgeEl) {
-                if (badge) {
-                    badgeEl.textContent = badge;
-                    badgeEl.dataset.placeholder = 'false';
-                } else {
-                    badgeEl.textContent = defaults.badge;
-                    badgeEl.dataset.placeholder = 'true';
-                }
-            }
-
-            if (dateEl) {
-                if (date) {
-                    dateEl.textContent = date;
-                    dateEl.dataset.placeholder = 'false';
-                } else {
-                    dateEl.textContent = defaults.date;
-                    dateEl.dataset.placeholder = 'true';
-                }
-            }
+            setEditableText(badgeEl, badge, PREVIEW_DEFAULTS.badge);
+            setEditableText(dateEl, date, PREVIEW_DEFAULTS.date);
 
             if (linkEl && linkLabelEl) {
                 if (linkLabel) {
-                    linkLabelEl.textContent = linkLabel;
+                    setEditableText(linkLabelEl, linkLabel, PREVIEW_DEFAULTS.link);
                     linkEl.setAttribute('href', normalizeUrl(linkUrl));
                     linkEl.dataset.placeholder = 'false';
                 } else {
-                    linkLabelEl.textContent = defaults.link;
+                    setEditableText(linkLabelEl, '', PREVIEW_DEFAULTS.link);
                     linkEl.setAttribute('href', '#');
                     linkEl.dataset.placeholder = 'true';
                 }
             }
         };
+    }
+
+    function bindEditablePlaceholder(element) {
+        if (!element) {
+            return;
+        }
+
+        element.addEventListener('focus', function () {
+            if (element.dataset.placeholder === 'true') {
+                element.textContent = '';
+                element.dataset.placeholder = 'false';
+            }
+        });
+    }
+
+    function bindPreviewEditors(root, fields, updatePreview) {
+        const configs = [
+            {
+                element: root.querySelector('[data-preview-title]'),
+                field: fields.title,
+                placeholder: PREVIEW_DEFAULTS.title,
+                multiline: false,
+            },
+            {
+                element: root.querySelector('[data-preview-badge]'),
+                field: fields.badge,
+                placeholder: PREVIEW_DEFAULTS.badge,
+                multiline: false,
+            },
+            {
+                element: root.querySelector('[data-preview-date]'),
+                field: fields.displayDate,
+                placeholder: PREVIEW_DEFAULTS.date,
+                multiline: false,
+            },
+            {
+                element: root.querySelector('[data-preview-link-label]'),
+                field: fields.linkLabel,
+                placeholder: PREVIEW_DEFAULTS.link,
+                multiline: false,
+            },
+        ];
+
+        configs.forEach(function (config) {
+            const element = config.element;
+            const field = config.field;
+
+            if (!element || !field) {
+                return;
+            }
+
+            bindEditablePlaceholder(element);
+
+            element.addEventListener('keydown', function (event) {
+                if (!config.multiline && (event.key === 'Enter' || event.key === 'Return')) {
+                    event.preventDefault();
+                    element.blur();
+                }
+            });
+
+            function normaliseValue(value) {
+                if (!value) {
+                    return '';
+                }
+
+                const cleaned = value.replace(/\u00a0/g, ' ');
+                if (config.multiline) {
+                    return cleaned.trim();
+                }
+
+                return cleaned.replace(/\s+/g, ' ').trim();
+            }
+
+            function syncFieldFromPreview() {
+                const newValue = normaliseValue(element.textContent || '');
+                const currentValue = field.value || '';
+
+                if (currentValue !== newValue) {
+                    field.value = newValue;
+                    field.dispatchEvent(new Event('input', { bubbles: true }));
+                    field.dispatchEvent(new Event('change', { bubbles: true }));
+                } else {
+                    field.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+            }
+
+            element.addEventListener('input', function () {
+                syncFieldFromPreview();
+            });
+
+            element.addEventListener('blur', function () {
+                syncFieldFromPreview();
+                if (!element.textContent) {
+                    element.dataset.placeholder = 'true';
+                }
+                updatePreview();
+            });
+        });
     }
 
     function bindInput(field, handler) {
@@ -560,6 +659,8 @@
         Object.values(fields).forEach(function (field) {
             bindInput(field, updatePreview);
         });
+
+        bindPreviewEditors(root, fields, updatePreview);
 
         function bindAllImageInputs() {
             document.querySelectorAll('[data-card-image-input]').forEach(function (input) {
