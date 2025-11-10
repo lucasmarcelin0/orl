@@ -60,8 +60,11 @@ SECTION_ITEM_PREVIEW_HTML = """
         <span
             class=\"section-item-preview__badge\"
             data-preview-badge
-            data-preview-trigger=\"badge\"
-            role=\"button\"
+            data-preview-editable=\"badge\"
+            contenteditable=\"true\"
+            role=\"textbox\"
+            aria-label=\"Editar selo do cartão\"
+            spellcheck=\"false\"
             tabindex=\"0\"
         >
             Selo do cartão
@@ -69,8 +72,11 @@ SECTION_ITEM_PREVIEW_HTML = """
         <span
             class=\"section-item-preview__date\"
             data-preview-date
-            data-preview-trigger=\"date\"
-            role=\"button\"
+            data-preview-editable=\"display_date\"
+            contenteditable=\"true\"
+            role=\"textbox\"
+            aria-label=\"Editar data exibida\"
+            spellcheck=\"false\"
             tabindex=\"0\"
         >
             Data exibida
@@ -97,8 +103,11 @@ SECTION_ITEM_PREVIEW_HTML = """
     <h3
         class=\"section-item-preview__title\"
         data-preview-title
-        data-preview-trigger=\"title\"
-        role=\"button\"
+        data-preview-editable=\"title\"
+        contenteditable=\"true\"
+        role=\"textbox\"
+        aria-label=\"Editar título do cartão\"
+        spellcheck=\"true\"
         tabindex=\"0\"
     >
         Título do cartão
@@ -119,7 +128,17 @@ SECTION_ITEM_PREVIEW_HTML = """
             data-preview-trigger=\"link\"
             href=\"#\"
         >
-            <span data-preview-link-label>Texto do link</span>
+            <span
+                data-preview-link-label
+                data-preview-editable=\"link_label\"
+                contenteditable=\"true\"
+                role=\"textbox\"
+                aria-label=\"Editar texto do link\"
+                spellcheck=\"false\"
+                tabindex=\"0\"
+            >
+                Texto do link
+            </span>
             <i class=\"fa-solid fa-arrow-right\" aria-hidden=\"true\"></i>
         </a>
     </footer>
