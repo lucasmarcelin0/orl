@@ -96,26 +96,37 @@ def _extract_public_id(url: str) -> Optional[Tuple[str, str]]:
     except ValueError:
         return None
 
-    segments = parsed.path.strip("/").split("/")
+    segments = [segment for segment in parsed.path.split("/") if segment]
     if len(segments) < 3:
         return None
 
-    try:
-        upload_index = segments.index("upload")
-    except ValueError:
-        return None
-
-    if upload_index == 0:
-        return None
-
-    resource_type = segments[upload_index - 1]
-    asset_segments = segments[upload_index + 1 :]
+    # Cloudinary URLs follow the pattern
+    # /<cloud_name>/<resource_type>/<delivery_type>/<asset_path>
+    resource_type = segments[1]
+    asset_segments = segments[3:]
     if not asset_segments:
         return None
 
-    version_segment = asset_segments[0]
-    if version_segment.startswith("v") and version_segment[1:].isdigit():
+    # Signed URLs include a signature segment right after the delivery type.
+    if asset_segments and asset_segments[0].startswith("s--") and asset_segments[0].endswith("--"):
         asset_segments = asset_segments[1:]
+
+    if not asset_segments:
+        return None
+
+    # Transformations may appear before the optional version segment. We discard
+    # them to isolate the actual public ID even when transformations are present.
+    version_index: Optional[int] = None
+    for index, segment in enumerate(asset_segments):
+        if segment.startswith("v") and segment[1:].isdigit():
+            version_index = index
+            break
+
+    if version_index is not None:
+        asset_segments = asset_segments[version_index + 1 :]
+    else:
+        while asset_segments and "," in asset_segments[0]:
+            asset_segments = asset_segments[1:]
 
     if not asset_segments:
         return None
