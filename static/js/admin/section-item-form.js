@@ -1,12 +1,4 @@
 (function () {
-    const PREVIEW_DEFAULTS = {
-        title: 'Título do cartão',
-        summary: '<p>Utilize o campo “Resumo” para adicionar o conteúdo que aparecerá no site.</p>',
-        link: 'Adicionar link',
-        badge: 'Adicionar selo',
-        date: 'Definir data',
-    };
-
     function ready(callback) {
         if (document.readyState !== 'loading') {
             callback();
@@ -72,37 +64,14 @@
         }
 
         const textarea = fields.summary;
-        const group = textarea.closest('.form-group');
-        if (group) {
-            group.classList.add('section-item-summary-group--highlight');
-            window.setTimeout(function () {
-                group.classList.remove('section-item-summary-group--highlight');
-            }, 2000);
-        }
-
         const editor = window.CKEDITOR && textarea.id ? window.CKEDITOR.instances[textarea.id] : null;
 
         if (editor) {
-            const container = editor.container && editor.container.$ ? editor.container.$ : null;
-            if (container && typeof container.scrollIntoView === 'function') {
-                try {
-                    container.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                } catch (error) {
-                    container.scrollIntoView(true);
-                }
-            }
             editor.focus();
             return;
         }
 
         focusField(textarea);
-        if (typeof textarea.scrollIntoView === 'function') {
-            try {
-                textarea.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            } catch (error) {
-                textarea.scrollIntoView(true);
-            }
-        }
     }
 
     function bindPreviewInteractions(root, fields) {
@@ -157,10 +126,6 @@
                 return null;
             }
 
-            if (element.closest('[data-preview-editable]')) {
-                return null;
-            }
-
             return element.closest('[data-preview-trigger]');
         }
 
@@ -189,35 +154,6 @@
         });
     }
 
-    function setEditableContent(element, value, placeholder, options) {
-        if (!element) {
-            return;
-        }
-
-        const config = options || {};
-        const isHtml = !!config.isHtml;
-        const hasValue = !!value;
-        const displayValue = hasValue ? value : placeholder;
-        const isActive = document.activeElement === element;
-        const isSyncing = element.dataset && element.dataset.syncing === '1';
-
-        if (!isActive || isSyncing) {
-            if (isHtml) {
-                if (element.innerHTML !== displayValue) {
-                    element.innerHTML = displayValue;
-                }
-            } else if (element.textContent !== displayValue) {
-                element.textContent = displayValue;
-            }
-        }
-
-        element.dataset.placeholder = hasValue ? 'false' : 'true';
-
-        if (isSyncing) {
-            delete element.dataset.syncing;
-        }
-    }
-
     function updatePreviewFactory(root, fields) {
         const titleEl = root.querySelector('[data-preview-title]');
         const summaryEl = root.querySelector('[data-preview-summary]');
@@ -229,6 +165,15 @@
         const imageEl = root.querySelector('[data-preview-image]');
         const imagePlaceholder = root.querySelector('[data-preview-image-empty]');
 
+        const defaults = {
+            title: 'Título do cartão',
+            summary:
+                '<p>Utilize o campo “Resumo” para adicionar o conteúdo que aparecerá no site.</p>',
+            link: 'Adicionar link',
+            badge: 'Adicionar selo',
+            date: 'Definir data',
+        };
+
         return function updatePreview() {
             const title = fields.title && fields.title.value.trim();
             const badge = fields.badge && fields.badge.value.trim();
@@ -237,7 +182,10 @@
             const linkUrl = fields.linkUrl && fields.linkUrl.value.trim();
             const imageUrl = fields.imageUrl && fields.imageUrl.value.trim();
 
-            setEditableContent(titleEl, title, PREVIEW_DEFAULTS.title);
+            if (titleEl) {
+                titleEl.textContent = title || defaults.title;
+                titleEl.dataset.placeholder = title ? 'false' : 'true';
+            }
 
             if (summaryEl) {
                 const editor = window.CKEDITOR && fields.summary && fields.summary.id
@@ -247,13 +195,14 @@
                 const rawSummaryValue = editor ? editor.getData() : fields.summary?.value || '';
                 const decodedSummary = decodeHtml(rawSummaryValue);
                 const content = sanitizeHtml(decodedSummary).trim();
-                setEditableContent(summaryEl, content, PREVIEW_DEFAULTS.summary, { isHtml: true });
+                summaryEl.innerHTML = content || defaults.summary;
+                summaryEl.dataset.placeholder = content ? 'false' : 'true';
             }
 
             if (imageWrapper && imageEl) {
                 if (imageUrl) {
                     imageEl.src = imageUrl;
-                    imageEl.alt = title || PREVIEW_DEFAULTS.title;
+                    imageEl.alt = title || defaults.title;
                     imageEl.removeAttribute('hidden');
                     imageWrapper.classList.add('has-image');
                     if (imagePlaceholder) {
@@ -269,173 +218,38 @@
                 }
             }
 
-            setEditableContent(badgeEl, badge, PREVIEW_DEFAULTS.badge);
-            setEditableContent(dateEl, date, PREVIEW_DEFAULTS.date);
+            if (badgeEl) {
+                if (badge) {
+                    badgeEl.textContent = badge;
+                    badgeEl.dataset.placeholder = 'false';
+                } else {
+                    badgeEl.textContent = defaults.badge;
+                    badgeEl.dataset.placeholder = 'true';
+                }
+            }
+
+            if (dateEl) {
+                if (date) {
+                    dateEl.textContent = date;
+                    dateEl.dataset.placeholder = 'false';
+                } else {
+                    dateEl.textContent = defaults.date;
+                    dateEl.dataset.placeholder = 'true';
+                }
+            }
 
             if (linkEl && linkLabelEl) {
                 if (linkLabel) {
-                    setEditableContent(linkLabelEl, linkLabel, PREVIEW_DEFAULTS.link);
+                    linkLabelEl.textContent = linkLabel;
                     linkEl.setAttribute('href', normalizeUrl(linkUrl));
                     linkEl.dataset.placeholder = 'false';
                 } else {
-                    setEditableContent(linkLabelEl, '', PREVIEW_DEFAULTS.link);
+                    linkLabelEl.textContent = defaults.link;
                     linkEl.setAttribute('href', '#');
                     linkEl.dataset.placeholder = 'true';
                 }
             }
         };
-    }
-
-    function bindEditablePlaceholder(element, options) {
-        if (!element) {
-            return;
-        }
-
-        const config = options || {};
-        const isHtml = !!config.isHtml;
-
-        element.addEventListener('focus', function () {
-            if (element.dataset.placeholder === 'true') {
-                if (isHtml) {
-                    element.innerHTML = '';
-                } else {
-                    element.textContent = '';
-                }
-                element.dataset.placeholder = 'false';
-            }
-        });
-    }
-
-    function bindPreviewEditors(root, fields, updatePreview) {
-        const configs = [
-            {
-                element: root.querySelector('[data-preview-title]'),
-                field: fields.title,
-                placeholder: PREVIEW_DEFAULTS.title,
-                multiline: false,
-            },
-            {
-                element: root.querySelector('[data-preview-summary]'),
-                field: fields.summary,
-                placeholder: PREVIEW_DEFAULTS.summary,
-                multiline: true,
-                isHtml: true,
-            },
-            {
-                element: root.querySelector('[data-preview-badge]'),
-                field: fields.badge,
-                placeholder: PREVIEW_DEFAULTS.badge,
-                multiline: false,
-            },
-            {
-                element: root.querySelector('[data-preview-date]'),
-                field: fields.displayDate,
-                placeholder: PREVIEW_DEFAULTS.date,
-                multiline: false,
-            },
-            {
-                element: root.querySelector('[data-preview-link-label]'),
-                field: fields.linkLabel,
-                placeholder: PREVIEW_DEFAULTS.link,
-                multiline: false,
-            },
-        ];
-
-        configs.forEach(function (config) {
-            const element = config.element;
-            const field = config.field;
-
-            if (!element || !field) {
-                return;
-            }
-
-            bindEditablePlaceholder(element, { isHtml: config.isHtml });
-
-            element.addEventListener('keydown', function (event) {
-                if (!config.multiline && (event.key === 'Enter' || event.key === 'Return')) {
-                    event.preventDefault();
-                    element.blur();
-                }
-            });
-
-            function normaliseValue(value) {
-                if (!value) {
-                    return '';
-                }
-
-                const cleaned = value.replace(/\u00a0/g, ' ');
-                if (config.isHtml) {
-                    return sanitizeHtml(cleaned).trim();
-                }
-
-                if (config.multiline) {
-                    return cleaned.trim();
-                }
-
-                return cleaned.replace(/\s+/g, ' ').trim();
-            }
-
-            function syncFieldFromPreview() {
-                if (config.isHtml) {
-                    const newValue = normaliseValue(element.innerHTML || '');
-                    const editor =
-                        window.CKEDITOR && field.id && window.CKEDITOR.instances[field.id]
-                            ? window.CKEDITOR.instances[field.id]
-                            : null;
-
-                    if (editor) {
-                        const currentValue = sanitizeHtml(editor.getData() || '').trim();
-                        if (currentValue !== newValue) {
-                            element.dataset.syncing = '1';
-                            editor.setData(newValue);
-                        } else {
-                            element.dataset.syncing = '1';
-                        }
-                        updatePreview();
-                        return;
-                    }
-
-                    const currentValue = sanitizeHtml(field.value || '').trim();
-                    if (currentValue !== newValue) {
-                        field.value = newValue;
-                        field.dispatchEvent(new Event('input', { bubbles: true }));
-                        field.dispatchEvent(new Event('change', { bubbles: true }));
-                    } else {
-                        field.dispatchEvent(new Event('input', { bubbles: true }));
-                    }
-                    return;
-                }
-
-                const newValue = normaliseValue(element.textContent || '');
-                const currentValue = field.value || '';
-
-                if (currentValue !== newValue) {
-                    field.value = newValue;
-                    field.dispatchEvent(new Event('input', { bubbles: true }));
-                    field.dispatchEvent(new Event('change', { bubbles: true }));
-                } else {
-                    field.dispatchEvent(new Event('input', { bubbles: true }));
-                }
-            }
-
-            element.addEventListener('input', function () {
-                syncFieldFromPreview();
-            });
-
-            element.addEventListener('blur', function () {
-                syncFieldFromPreview();
-                if (config.isHtml) {
-                    const textValue = (element.textContent || '').trim();
-                    if (!textValue) {
-                        element.dataset.placeholder = 'true';
-                        element.innerHTML = '';
-                    }
-                } else if (!element.textContent) {
-                    element.dataset.placeholder = 'true';
-                }
-                updatePreview();
-            });
-        });
     }
 
     function bindInput(field, handler) {
@@ -746,8 +560,6 @@
         Object.values(fields).forEach(function (field) {
             bindInput(field, updatePreview);
         });
-
-        bindPreviewEditors(root, fields, updatePreview);
 
         function bindAllImageInputs() {
             document.querySelectorAll('[data-card-image-input]').forEach(function (input) {
