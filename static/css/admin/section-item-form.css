@@ -417,23 +417,6 @@
     outline-offset: 2px;
 }
 
-.section-item-preview [data-preview-editable] {
-    cursor: text;
-    outline: none;
-    border-radius: 6px;
-    transition: background-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.section-item-preview [data-preview-editable]:focus {
-    background-color: rgba(26, 79, 140, 0.08);
-    box-shadow: 0 0 0 2px rgba(26, 79, 140, 0.18);
-    outline: none;
-}
-
-.section-item-preview [data-preview-editable][data-placeholder='true'] {
-    opacity: 0.7;
-}
-
 .section-item-preview [data-placeholder='true'] {
     opacity: 0.65;
 }
