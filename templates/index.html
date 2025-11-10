@@ -98,7 +98,11 @@
                     <div class="service-card">
                         {% if item.image_url %}
                         <div class="service-media">
-                            <img src="{{ item.image_url }}" alt="{{ item.title }}">
+                            <img
+                                src="{{ item.image_url }}"
+                                alt="{{ item.title }}"
+                                style="--section-item-image-transform: {{ item.image_transform_css }};"
+                            >
                         </div>
                         {% elif item.icon_class %}
                         <div class="service-icon">
@@ -138,10 +142,14 @@
                 <div class="news-grid">
                     {% for item in news_items %}
                     <div class="news-card">
-                        {% if item.image_url %}
-                        <div class="news-img">
-                            <img src="{{ item.image_url }}" alt="{{ item.title }}">
-                        </div>
+                    {% if item.image_url %}
+                    <div class="news-img">
+                        <img
+                            src="{{ item.image_url }}"
+                            alt="{{ item.title }}"
+                            style="--section-item-image-transform: {{ item.image_transform_css }};"
+                        >
+                    </div>
                         {% endif %}
                         <div class="news-content">
                             {% if item.display_date %}
@@ -228,7 +236,11 @@
                     <div class="service-card">
                         {% if item.image_url %}
                         <div class="service-media">
-                            <img src="{{ item.image_url }}" alt="{{ item.title }}">
+                            <img
+                                src="{{ item.image_url }}"
+                                alt="{{ item.title }}"
+                                style="--section-item-image-transform: {{ item.image_transform_css }};"
+                            >
                         </div>
                         {% elif item.icon_class %}
                         <div class="service-icon">

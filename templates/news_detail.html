@@ -12,7 +12,11 @@
 <section class="page-body news-detail-body">
     {% if item.image_url %}
     <figure class="news-detail-image">
-        <img src="{{ item.image_url }}" alt="{{ item.title }}">
+        <img
+            src="{{ item.image_url }}"
+            alt="{{ item.title }}"
+            style="--section-item-image-transform: {{ item.image_transform_css }};"
+        >
     </figure>
     {% endif %}
     <div class="news-detail-content">
