@@ -19,6 +19,7 @@ from flask_admin.menu import MenuLink
 from flask_admin.model.form import InlineFormAdmin
 from flask_login import current_user
 from flask_ckeditor import CKEditorField
+from sqlalchemy import select
 from sqlalchemy.exc import OperationalError
 from wtforms import HiddenField, PasswordField
 from wtforms.fields import EmailField
@@ -47,6 +48,8 @@ SECTION_INLINE_FORM_COLUMNS = (
     "link_label",
     "icon_class",
     "image_url",
+    "image_scale",
+    "image_rotation",
     "badge",
     "display_date",
     "display_order",
@@ -93,6 +96,46 @@ SECTION_ITEM_PREVIEW_HTML = """
             <i class=\"fa-solid fa-image\" aria-hidden=\"true\"></i>
             <span>Adicionar imagem</span>
         </button>
+        <div class=\"section-item-preview__image-controls\" data-preview-image-controls hidden>
+            <div class=\"section-item-preview__image-control\">
+                <label for=\"section-item-preview-scale\">Zoom</label>
+                <div class=\"section-item-preview__slider\">
+                    <input
+                        type=\"range\"
+                        id=\"section-item-preview-scale\"
+                        min=\"50\"
+                        max=\"200\"
+                        step=\"5\"
+                        value=\"100\"
+                        data-preview-image-scale-control
+                    >
+                    <span class=\"section-item-preview__slider-value\" data-preview-image-scale-value>100%</span>
+                </div>
+            </div>
+            <div class=\"section-item-preview__image-control\">
+                <label for=\"section-item-preview-rotation\">Rotação</label>
+                <div class=\"section-item-preview__slider\">
+                    <input
+                        type=\"range\"
+                        id=\"section-item-preview-rotation\"
+                        min=\"-180\"
+                        max=\"180\"
+                        step=\"1\"
+                        value=\"0\"
+                        data-preview-image-rotation-control
+                    >
+                    <span class=\"section-item-preview__slider-value\" data-preview-image-rotation-value>0°</span>
+                </div>
+            </div>
+            <button
+                type=\"button\"
+                class=\"section-item-preview__reset\"
+                data-preview-image-reset
+            >
+                <i class=\"fa-solid fa-rotate-left\" aria-hidden=\"true\"></i>
+                <span>Restaurar imagem</span>
+            </button>
+        </div>
     </div>
     <h3
         class=\"section-item-preview__title\"
@@ -507,30 +550,38 @@ class HomepageSectionAdminView(SecuredModelView):
 def _section_filter_options() -> list[tuple[int, str]]:
     """Retorna as opções disponíveis para o filtro de seção."""
 
+    stmt = select(HomepageSection.id, HomepageSection.name).order_by(
+        HomepageSection.name
+    )
+
     try:
-        sections = HomepageSection.query.order_by(HomepageSection.name).all()
+        results = db.session.execute(stmt).all()
     except OperationalError:
         return []
 
-    return [(section.id, section.name) for section in sections]
+    return [(row.id, row.name) for row in results]
 
 
 def _section_item_filter_options() -> list[tuple[int, str]]:
     """Retorna os itens disponíveis para vincular documentos."""
 
+    stmt = (
+        select(SectionItem.id, SectionItem.title, HomepageSection.name)
+        .select_from(SectionItem)
+        .outerjoin(HomepageSection)
+        .order_by(SectionItem.title.asc())
+    )
+
     try:
-        items = (
-            SectionItem.query.outerjoin(HomepageSection)
-            .order_by(SectionItem.title.asc())
-            .all()
-        )
+        results = db.session.execute(stmt).all()
     except OperationalError:
         return []
 
     options: list[tuple[int, str]] = []
-    for item in items:
-        section_name = getattr(item.section, "name", "Sem seção")
-        options.append((item.id, f"{section_name} - {item.title}"))
+    for item_id, title, section_name in results:
+        label_section = section_name or "Sem seção"
+        label_title = title or "Item sem título"
+        options.append((item_id, f"{label_section} - {label_title}"))
     return options
 
 
@@ -709,6 +760,14 @@ class SectionItemAdminView(SecuredModelView):
             "placeholder": "URL da imagem ilustrativa (opcional)",
             "data-card-image-input": "1",
         },
+        "image_scale": {
+            "type": "hidden",
+            "data-card-image-scale-input": "1",
+        },
+        "image_rotation": {
+            "type": "hidden",
+            "data-card-image-rotation-input": "1",
+        },
         "badge": {
             "placeholder": "Ex.: Novo, Destaque, Inscrições abertas",
         },
@@ -807,6 +866,8 @@ class SectionItemAdminView(SecuredModelView):
             "<div class=\"section-item-section__field section-item-section__field--full\">"
         ),
         rules.Field("image_url"),
+        rules.Field("image_scale"),
+        rules.Field("image_rotation"),
         rules.HTML("</div>"),
         rules.HTML("<div class=\"section-item-section__field\">"),
         rules.Field("badge"),
