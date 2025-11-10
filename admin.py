@@ -47,8 +47,6 @@ SECTION_INLINE_FORM_COLUMNS = (
     "link_label",
     "icon_class",
     "image_url",
-    "image_scale",
-    "image_rotation",
     "badge",
     "display_date",
     "display_order",
@@ -95,46 +93,6 @@ SECTION_ITEM_PREVIEW_HTML = """
             <i class=\"fa-solid fa-image\" aria-hidden=\"true\"></i>
             <span>Adicionar imagem</span>
         </button>
-        <div class=\"section-item-preview__image-controls\" data-preview-image-controls hidden>
-            <div class=\"section-item-preview__image-control\">
-                <label for=\"section-item-preview-scale\">Zoom</label>
-                <div class=\"section-item-preview__slider\">
-                    <input
-                        type=\"range\"
-                        id=\"section-item-preview-scale\"
-                        min=\"50\"
-                        max=\"200\"
-                        step=\"5\"
-                        value=\"100\"
-                        data-preview-image-scale-control
-                    >
-                    <span class=\"section-item-preview__slider-value\" data-preview-image-scale-value>100%</span>
-                </div>
-            </div>
-            <div class=\"section-item-preview__image-control\">
-                <label for=\"section-item-preview-rotation\">Rotação</label>
-                <div class=\"section-item-preview__slider\">
-                    <input
-                        type=\"range\"
-                        id=\"section-item-preview-rotation\"
-                        min=\"-180\"
-                        max=\"180\"
-                        step=\"1\"
-                        value=\"0\"
-                        data-preview-image-rotation-control
-                    >
-                    <span class=\"section-item-preview__slider-value\" data-preview-image-rotation-value>0°</span>
-                </div>
-            </div>
-            <button
-                type=\"button\"
-                class=\"section-item-preview__reset\"
-                data-preview-image-reset
-            >
-                <i class=\"fa-solid fa-rotate-left\" aria-hidden=\"true\"></i>
-                <span>Restaurar imagem</span>
-            </button>
-        </div>
     </div>
     <h3
         class=\"section-item-preview__title\"
@@ -751,14 +709,6 @@ class SectionItemAdminView(SecuredModelView):
             "placeholder": "URL da imagem ilustrativa (opcional)",
             "data-card-image-input": "1",
         },
-        "image_scale": {
-            "type": "hidden",
-            "data-card-image-scale-input": "1",
-        },
-        "image_rotation": {
-            "type": "hidden",
-            "data-card-image-rotation-input": "1",
-        },
         "badge": {
             "placeholder": "Ex.: Novo, Destaque, Inscrições abertas",
         },
@@ -857,8 +807,6 @@ class SectionItemAdminView(SecuredModelView):
             "<div class=\"section-item-section__field section-item-section__field--full\">"
         ),
         rules.Field("image_url"),
-        rules.Field("image_scale"),
-        rules.Field("image_rotation"),
         rules.HTML("</div>"),
         rules.HTML("<div class=\"section-item-section__field\">"),
         rules.Field("badge"),

@@ -29,24 +29,6 @@
         return html.replace(/<script[^>]*>.*?<\/script>/gi, '');
     }
 
-    var IMAGE_SCALE_MIN = 0.5;
-    var IMAGE_SCALE_MAX = 2;
-    var IMAGE_ROTATION_MIN = -180;
-    var IMAGE_ROTATION_MAX = 180;
-
-    function clamp(value, min, max) {
-        if (Number.isNaN(value)) {
-            return value;
-        }
-        if (value < min) {
-            return min;
-        }
-        if (value > max) {
-            return max;
-        }
-        return value;
-    }
-
     function normalizeUrl(value) {
         if (!value) {
             return '#';
@@ -182,12 +164,6 @@
         const imageWrapper = root.querySelector('[data-preview-image-wrapper]');
         const imageEl = root.querySelector('[data-preview-image]');
         const imagePlaceholder = root.querySelector('[data-preview-image-empty]');
-        const imageControls = root.querySelector('[data-preview-image-controls]');
-        const scaleControl = root.querySelector('[data-preview-image-scale-control]');
-        const rotationControl = root.querySelector('[data-preview-image-rotation-control]');
-        const scaleValueEl = root.querySelector('[data-preview-image-scale-value]');
-        const rotationValueEl = root.querySelector('[data-preview-image-rotation-value]');
-        const resetControl = root.querySelector('[data-preview-image-reset]');
 
         const defaults = {
             title: 'Título do cartão',
@@ -198,58 +174,6 @@
             date: 'Definir data',
         };
 
-        function parseScale() {
-            const value = fields.imageScale ? parseFloat(fields.imageScale.value) : NaN;
-            if (Number.isNaN(value)) {
-                return 1;
-            }
-            return clamp(value, IMAGE_SCALE_MIN, IMAGE_SCALE_MAX);
-        }
-
-        function parseRotation() {
-            const value = fields.imageRotation ? parseFloat(fields.imageRotation.value) : NaN;
-            if (Number.isNaN(value)) {
-                return 0;
-            }
-            return clamp(value, IMAGE_ROTATION_MIN, IMAGE_ROTATION_MAX);
-        }
-
-        function formatScale(scale) {
-            return Math.round(scale * 100);
-        }
-
-        function syncImageControls(scale, rotation, hasImage) {
-            if (!imageControls) {
-                return;
-            }
-
-            if (hasImage) {
-                imageControls.removeAttribute('hidden');
-            } else {
-                imageControls.setAttribute('hidden', '');
-            }
-
-            if (scaleControl) {
-                scaleControl.value = String(formatScale(scale));
-                scaleControl.disabled = !hasImage;
-            }
-            if (scaleValueEl) {
-                scaleValueEl.textContent = formatScale(scale) + '%';
-            }
-
-            if (rotationControl) {
-                rotationControl.value = String(Math.round(rotation));
-                rotationControl.disabled = !hasImage;
-            }
-            if (rotationValueEl) {
-                rotationValueEl.textContent = Math.round(rotation) + '°';
-            }
-
-            if (resetControl) {
-                resetControl.disabled = !hasImage;
-            }
-        }
-
         return function updatePreview() {
             const title = fields.title && fields.title.value.trim();
             const badge = fields.badge && fields.badge.value.trim();
@@ -257,23 +181,6 @@
             const linkLabel = fields.linkLabel && fields.linkLabel.value.trim();
             const linkUrl = fields.linkUrl && fields.linkUrl.value.trim();
             const imageUrl = fields.imageUrl && fields.imageUrl.value.trim();
-            const scale = parseScale();
-            const rotation = parseRotation();
-            const hasImage = Boolean(imageUrl);
-
-            if (fields.imageScale) {
-                const normalizedScale = scale.toFixed(2);
-                if (fields.imageScale.value !== normalizedScale) {
-                    fields.imageScale.value = normalizedScale;
-                }
-            }
-
-            if (fields.imageRotation) {
-                const normalizedRotation = String(Math.round(rotation));
-                if (fields.imageRotation.value !== normalizedRotation) {
-                    fields.imageRotation.value = normalizedRotation;
-                }
-            }
 
             if (titleEl) {
                 titleEl.textContent = title || defaults.title;
@@ -301,7 +208,6 @@
                     if (imagePlaceholder) {
                         imagePlaceholder.setAttribute('hidden', '');
                     }
-                    imageEl.style.transform = 'scale(' + scale + ') rotate(' + rotation + 'deg)';
                 } else {
                     imageEl.removeAttribute('src');
                     imageEl.setAttribute('hidden', '');
@@ -309,7 +215,6 @@
                     if (imagePlaceholder) {
                         imagePlaceholder.removeAttribute('hidden');
                     }
-                    imageEl.style.transform = '';
                 }
             }
 
@@ -344,8 +249,6 @@
                     linkEl.dataset.placeholder = 'true';
                 }
             }
-
-            syncImageControls(scale, rotation, hasImage);
         };
     }
 
@@ -650,80 +553,13 @@
             imageUrl: designer
                 ? designer.querySelector('[data-card-image-input]')
                 : getField('[data-card-image-input]'),
-            imageScale: getField('[name="image_scale"]'),
-            imageRotation: getField('[name="image_rotation"]'),
         };
-
-        if (fields.imageScale && !fields.imageScale.value) {
-            fields.imageScale.value = '1.00';
-        }
-        if (fields.imageRotation && !fields.imageRotation.value) {
-            fields.imageRotation.value = '0';
-        }
 
         const updatePreview = updatePreviewFactory(root, fields);
 
         Object.values(fields).forEach(function (field) {
             bindInput(field, updatePreview);
         });
-
-        const scaleControl = root.querySelector('[data-preview-image-scale-control]');
-        const rotationControl = root.querySelector('[data-preview-image-rotation-control]');
-        const resetControl = root.querySelector('[data-preview-image-reset]');
-
-        if (scaleControl && fields.imageScale) {
-            scaleControl.addEventListener('input', function (event) {
-                const target = event.target;
-                const percent = parseInt(target.value, 10);
-                let normalized = percent / 100;
-                if (Number.isNaN(normalized)) {
-                    normalized = 1;
-                }
-                normalized = clamp(normalized, IMAGE_SCALE_MIN, IMAGE_SCALE_MAX);
-                const formatted = normalized.toFixed(2);
-                if (fields.imageScale.value !== formatted) {
-                    fields.imageScale.value = formatted;
-                }
-                updatePreview();
-            });
-        }
-
-        if (rotationControl && fields.imageRotation) {
-            rotationControl.addEventListener('input', function (event) {
-                const target = event.target;
-                const degrees = parseInt(target.value, 10);
-                let normalized = Number.isNaN(degrees) ? 0 : degrees;
-                normalized = clamp(normalized, IMAGE_ROTATION_MIN, IMAGE_ROTATION_MAX);
-                const formatted = String(Math.round(normalized));
-                if (fields.imageRotation.value !== formatted) {
-                    fields.imageRotation.value = formatted;
-                }
-                updatePreview();
-            });
-        }
-
-        if (resetControl && fields.imageScale && fields.imageRotation) {
-            resetControl.addEventListener('click', function (event) {
-                event.preventDefault();
-                const defaultScale = '1.00';
-                const defaultRotation = '0';
-                let shouldUpdate = false;
-
-                if (fields.imageScale.value !== defaultScale) {
-                    fields.imageScale.value = defaultScale;
-                    shouldUpdate = true;
-                }
-
-                if (fields.imageRotation.value !== defaultRotation) {
-                    fields.imageRotation.value = defaultRotation;
-                    shouldUpdate = true;
-                }
-
-                if (shouldUpdate) {
-                    updatePreview();
-                }
-            });
-        }
 
         function bindAllImageInputs() {
             document.querySelectorAll('[data-card-image-input]').forEach(function (input) {
