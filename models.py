@@ -7,7 +7,7 @@ from datetime import datetime
 from flask import has_request_context, url_for
 from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import declared_attr, relationship
 
 # Comentário: instância global do SQLAlchemy para ser compartilhada entre módulos.
@@ -312,6 +312,8 @@ class SectionItem(AuditMixin, db.Model):
     link_label = Column(String(100), nullable=True)
     icon_class = Column(String(120), nullable=True)
     image_url = Column(String(500), nullable=True)
+    image_scale = Column(Float, nullable=False, default=1.0, server_default="1.0")
+    image_rotation = Column(Float, nullable=False, default=0.0, server_default="0.0")
     badge = Column(String(120), nullable=True)
     display_date = Column(String(120), nullable=True)
     display_order = Column(Integer, nullable=False, default=0)
@@ -337,3 +339,27 @@ class SectionItem(AuditMixin, db.Model):
                 section_id=self.section_id,
             )
         )
+
+    @staticmethod
+    def _clamp(value: float, minimum: float, maximum: float) -> float:
+        if value < minimum:
+            return minimum
+        if value > maximum:
+            return maximum
+        return value
+
+    @property
+    def image_scale_normalized(self) -> float:
+        value = self.image_scale or 1.0
+        return self._clamp(value, 0.5, 2.0)
+
+    @property
+    def image_rotation_normalized(self) -> float:
+        value = self.image_rotation or 0.0
+        return self._clamp(value, -180.0, 180.0)
+
+    @property
+    def image_transform_css(self) -> str:
+        scale = self.image_scale_normalized
+        rotation = self.image_rotation_normalized
+        return f"scale({scale:.4f}) rotate({rotation:.2f}deg)"
