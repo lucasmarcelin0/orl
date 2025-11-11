@@ -7,6 +7,8 @@ from datetime import datetime
 import json
 import os
 from pathlib import Path
+import shutil
+import subprocess
 from typing import Iterable
 import uuid
 import threading
@@ -40,7 +42,8 @@ from flask_login import (
 )
 from flask_babel import Babel
 from flask_socketio import SocketIO
-from sqlalchemy import event, func, inspect, or_, text
+from sqlalchemy import create_engine, event, func, inspect, or_, text
+from sqlalchemy.engine import make_url
 from sqlalchemy.orm import load_only
 from sqlalchemy.exc import IntegrityError, OperationalError
 from werkzeug.utils import secure_filename
@@ -81,6 +84,72 @@ def create_app() -> Flask:
 
     app = Flask(__name__)
     app.config.from_object(Config)
+
+    def _database_connect_timeout() -> int:
+        value = os.getenv("DATABASE_CONNECT_TIMEOUT")
+        if not value:
+            return 5
+        try:
+            return max(int(value), 1)
+        except (TypeError, ValueError):
+            return 5
+
+    def _test_database_connection(database_uri: str) -> None:
+        if not database_uri:
+            return
+
+        url = make_url(database_uri)
+        engine_kwargs: dict[str, object] = {"pool_pre_ping": True}
+        connect_args: dict[str, object] = {}
+
+        if url.drivername.startswith("postgresql"):
+            connect_args["connect_timeout"] = _database_connect_timeout()
+
+        if connect_args:
+            engine_kwargs["connect_args"] = connect_args
+
+        engine = create_engine(database_uri, **engine_kwargs)
+        try:
+            with engine.connect() as connection:
+                connection.execute(text("SELECT 1"))
+        finally:
+            engine.dispose()
+
+    def _configure_database() -> None:
+        primary_uri = app.config.get("SQLALCHEMY_PRIMARY_DATABASE_URI")
+        configured_uri = app.config.get("SQLALCHEMY_DATABASE_URI")
+        fallback_uri = app.config.get("SQLALCHEMY_FALLBACK_DATABASE_URI")
+
+        if not primary_uri:
+            primary_uri = configured_uri
+
+        if not primary_uri and fallback_uri:
+            app.config["SQLALCHEMY_DATABASE_URI"] = fallback_uri
+            app.config["SQLALCHEMY_DATABASE_FALLBACK_USED"] = False
+            return
+
+        if not primary_uri:
+            return
+
+        try:
+            _test_database_connection(primary_uri)
+        except Exception as exc:  # pragma: no cover - depende de ambiente externo
+            if fallback_uri and fallback_uri != primary_uri:
+                app.logger.warning(
+                    "Não foi possível conectar ao banco configurado. "
+                    "Aplicando fallback local.",
+                    exc_info=exc,
+                )
+                app.config["SQLALCHEMY_DATABASE_URI"] = fallback_uri
+                app.config["SQLALCHEMY_DATABASE_FALLBACK_USED"] = True
+                app.config["SQLALCHEMY_DATABASE_FALLBACK_REASON"] = str(exc)
+            else:
+                raise
+        else:
+            app.config["SQLALCHEMY_DATABASE_URI"] = primary_uri
+            app.config["SQLALCHEMY_DATABASE_FALLBACK_USED"] = False
+
+    _configure_database()
 
     storage.init_cloudinary(app)
 
@@ -497,6 +566,100 @@ def create_app() -> Flask:
             ensure_default_admin_user()
 
         click.echo("Dados padrão verificados com sucesso.")
+
+    @app.cli.command("restore-database-dump")
+    @click.option(
+        "--dump-path",
+        default="latest.dump",
+        show_default=True,
+        help=(
+            "Caminho para o arquivo de dump gerado pelo Heroku (formato custom do pg_dump)."
+        ),
+    )
+    @click.option(
+        "--target",
+        type=click.Choice(["auto", "primary", "fallback"]),
+        default="auto",
+        show_default=True,
+        help=(
+            "Define qual banco receberá os dados. Em 'auto', utiliza o fallback "
+            "quando ele estiver ativo."
+        ),
+    )
+    def restore_database_dump(dump_path: str, target: str) -> None:
+        """Restaura um dump do PostgreSQL no banco configurado."""
+
+        path = Path(dump_path)
+        if not path.is_absolute():
+            path = Path(app.root_path) / path
+
+        if not path.exists():
+            raise click.ClickException(
+                f"Arquivo de dump não encontrado: {path}"
+            )
+
+        primary_uri = app.config.get("SQLALCHEMY_PRIMARY_DATABASE_URI")
+        fallback_uri = app.config.get("SQLALCHEMY_FALLBACK_DATABASE_URI")
+        current_uri = app.config.get("SQLALCHEMY_DATABASE_URI")
+
+        if target == "primary":
+            database_uri = primary_uri or current_uri
+        elif target == "fallback":
+            database_uri = fallback_uri
+        else:  # auto
+            if app.config.get("SQLALCHEMY_DATABASE_FALLBACK_USED"):
+                database_uri = current_uri
+            else:
+                database_uri = primary_uri or current_uri
+
+        if not database_uri:
+            raise click.ClickException(
+                "Nenhuma URL de banco de dados foi configurada para a restauração."
+            )
+
+        url = make_url(database_uri)
+        if not url.drivername.startswith("postgresql"):
+            raise click.ClickException(
+                "A restauração automática requer um banco de dados PostgreSQL. "
+                "Configure LOCAL_DATABASE_URL para apontar para uma instância local."
+            )
+
+        if shutil.which("pg_restore") is None:
+            raise click.ClickException(
+                "O utilitário 'pg_restore' não foi encontrado no PATH. "
+                "Instale o PostgreSQL localmente para continuar."
+            )
+
+        env = os.environ.copy()
+        if url.password:
+            env.setdefault("PGPASSWORD", url.password)
+
+        uri_without_password = url.set(password=None)
+        masked_uri = url.render_as_string(hide_password=True)
+
+        click.echo(
+            f"Restaurando dump '{path}' em {masked_uri} utilizando pg_restore..."
+        )
+
+        command = [
+            "pg_restore",
+            "--clean",
+            "--if-exists",
+            "--no-owner",
+            "--no-privileges",
+            "--dbname",
+            uri_without_password.render_as_string(hide_password=False),
+            str(path),
+        ]
+
+        try:
+            subprocess.run(command, check=True, env=env)
+        except subprocess.CalledProcessError as exc:
+            raise click.ClickException(
+                "Falha ao restaurar o dump utilizando pg_restore."
+            ) from exc
+
+        click.echo("Dump restaurado com sucesso.")
 
     def _run_startup_tasks_once() -> None:
         """Executa rotinas de inicialização apenas uma vez por instância da app."""
