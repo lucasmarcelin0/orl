@@ -220,6 +220,77 @@ def create_app() -> Flask:
                     text("ALTER TABLE quick_link ADD COLUMN footer_column_id INTEGER")
                 )
 
+        try:
+            section_item_columns = {
+                column["name"] for column in inspector.get_columns("section_item")
+            }
+        except Exception:  # pragma: no cover - tabela inexistente em instalações novas
+            section_item_columns = set()
+
+        if section_item_columns:
+            dialect_name = engine.dialect.name
+            transform_columns = {
+                "image_scale": {
+                    "default": "1.0",
+                    "not_null": True,
+                    "type": {
+                        "postgresql": "DOUBLE PRECISION",
+                        "sqlite": "REAL",
+                        "default": "FLOAT",
+                    },
+                },
+                "image_rotation": {
+                    "default": "0",
+                    "not_null": True,
+                    "type": {
+                        "postgresql": "INTEGER",
+                        "sqlite": "INTEGER",
+                        "default": "INTEGER",
+                    },
+                },
+            }
+
+            with engine.begin() as connection:
+                for column_name, spec in transform_columns.items():
+                    if column_name in section_item_columns:
+                        continue
+
+                    column_type = spec["type"].get(
+                        dialect_name, spec["type"].get("default", "TEXT")
+                    )
+                    default_value = spec.get("default")
+
+                    alter_statement = (
+                        f"ALTER TABLE section_item ADD COLUMN {column_name} {column_type}"
+                    )
+                    if default_value is not None:
+                        alter_statement = f"{alter_statement} DEFAULT {default_value}"
+
+                    connection.execute(text(alter_statement))
+
+                    if default_value is not None:
+                        connection.execute(
+                            text(
+                                f"UPDATE section_item SET {column_name} = {default_value} "
+                                f"WHERE {column_name} IS NULL"
+                            )
+                        )
+
+                        if dialect_name == "postgresql":
+                            connection.execute(
+                                text(
+                                    f"ALTER TABLE section_item ALTER COLUMN {column_name} "
+                                    f"SET DEFAULT {default_value}"
+                                )
+                            )
+
+                    if spec.get("not_null") and dialect_name == "postgresql":
+                        connection.execute(
+                            text(
+                                f"ALTER TABLE section_item ALTER COLUMN {column_name} SET NOT NULL"
+                            )
+                        )
+
         audit_tables = (
             "page",
             "homepage_section",
