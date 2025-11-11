@@ -191,8 +191,29 @@ class Config:
             # retomamos a URL original para não impedir a aplicação de iniciar.
             _database_url = _database_url_raw
 
+    _fallback_database_url_raw = os.getenv("LOCAL_DATABASE_URL")
+    _fallback_database_url = (
+        _repair_surrogates(_fallback_database_url_raw)
+        if isinstance(_fallback_database_url_raw, str)
+        else _fallback_database_url_raw
+    )
+
+    if _fallback_database_url and _normalize_database_url:
+        try:
+            _fallback_database_url = _normalized_database_url(
+                _fallback_database_url
+            )
+        except Exception:
+            _fallback_database_url = _fallback_database_url_raw
+
+    DEFAULT_SQLITE_PATH = BASE_DIR / "project.db"
+
+    SQLALCHEMY_FALLBACK_DATABASE_URI = (
+        _fallback_database_url or f"sqlite:///{DEFAULT_SQLITE_PATH}"
+    )
+    SQLALCHEMY_PRIMARY_DATABASE_URI = _database_url
     SQLALCHEMY_DATABASE_URI = (
-        _database_url or f"sqlite:///{BASE_DIR / 'project.db'}"
+        _database_url or SQLALCHEMY_FALLBACK_DATABASE_URI
     )
 
     # Comentário: chave secreta utilizada para sessões e formulários.
